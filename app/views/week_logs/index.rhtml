@@ -3,6 +3,11 @@
   <%= text_field_tag 'week_selector' %>
   <%= label_tag 'total_hours' %>
   <%= text_field_tag 'total_hours' %>
+  
+  <div class = "hidden">
+    <%= text_field_tag 'week_start' %>
+    <%= text_field_tag 'week_end' %>
+  </div>
 </div>
 
 <div id="proj_related">
@@ -14,3 +19,8 @@
 </div>
 
 <%= stylesheet_link_tag "week_logs/index", :plugin => 'time_logging' %>
+<%= stylesheet_link_tag "jquery-ui-1.8.18.custom.css", :plugin => 'time_logging' %>
+<%= javascript_include_tag "jquery-1.7.1.min.js", :plugin => 'time_logging' %>
+<%= javascript_include_tag "jquery-ui-1.8.18.custom.min.js", :plugin => 'time_logging' %>
+<%= javascript_include_tag "week_logs/index.js", :plugin => 'time_logging' %>
+
