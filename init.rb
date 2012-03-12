@@ -5,4 +5,11 @@ Redmine::Plugin.register :time_logging do
   author 'Exist DEN Team'
   description 'Patch for new weekly time logging features'
   version '0.0.1'
+
+  menu :top_menu,
+       :my_time_logs,
+       { :controller => 'week_logs', :action => :index },
+       :caption => 'My time logs',
+       :after   => :my_page,
+       :if => Proc.new { User.current.logged? }
 end
