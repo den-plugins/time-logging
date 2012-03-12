@@ -1,0 +1,14 @@
+<tr id="issue-<%= issue.id %>" class="issue hascontextmenu <%= cycle('odd', 'even') %> <%= "status-#{issue.status.position} priority-#{issue.priority.position}" %>">
+  <td><input type="button" class="row-button" value="-"/></td>
+  <td class="subject">
+    <%= link_to "#{issue.id} - #{h(truncate(issue.subject,80))}", :controller => :issues, :action => :show, :id => issue %>
+  </td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>

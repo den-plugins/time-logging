@@ -1,5 +1,9 @@
 require 'redmine'
 
+Dispatcher.to_prepare do
+  Issue.send(:include, TimeLogging::IssuePatch)
+end
+
 Redmine::Plugin.register :time_logging do
   name 'Weekly time logging plugin'
   author 'Exist DEN Team'

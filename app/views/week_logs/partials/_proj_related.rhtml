@@ -2,7 +2,7 @@
     <h2>Project Related Tasks</h2>
     <input type="button" id="proj_button" class="head-button" value="+"/>
   </div>
-  <table id = "proj_table">
+  <table id="proj_table">
     <thead>
       <tr>
         <th></th>
@@ -18,20 +18,7 @@
       </tr>
     </thead>
     <tbody>
-    <% @issues.each do |issues| %>
-      <tr>
-        <td><input type="button" class="row-button" value="-"/></td>
-        <td class="custom"><%= issues %></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    <% end %>
+      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue %>
       <tr>
         <td colspan=8></td>
         <td><%= label_tag 'total' %></td>

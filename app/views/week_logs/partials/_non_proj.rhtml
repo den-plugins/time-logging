@@ -18,18 +18,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td><input type="button" class="row-button" value="-"/></td>
-        <td class="custom">101-Task1</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
+      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue %>
       <tr>
         <td colspan=8></td>
         <td><%= label_tag 'total' %></td>
