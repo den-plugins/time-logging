@@ -4,6 +4,7 @@ $(document).ready(function(){
 });
 
 function initializers() {
+  $(".hidden").hide();
   var date = new Date();
   var currentMonth = date.getMonth();
   var currentDate = date.getDate();
@@ -46,8 +47,8 @@ function initializers() {
         var end = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         var start_output = start.getDate()+"/"+(start.getMonth()+1)+"/"+start.getFullYear();
         var end_output = end.getDate()+"/"+(end.getMonth()+1)+"/"+end.getFullYear();
-        $('#reports_week_start').val(start_output);
-        $('#reports_week_end').val(end_output);
+        $('#week_start').val(start_output);
+        $('#week_end').val(end_output);
         $('#week_selector').val(start_output+" to "+end_output);
       },
     });
