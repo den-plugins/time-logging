@@ -4,7 +4,7 @@ h2 {display:inline;}
 
 table {text-align:center; padding:5px 10px;}
 thead th, tbody td {padding-left:10px 10px;}
-.custom {padding-right:100px;}
+.custom {padding-right:100px; float:left;}
 .head-button {margin-bottom:10px;}
 tbody td+td+td {border:1px solid black;}
 
