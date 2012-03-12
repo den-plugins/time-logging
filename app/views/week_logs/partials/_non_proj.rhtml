@@ -1,0 +1,39 @@
+  <div class="header">
+    <h2>Non-Project (Admin) Related Tasks</h2>
+    <input type="button" id="non_proj_button" class="head-button" value="+"/>
+  </div>
+  <table id="non_proj_table">
+    <thead>
+      <tr>
+        <th></th>
+        <th class="custom">Task/Activity</th>
+        <th>Mon<br/>1</th>
+        <th>Tue<br/>2</th>
+        <th>Wed<br/>3</th>
+        <th>Thur<br/>4</th>
+        <th>Fri<br/>5</th>
+        <th>Sat<br/>6</th>
+        <th>Sun<br/>7</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="button" class="row-button" value="-"/></td>
+        <td class="custom">101-Task1</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td colspan=8></td>
+        <td><%= label_tag 'total' %></td>
+        <td>10</td>
+      </tr>
+    </tbody>
+  </table>
