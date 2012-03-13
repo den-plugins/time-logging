@@ -20,9 +20,16 @@
     <tbody>
       <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue %>
       <tr>
-        <td colspan=8></td>
-        <td><%= label_tag 'total' %></td>
-        <td><%= text_field_tag 'total_non_proj', "", :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
+        <td></td>
+        <td class = "mon"></td>
+        <td class = "tue"></td>
+        <td class = "wed"></td>
+        <td class = "thu"></td>
+        <td class = "fri"></td>
+        <td class = "sat"></td>
+        <td class = "sun"></td>
+        <td class = "border-cell"><%= label_tag 'total' %></td>
+        <td class = "border-cell"><%= text_field_tag 'total_non_proj', "", :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
       </tr>
     </tbody>
   </table>

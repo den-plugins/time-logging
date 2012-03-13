@@ -6,7 +6,7 @@ table {text-align:center; padding:5px 10px;}
 thead th, tbody td {padding-left:10px 10px;}
 .custom {padding-right:100px; float:left;}
 .head-button {margin-bottom:10px;}
-tbody td+td+td {border:1px solid black;}
+tbody .border-cell {border:1px solid black;}
 tbody td input, .total_input {border:none; background:none;text-align:center;}
 
 #submit_button {float:right; margin-right:650px; height:30px; width:70px;}
