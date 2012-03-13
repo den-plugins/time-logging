@@ -2,17 +2,15 @@ class WeekLogsController < ApplicationController
 
   def index
     @user = User.current
-    issues = Issue.open.visible.assigned_and_loggable_to(@user).all(
-      :include => [ :status, :project, :tracker, :priority ],
-      :order => "#{Project.table_name}.id DESC, #{Enumeration.table_name}.position DESC")
-    @project_issues = issues.select { |i| i.project.name !~ /admin/i }
-    @non_project_issues = issues.select { |i| i.project.name =~ /admin/i }
+    projects = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) }
+    project_related, non_project_related = projects.partition{ |p| p.name !~ /admin/i }
+    @projects = { :non_admin => project_related, :admin => non_project_related }
+    @issues = { :project_related => Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
+                :non_project_related => Issue.in_projects(@projects[:admin]) }
     respond_to do |format|
       format.html
       format.json do
-        render :json => { :issues => {
-                            :project_issues => @project_issues.map(&:to_json),
-                            :non_project_issues => @non_project_issues.map(&:to_json) } }
+        render :json => @issues.to_json
       end
     end
   end
