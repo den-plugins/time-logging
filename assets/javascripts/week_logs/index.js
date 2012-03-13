@@ -24,7 +24,7 @@ function initializers() {
     $('#week_selector').val(start_output+" to "+end_output);
     $('#js_week_start').val(start);
     $('#js_week_end').val(end);
-    refreshTableDates();
+    Week.refreshTableDates();
 
     $('#week_selector').datepicker({
       maxDate: maxDate,
@@ -44,7 +44,7 @@ function initializers() {
         $('#week_selector').val(start_output+" to "+end_output);
         $('#js_week_start').val(start);
         $('#js_week_end').val(end);
-        refreshTableDates();
+        Week.refreshTableDates();
       },
       beforeShowDay: function(dates) {
           var cssClass = '';
@@ -60,35 +60,25 @@ function initializers() {
           $(this).find("td").each(function(y){
             var row_date = (start.getDate()+y-2)+"-"+(start.getMonth()+1)+"-"+start.getFullYear();
             switch(y) {
-              case 1: 
-                    id = $(this).text().match(/\d+/);
-                    row[id] = {}
-                  break;
+              case 1:
+                id = $(this).text().match(/\d+/);
+                row[id] = {}
+                break;
               case 2:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
               case 3:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
               case 4:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
               case 5:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
               case 6:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
               case 7:
-                    row[id][row_date] = {hours:$(this).find("input").val()};
-                  break;
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
             }
           });
         }
       });
-      return row
+      return row;
     }
-    
+
     $("#submit_button").live("click", function(){
       var id;
       $.post("/week_logs/update", {
@@ -97,7 +87,7 @@ function initializers() {
       });
     });
   }
-  
+
   $(".hide-button").live("click", function(){
     $(this).parent().parent().hide();
   });
@@ -105,12 +95,13 @@ function initializers() {
     var form = $('#' + $(button).attr('data-toggle'));
     if(form.hasClass('hidden')) {
       form.removeClass('hidden');
+      form.find('.add-task-id').focus();
     } else {
       form.addClass('hidden');
-      form.find('.add-task-submit').attr('disabled', true);
-      form.find('.add-task-id').focus().val('');
-      form.find('.error').addClass('hidden').text('');
     }
+    form.find('.add-task-submit').attr('disabled', true);
+    form.find('.add-task-id').val('');
+    form.find('.error').addClass('hidden').text('');
   };
 
   Week.addTaskRow = function(data, table) {
@@ -122,7 +113,7 @@ function initializers() {
     } else {
       taskRow.addClass('even');
     }
-    taskTableBody.prepend(taskRow);
+    taskTableBody.append(taskRow);
     return taskRow;
   };
 
@@ -138,10 +129,7 @@ function initializers() {
     }
   };
 
-  $('.head-button').click(function() {
-    Week.toggleAddTaskForm(this);
-  });
-  $('.add-task-cancel').click(function() {
+  $('.head-button, .add-task-cancel').click(function() {
     Week.toggleAddTaskForm(this);
   });
   $('.add-task-form')
@@ -156,10 +144,12 @@ function initializers() {
         existingTask = taskTableBody.find('#' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
-        if(existingTask.effect) {
-          existingTask.effect('highlight');
-        }
-        window.location.hash = '#' + existingTaskId;
+        existingTask.show();
+        $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
+          if(existingTask.effect) {
+            existingTask.effect('highlight');
+          }
+        });
       } else {
         $.ajax({
           type: 'post',
@@ -167,14 +157,19 @@ function initializers() {
           data: form.serialize(),
           success: function(data) {
             var taskRow = Week.addTaskRow(data, table);
-            if(taskRow.effect) {
-              taskRow.effect('highlight');
-            }
+            Week.refreshTableDates();
+            $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
+              if(taskRow.effect) {
+                taskRow.effect('highlight');
+              }
+            });
             form.find('input').not('.add-task-submit').attr('disabled', false);
+            form.find('.add-task-id').focus();
           },
           error: function(data) {
             form.find('.error').text(data.responseText).removeClass('hidden');
             form.find('input').not('.add-task-submit').attr('disabled', false);
+            form.find('.add-task-id').focus();
           },
           beforeSend: function() {
             form.find('input').attr('disabled', true);
@@ -182,63 +177,33 @@ function initializers() {
         });
       }
       form.find('.add-task-submit').attr('disabled', true);
-      form.find('.add-task-id').focus().val('');
+      form.find('.add-task-id').val('');
     } else {
       form.find('.error').text(validOrError).removeClass('hidden');
     }
     return false;
   })
   .find('.add-task-id')
-  .change(function() {
-    var submitButton = $('#' + $(this).attr('data-disable'));
-    submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
-  }).keyup(function() {
+  .bind('change keyup', function() {
     var submitButton = $('#' + $(this).attr('data-disable'));
     submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
   });
-}
 
-function refreshTableDates() {
-      var start = new Date($("#js_week_start").val());
-      var end = new Date($("#js_week_end").val());
-      var inspect = new Date(start);
-      var i = 0;
-      var flag = false;
-      var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 7);
-      while(inspect <= maxDate) {
-        switch(i) {
-          case 0:
-              $("th.mon").html("Mon<br/>"+inspect.getDate());
-              flag == true ? $(".mon").hide() : $(".mon").show()
-            break;
-          case 1:
-              $("th.tue").html("Tue<br/>"+inspect.getDate());
-              flag == true ? $(".tue").hide() : $(".tue").show()
-            break;
-          case 2:
-              $("th.wed").html("Wed<br/>"+inspect.getDate());
-              flag == true ? $(".wed").hide() : $(".wed").show()
-            break;
-          case 3:
-              $("th.thu").html("Thu<br/>"+inspect.getDate());
-              flag == true ? $(".thu").hide() : $(".thu").show()
-            break;
-          case 4:
-              $("th.fri").html("Fri<br/>"+inspect.getDate());
-              flag == true ? $(".fri").hide() : $(".fri").show()
-            break;
-          case 5:
-              $("th.sat").html("Sat<br/>"+inspect.getDate());
-              flag == true ? $(".sat").hide() : $(".sat").show()
-            break;
-          case 6:
-              $("th.sun").html("Sun<br/>"+inspect.getDate());
-              flag == true ? $(".sun").hide() : $(".sun").show()
-            break;
-        }
-        if(inspect.toDateString() == end.toDateString())
-          flag = true;
-        i++;
-        inspect.setDate(inspect.getDate()+1);
-      }
+  Week.refreshTableDates = function() {
+    var start = new Date($("#js_week_start").val());
+    var end = new Date($("#js_week_end").val());
+    var inspect = new Date(start);
+    var i = 0;
+    var flag = false;
+    var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 7);
+    var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    while(inspect <= maxDate) {
+      $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
+      flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
+      if(inspect.toDateString() == end.toDateString())
+        flag = true;
+      i++;
+      inspect.setDate(inspect.getDate()+1);
     }
+  };
+}

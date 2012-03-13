@@ -31,6 +31,8 @@
     </thead>
     <tbody>
       <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue %>
+    </tbody>
+    <tfoot>
       <tr class = "total">
         <td></td>
         <td class = "mon"></td>
@@ -43,5 +45,5 @@
         <td><%= label_tag 'total' %></td>
         <td class = "border-cell"><%= text_field_tag 'total_proj', "", :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
       </tr>
-    </tbody>
+    </tfoot>
   </table>
