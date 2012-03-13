@@ -1,7 +1,19 @@
   <div class="header">
     <h2>Non-Project (Admin) Related Tasks</h2>
-    <input type="button" id="non_proj_button" class="head-button" value="+"/>
+    <input type="button" id="non_proj_button" class="head-button" value="+" data-toggle="add-non-proj-task-form" />
   </div>
+  <% form_tag({ :controller => 'week_logs', :action => 'add_task' }, { :method => :post, :id => 'add-non-proj-task-form', :class => 'add-task-form hidden', :'data-table' => 'non_proj_table' }) do -%>
+    <div class="box">
+      <div id="add-non-proj-task-error" class="flash error hidden"></div>
+      <p>
+        <%= label_tag :'add-non-proj-task-id', 'Issue' %>
+        <%= text_field_tag :id, nil, :id => 'add-non-proj-task-id', :class => 'add-task-id', :'data-disable' => 'add-non-proj-task-submit' %>
+        <%= hidden_field_tag :type, 'admin', :id => 'add-non-proj-task-type', :class => 'add-task-type' %>
+        <%= submit_tag 'Add', :class => 'add-task-submit', :id => 'add-non-proj-task-submit', :disabled => true %>
+        <input type="button" class="add-task-cancel" id="add-non-proj-task-cancel" value="Cancel" data-toggle="add-non-proj-task-form" />
+      </p>
+    </div>
+  <% end -%>
   <table id="non_proj_table">
     <thead>
       <tr>

@@ -3,13 +3,7 @@ $(document).ready(function(){
   Week.init();
 });
 
-/*
-  $.getJSON('/week_logs.json', function(data) {
-    console.log(data.issues.project_issues)
-  });
-*/
 function initializers() {
-  $(".hidden").hide();
   var date = new Date();
   var currentMonth = date.getMonth();
   var currentDate = date.getDate();
@@ -17,7 +11,7 @@ function initializers() {
   if (typeof Week === 'undefined') {
     Week = {};
   }
-  
+
   Week.init = function() {
     var current_date = new Date();
     var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay()+1);
@@ -31,7 +25,7 @@ function initializers() {
     $('#js_week_start').val(start);
     $('#js_week_end').val(end);
     refreshTableDates();
-    
+
     $('#week_selector').datepicker({
       maxDate: maxDate,
       showOn: "button",
@@ -59,7 +53,6 @@ function initializers() {
           return [true, cssClass];
       },
     });
-    
     function createJsonObject(id) {
       var row = {};
       $(id).find("tr").each(function(i) {
@@ -107,6 +100,101 @@ function initializers() {
   
   $(".hide-button").live("click", function(){
     $(this).parent().parent().hide();
+  });
+  Week.toggleAddTaskForm = function(button) {
+    var form = $('#' + $(button).attr('data-toggle'));
+    if(form.hasClass('hidden')) {
+      form.removeClass('hidden');
+    } else {
+      form.addClass('hidden');
+      form.find('.add-task-submit').attr('disabled', true);
+      form.find('.add-task-id').focus().val('');
+      form.find('.error').addClass('hidden').text('');
+    }
+  };
+
+  Week.addTaskRow = function(data, table) {
+    var taskRow = $(data),
+      taskTableBody = $(table).find('tbody'),
+      firstTaskRow = taskTableBody.find('tr').first();
+    if(firstTaskRow && firstTaskRow.hasClass('even')) {
+      taskRow.addClass('odd');
+    } else {
+      taskRow.addClass('even');
+    }
+    taskTableBody.prepend(taskRow);
+    return taskRow;
+  };
+
+  Week.validateForm = function(form) {
+    var taskIdField = $(form).find('.add-task-id'),
+      taskId = taskIdField.val();
+    if(taskId.length === 0) {
+      return 'Issue ID is required.';
+    } else if(!/^\s*\d+\s*$/.test(taskId)) {
+      return 'Issue ID should be a number.';
+    } else {
+      return true;
+    }
+  };
+
+  $('.head-button').click(function() {
+    Week.toggleAddTaskForm(this);
+  });
+  $('.add-task-cancel').click(function() {
+    Week.toggleAddTaskForm(this);
+  });
+  $('.add-task-form')
+  .attr('action', '')
+  .submit(function(e) {
+    var form = $(this), validOrError = Week.validateForm(this),
+      table = $('#' + form.attr('data-table'));
+    e.preventDefault();
+    if(validOrError === true) {
+      var taskTableBody = table.find('tbody'),
+        existingTaskId = form.find('.add-task-id').val(),
+        existingTask = taskTableBody.find('#' + existingTaskId);
+      form.find('.error').addClass('hidden').text('');
+      if(existingTask.length > 0) {
+        if(existingTask.effect) {
+          existingTask.effect('highlight');
+        }
+        window.location.hash = '#' + existingTaskId;
+      } else {
+        $.ajax({
+          type: 'post',
+          url: '/week_logs/add_task',
+          data: form.serialize(),
+          success: function(data) {
+            var taskRow = Week.addTaskRow(data, table);
+            if(taskRow.effect) {
+              taskRow.effect('highlight');
+            }
+            form.find('input').not('.add-task-submit').attr('disabled', false);
+          },
+          error: function(data) {
+            form.find('.error').text(data.responseText).removeClass('hidden');
+            form.find('input').not('.add-task-submit').attr('disabled', false);
+          },
+          beforeSend: function() {
+            form.find('input').attr('disabled', true);
+          }
+        });
+      }
+      form.find('.add-task-submit').attr('disabled', true);
+      form.find('.add-task-id').focus().val('');
+    } else {
+      form.find('.error').text(validOrError).removeClass('hidden');
+    }
+    return false;
+  })
+  .find('.add-task-id')
+  .change(function() {
+    var submitButton = $('#' + $(this).attr('data-disable'));
+    submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
+  }).keyup(function() {
+    var submitButton = $('#' + $(this).attr('data-disable'));
+    submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
   });
 }
 

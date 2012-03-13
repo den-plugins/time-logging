@@ -7,5 +7,7 @@ thead th, tbody td {padding-left:10px 10px;}
 .custom {padding-right:100px; float:left;}
 .head-button {margin-bottom:10px;}
 tbody .border-cell {border:1px solid black;}
+.add-task-form {width:330px;display:block;margin:0 auto;}
+.hidden { display: none }
 tbody .border-cell input, .total_input {border:none; background:none;text-align:center;}
 #submit_button {float:right; margin-right:650px; height:30px; width:70px;}
