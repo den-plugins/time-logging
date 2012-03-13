@@ -3,6 +3,11 @@ $(document).ready(function(){
   Week.init();
 });
 
+/*
+  $.getJSON('/week_logs.json', function(data) {
+    console.log(data.issues.project_issues)
+  });
+*/
 function initializers() {
   $(".hidden").hide();
   var date = new Date();
@@ -13,43 +18,34 @@ function initializers() {
   if (typeof Week === 'undefined') {
     Week = {};
   }
-
-  Week.getWeek = function(select_date) {
-    var week = new Array();
-    for (i = 0; i < 7; i++) {
-      var tempDate = new Date(select_date);
-      tempDate.setDate(tempDate.getDate() - i);
-      week.push(tempDate.getTime());
-    }
-    return week;
-  };
   
   Week.init = function() {
-    Week.collection = new Array();
     var current_date = new Date();
+    var start;
+    var end;
     $('#week_selector').datepicker({
       maxDate: new Date(currentYear, currentMonth, currentDate),
       showOn: "button",
       buttonImage: "",
-      beforeShowDay: function(date) {
-        if ($.inArray(date.getTime(), Week.collection) >= 0) 
-          return [true, "highlighted-week", "Week Range"];
-        else
-          return [true, "", ""];
-      },
+      firstDay: 1,
       onSelect: function(select_date) {
-        Week.collection = Week.getWeek(new Date(current_date.getFullYear(),
-                                                current_date.getMonth(),
-                                                current_date.getDate()));
-        var date = new Date(select_date);
-        Week.collection = Week.getWeek(date);
-        var start = new Date(date.getFullYear(), date.getMonth(), date.getDate()-6);
-        var end = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        var date = $(this).datepicker('getDate');
+        var maxDate = new Date(currentYear, currentMonth, currentDate);
+        start = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay()+1);
+        end = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 7);
+        if(end > maxDate)
+          end = maxDate;
         var start_output = start.getDate()+"/"+(start.getMonth()+1)+"/"+start.getFullYear();
         var end_output = end.getDate()+"/"+(end.getMonth()+1)+"/"+end.getFullYear();
         $('#week_start').val(start_output);
         $('#week_end').val(end_output);
         $('#week_selector').val(start_output+" to "+end_output);
+      },
+      beforeShowDay: function(date) {
+          var cssClass = '';
+          if(date >= start && date <= end)
+              cssClass = 'ui-state-active';
+          return [true, cssClass];
       },
     });
   };

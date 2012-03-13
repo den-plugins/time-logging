@@ -2,7 +2,7 @@
   <%= label_tag 'week_selector' %>
   <%= text_field_tag 'week_selector' %>
   <%= label_tag 'total_hours' %>
-  <%= text_field_tag 'total_hours' %>
+  <%= text_field_tag 'total_hours', "", :maxlength=>5, :readonly=>"readonly" %>
 
   <div class = "hidden">
     <%= text_field_tag 'week_start' %>
@@ -17,6 +17,8 @@
 <div id="non_proj_related">
   <%= render :partial => "/week_logs/partials/non_proj.rhtml", :locals => {:issues => @non_project_issues} %>
 </div>
+
+<input type="button" id="submit_button" class="submit_button" value="Submit"/>
 
 <%= stylesheet_link_tag "week_logs/index", :plugin => 'time_logging' %>
 <%= stylesheet_link_tag "jquery-ui-1.8.18.custom.css", :plugin => 'time_logging' %>

@@ -9,3 +9,4 @@ thead th, tbody td {padding-left:10px 10px;}
 tbody td+td+td {border:1px solid black;}
 tbody td input, .total_input {border:none; background:none;text-align:center;}
 
+#submit_button {float:right; margin-right:650px; height:30px; width:70px;}
