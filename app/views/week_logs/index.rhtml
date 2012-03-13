@@ -11,11 +11,11 @@
 </div>
 
 <div id="proj_related">
-  <%= render :partial => "/week_logs/partials/proj_related.rhtml", :locals => {:issues => @project_issues} %>
+  <%= render :partial => "/week_logs/partials/proj_related.rhtml", :locals => {:issues => @issues[:project_related]} %>
 </div>
 
 <div id="non_proj_related">
-  <%= render :partial => "/week_logs/partials/non_proj.rhtml", :locals => {:issues => @non_project_issues} %>
+  <%= render :partial => "/week_logs/partials/non_proj.rhtml", :locals => {:issues => @issues[:non_project_related]} %>
 </div>
 
 <%= stylesheet_link_tag "week_logs/index", :plugin => 'time_logging' %>

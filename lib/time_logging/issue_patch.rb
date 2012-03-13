@@ -4,11 +4,12 @@ module TimeLogging
   module IssuePatch
     def self.included(base) # :nodoc:
       base.class_eval do
-        named_scope :assigned_and_loggable_to, lambda { |user|
-            pids = user.memberships.select {|m| m.role.allowed_to?(:log_time)}.collect(&:project_id)
-            { :conditions => {
-                :assigned_to_id => user.id,
-                :project_id => pids } }
+        named_scope :assigned_to, lambda { |user|
+            user ||= User.current
+            { :conditions => { :assigned_to_id => user.id } }
+          }
+        named_scope :in_projects, lambda { |*projects|
+            { :conditions => { :project_id => (projects || []).flatten.map(&:id) } }
           }
       end
     end
