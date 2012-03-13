@@ -3,12 +3,12 @@
   <td class="subject">
     <%= link_to "#{issue.id} - #{h(truncate(issue.subject,80))}", :controller => :issues, :action => :show, :id => issue %>
   </td>
-  <td><%= text_field_tag 'sun', "", :size=>2, :maxlength=>1 %></td>
-  <td><%= text_field_tag 'mon', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'tue', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'wed', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'thu', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'fri', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'sat', "", :size=>2, :maxlength=>1  %></td>
-  <td><%= text_field_tag 'total', "", :size=>2, :maxlength=>1, :readonly=>"readonly"  %></td>
+  <td class = "mon"><%= text_field_tag 'mon', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "tue"><%= text_field_tag 'tue', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "wed"><%= text_field_tag 'wed', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "thu"><%= text_field_tag 'thu', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "fri"><%= text_field_tag 'fri', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "sat"><%= text_field_tag 'sat', "", :size=>2, :maxlength=>1  %></td>
+  <td class = "sun"><%= text_field_tag 'sun', "", :class=>"sun", :size=>2, :maxlength=>1 %></td>
+  <td class = "mon"><%= text_field_tag 'total', "", :size=>2, :maxlength=>1, :readonly=>"readonly"  %></td>
 </tr>
