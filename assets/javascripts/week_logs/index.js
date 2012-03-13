@@ -28,6 +28,8 @@ function initializers() {
     $('#week_start').val(start_output);
     $('#week_end').val(end_output);
     $('#week_selector').val(start_output+" to "+end_output);
+    $('#js_week_start').val(start);
+    $('#js_week_end').val(end);
     refreshTableDates();
     
     $('#week_selector').datepicker({
@@ -36,9 +38,9 @@ function initializers() {
       buttonImage: "",
       firstDay: 1,
       onSelect: function(select_date) {
-        var date = $(this).datepicker('getDate');
-        start = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay()+1);
-        end = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 7);
+        var sd = $(this).datepicker('getDate');
+        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay()+1);
+        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 7);
         if(end > maxDate)
           end = maxDate;
         start_output = start.getDate()+"/"+(start.getMonth()+1)+"/"+start.getFullYear();
@@ -46,18 +48,72 @@ function initializers() {
         $('#week_start').val(start_output);
         $('#week_end').val(end_output);
         $('#week_selector').val(start_output+" to "+end_output);
+        $('#js_week_start').val(start);
+        $('#js_week_end').val(end);
         refreshTableDates();
       },
-      beforeShowDay: function(date) {
+      beforeShowDay: function(dates) {
           var cssClass = '';
-          if(date >= start && date <= end)
+          if(dates >= start && dates <= end)
               cssClass = 'ui-state-highlight ui-state-active';
           return [true, cssClass];
       },
     });
     
-    function refreshTableDates() {
-      var inspect = start;
+    function createJsonObject(id) {
+      var row = {};
+      $(id).find("tr").each(function(i) {
+        if($(this).attr("class")!="total") {
+          $(this).find("td").each(function(y){
+            var row_date = (start.getDate()+y-2)+"-"+(start.getMonth()+1)+"-"+start.getFullYear();
+            switch(y) {
+              case 1: 
+                    id = $(this).text().match(/\d+/);
+                    row[id] = {}
+                  break;
+              case 2:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+              case 3:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+              case 4:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+              case 5:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+              case 6:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+              case 7:
+                    row[id][row_date] = {hours:$(this).find("input").val()};
+                  break;
+            }
+          });
+        }
+      });
+      return row
+    }
+    
+    $("#submit_button").live("click", function(){
+      var id;
+      $.post("/week_logs/update", {
+                  project: JSON.stringify(createJsonObject("#proj_table")),
+                  non_project: JSON.stringify(createJsonObject("#non_proj_table"))
+      });
+    });
+  }
+  
+  $(".hide-button").live("click", function(){
+    $(this).parent().parent().hide();
+  });
+}
+
+function refreshTableDates() {
+      var start = new Date($("#js_week_start").val());
+      var end = new Date($("#js_week_end").val());
+      var inspect = new Date(start);
       var i = 0;
       var flag = false;
       var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 7);
@@ -98,5 +154,3 @@ function initializers() {
         inspect.setDate(inspect.getDate()+1);
       }
     }
-  };
-}

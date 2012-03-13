@@ -1,5 +1,7 @@
 class WeekLogsController < ApplicationController
 
+  require 'json'
+  
   def index
     @user = User.current
     projects = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) }
@@ -25,6 +27,28 @@ class WeekLogsController < ApplicationController
   end
 
   def update
+    project = JSON params[:project]
+    non_project = JSON params[:non_project]
+    user = User.current
+    project.each_key do |issue|
+      project[issue].each_key do |date|
+        time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
+        if time_entry.empty?
+          if(project[issue][date]['hours'].match(/\d+/))
+            proj_i = Issue.find(issue)
+            new_time = TimeEntry.new(:project => proj_i.project, :issue => proj_i, :user => User.current)
+            new_time.hours = Float project[issue][date]['hours']
+            new_time.spent_on = Date.parse(date)
+            new_time.activity_id = 9
+            new_time.save!
+          end
+        else
+          time_entry.first.hours = Float project[issue][date]['hours'] rescue time_entry.first.hours = 0
+          time_entry.first.save!
+        end
+      end      
+    end
+    render :nothing=>true
   end
 
   def destroy
