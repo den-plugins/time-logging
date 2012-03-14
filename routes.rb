@@ -1,1 +1,1 @@
-map.resources :week_logs, :collection => {:add_task => :post}
+map.resources :week_logs, :collection => {:add_task => :post, :remove_task => :post}

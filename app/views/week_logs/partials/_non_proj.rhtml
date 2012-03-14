@@ -7,10 +7,12 @@
       <div id="add-non-proj-task-error" class="flash error hidden"></div>
       <p>
         <%= label_tag :'add-non-proj-task-id', 'Issue' %>
-        <%= text_field_tag :id, nil, :id => 'add-non-proj-task-id', :class => 'add-task-id', :'data-disable' => 'add-non-proj-task-submit' %>
+        <%= text_field_tag :id, nil, :id => 'add-non-proj-task-id', :class => 'add-task-id', :'data-disable' => 'add-non-proj-task-submit', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
         <%= hidden_field_tag :type, 'admin', :id => 'add-non-proj-task-type', :class => 'add-task-type' %>
-        <%= submit_tag 'Add', :class => 'add-task-submit', :id => 'add-non-proj-task-submit', :disabled => true %>
-        <input type="button" class="add-task-cancel" id="add-non-proj-task-cancel" value="Cancel" data-toggle="add-non-proj-task-form" />
+        <span class="buttons">
+          <%= submit_tag 'Add', :class => 'add-task-submit', :id => 'add-non-proj-task-submit', :disabled => true %>
+          <input type="button" class="add-task-cancel" id="add-non-proj-task-cancel" value="Cancel" data-toggle="add-non-proj-task-form" />
+        </span>
       </p>
     </div>
   <% end -%>

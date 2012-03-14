@@ -12,6 +12,6 @@
   <td class = "border-cell">
     <% subtotal = TimeEntry.get_total(@week_start, issue) %>
     <% @total += subtotal %>
-    <%= text_field_tag 'total', subtotal, :size=>2, :maxlength=>1, :readonly=>"readonly"  %>
+    <%= text_field_tag 'total', subtotal, :size=>2, :maxlength=>1, :readonly=>"readonly", :id=>"#{issue.id}-total", :class=>"total" %>
   </td>
 </tr>

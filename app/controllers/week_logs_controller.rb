@@ -5,8 +5,10 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    @issues = { :project_related => Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
-                :non_project_related => Issue.in_projects(@projects[:admin]) }
+    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]) }
+    session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
+    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
     respond_to do |format|
       format.html
       format.json do
@@ -42,7 +44,16 @@ class WeekLogsController < ApplicationController
                'admin' => Issue.in_projects(@projects[:admin]) }
     @issue = issues[issue_type].find(issue_id)
     @total = 0 #placeholder
-    render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
+    case issue_type
+    when 'project'
+      session[:project_issue_ids] ||= []
+      session[:project_issue_ids] << issue_id
+    when 'admin'
+      session[:non_project_issue_ids] ||= []
+      session[:non_project_issue_ids] << issue_id
+    end
+    # render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
+    head :created
   rescue ActiveRecord::RecordNotFound
     other_issues = case issue_type
                    when 'admin'
@@ -58,6 +69,13 @@ class WeekLogsController < ApplicationController
     else
       render :text => "Issue ##{issue_id} does not exist.", :status => 404
     end
+  end
+
+  def remove_task
+    issue_id = params[:id].to_i
+    session[:project_issue_ids].delete(issue_id)
+    session[:non_project_issue_ids].delete(issue_id)
+    head :ok
   end
 
   private

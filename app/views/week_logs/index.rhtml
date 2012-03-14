@@ -2,7 +2,7 @@
   <%= label_tag 'week_selector' %>
   <%= text_field_tag 'week_selector' %>
   <%= label_tag 'total_hours' %>
-  <%= text_field_tag 'total_hours', TimeEntry.weekly_total(@week_start), :maxlength=>5, :readonly=>"readonly" %>
+  <%= text_field_tag 'total_hours', 0, :maxlength=>5, :readonly=>"readonly" %>
 
   <div class = "hidden">
     <%= text_field_tag 'week_start' %>
