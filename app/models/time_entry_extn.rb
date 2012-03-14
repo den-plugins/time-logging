@@ -14,7 +14,11 @@ module TimeEntryExtn
     end
 
     def get_total(week_start, issue)
-      TimeEntry.sum(:hours, :conditions=>["issue_id = ? AND spent_on BETWEEN ? AND ?", issue.id, week_start, week_start + 7.day]).to_f
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND issue_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, issue.id, week_start, week_start + 7.day]).to_f
+    end
+
+    def weekly_total(week_start)
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, week_start, week_start + 7.day]).to_f
     end
   end
 end
