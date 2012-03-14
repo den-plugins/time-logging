@@ -2,7 +2,7 @@ class WeekLogsController < ApplicationController
   before_filter :find_user_projects, :only => [:index, :add_task]
 
   require 'json'
-  
+
   def index
     params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
     @week_start = ((@week_start-6)..(@week_start+6)).find{|wk| wk.cwday == 1}
@@ -66,6 +66,7 @@ class WeekLogsController < ApplicationController
       @user = User.current
       projects = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) }
       project_related, non_project_related = projects.partition{ |p| p.name !~ /admin/i }
+      non_project_related = non_project_related.first || Project.find_by_name('Exist Engineering Admin')
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
 end
