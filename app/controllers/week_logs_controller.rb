@@ -1,11 +1,10 @@
 class WeekLogsController < ApplicationController
+  before_filter :get_week_start, :only => [:index, :add_task]
   before_filter :find_user_projects, :only => [:index, :add_task]
 
   require 'json'
 
   def index
-    params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
-    @week_start = ((@week_start-6)..(@week_start+6)).find{|wk| wk.cwday == 1}
     @issues = { :project_related => Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
                 :non_project_related => Issue.in_projects(@projects[:admin]) }
     respond_to do |format|
@@ -42,6 +41,7 @@ class WeekLogsController < ApplicationController
     issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]),
                'admin' => Issue.in_projects(@projects[:admin]) }
     @issue = issues[issue_type].find(issue_id)
+    @total = 0 #placeholder
     render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
   rescue ActiveRecord::RecordNotFound
     other_issues = case issue_type
@@ -61,6 +61,11 @@ class WeekLogsController < ApplicationController
   end
 
   private
+
+    def get_week_start
+      params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
+      @week_start = ((@week_start-6)..(@week_start+6)).find{|wk| wk.cwday == 1}
+    end
 
     def find_user_projects
       @user = User.current

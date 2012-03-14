@@ -44,7 +44,6 @@ function initializers() {
         $('#js_week_start').val(start);
         $('#js_week_end').val(end);
         Week.repopulateTable();
-        Week.refreshTableDates();
       },
       beforeShowDay: function(dates) {
           var cssClass = '';
@@ -134,7 +133,7 @@ function initializers() {
       $.ajax({
         type: 'post',
         url: '/week_logs/add_task',
-        data: form.serialize(),
+        data: form.serialize() + '&' + $('#week_start').serialize(),
         success: function(data) {
           var taskRow = Week.addTask.row(data, table);
           Week.repopulateTable();
@@ -159,12 +158,12 @@ function initializers() {
     }
   };
 
-  $('.head-button, .add-task-cancel').click(function() {
+  $('.head-button, .add-task-cancel').live('click', function() {
     Week.addTask.toggleForm(this);
   });
   $('.add-task-form')
   .attr('action', '')
-  .submit(function(e) {
+  .live('submit', function(e) {
     var form = $(this),
       validOrError = Week.addTask.validate(form),
       table = $('#' + form.attr('data-table'));
@@ -196,7 +195,7 @@ function initializers() {
     return false;
   })
   .find('.add-task-id')
-  .bind('change keyup', function() {
+  .live('change keyup', function() {
     var submitButton = $('#' + $(this).attr('data-disable'));
     submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
   });
@@ -218,17 +217,27 @@ function initializers() {
       inspect.setDate(inspect.getDate()+1);
     }
   };
-  
+
   Week.repopulateTable = function() {
     var href = "/week_logs?";
     href+="&week_start="+$("#week_start").val();
-    $.getScript(href);
+    $('#ajax-indicator').show();
+    $.getScript(href, function() {
+      Week.refreshTotalHours();
+      Week.refreshTableDates();
+      $('#ajax-indicator').hide();
+    });
   }
-  
+
   Week.refreshTableRowColors = function(table) {
     var rows = table.find('tbody').find('tr').not('.hidden'), i;
     for(i = 0; length = rows.length, i < length; i++) {
       $(rows[i]).removeClass('odd even').addClass(i % 2 != 0 ? 'even' : 'odd');
     }
+  };
+
+  Week.refreshTotalHours = function() {
+    var total = parseFloat($('#total_proj').val()) + parseFloat($('#total_non_proj').val());
+    $('#total_hours').val(parseFloat(total).toFixed(1));
   };
 }
