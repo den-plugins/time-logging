@@ -1,4 +1,5 @@
 require 'redmine'
+require File.dirname(__FILE__) + '/app/helpers/save_week_logs'
 
 Dispatcher.to_prepare do
   Issue.send(:include, TimeLogging::IssuePatch)
