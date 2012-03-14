@@ -2,7 +2,7 @@
     <h2>Non-Project (Admin) Related Tasks</h2>
     <input type="button" id="non_proj_button" class="head-button" value="+" data-toggle="add-non-proj-task-form" />
   </div>
-  <% form_tag({ :controller => 'week_logs', :action => 'add_task' }, { :method => :post, :id => 'add-non-proj-task-form', :class => 'add-task-form hidden', :'data-table' => 'non_proj_table' }) do -%>
+  <% form_tag({ :controller => 'week_logs', :action => 'add_task' }, { :method => :post, :id => 'add-non-proj-task-form', :class => 'add-task-form hidden', :'data-table' => 'non_proj_table', :'data-button' => 'non_proj_button' }) do -%>
     <div class="box">
       <div id="add-non-proj-task-error" class="flash error hidden"></div>
       <p>

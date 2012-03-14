@@ -2,7 +2,7 @@
     <h2>Project Related Tasks</h2>
     <input type="button" id="proj_button" class="head-button" value="+" data-toggle="add-proj-task-form" />
   </div>
-  <% form_tag({ :controller => 'week_logs', :action => 'add_task' }, { :method => :post, :id => 'add-proj-task-form', :class => 'add-task-form hidden', :'data-table' => 'proj_table' }) do -%>
+  <% form_tag({ :controller => 'week_logs', :action => 'add_task' }, { :method => :post, :id => 'add-proj-task-form', :class => 'add-task-form hidden', :'data-table' => 'proj_table', :'data-button' => 'proj_button' }) do -%>
     <div class="box">
       <div id="add-proj-task-error" class="flash error hidden"></div>
       <p>

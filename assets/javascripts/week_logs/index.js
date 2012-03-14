@@ -101,53 +101,92 @@ function initializers() {
   $(".hide-button").live("click", function(){
     $(this).parent().parent().hide();
   });
-  Week.toggleAddTaskForm = function(button) {
-    var form = $('#' + $(button).attr('data-toggle'));
-    if(form.hasClass('hidden')) {
-      form.removeClass('hidden');
-      form.find('.add-task-id').focus();
-    } else {
-      form.addClass('hidden');
-    }
-    form.find('.add-task-submit').attr('disabled', true);
-    form.find('.add-task-id').val('');
-    form.find('.error').addClass('hidden').text('');
-  };
 
-  Week.addTaskRow = function(data, table) {
-    var taskRow = $(data),
-      taskTableBody = $(table).find('tbody'),
-      firstTaskRow = taskTableBody.find('tr').first();
-    if(firstTaskRow && firstTaskRow.hasClass('even')) {
-      taskRow.addClass('odd');
-    } else {
-      taskRow.addClass('even');
-    }
-    taskTableBody.append(taskRow);
-    return taskRow;
-  };
+  Week.addTask = {
+    toggleForm: function(button) {
+      var button = $(button),
+        form = $('#' + button.attr('data-toggle'));
+      button = $('#' + form.attr('data-button'));
+      if(form.hasClass('hidden')) {
+        form.removeClass('hidden');
+        form.find('.add-task-id').focus();
+        button.addClass('hidden');
+      } else {
+        form.addClass('hidden');
+        button.removeClass('hidden');
+      }
+      form.find('.add-task-submit').attr('disabled', true);
+      form.find('.add-task-id').val('');
+      form.find('.error').addClass('hidden').text('');
+    },
 
-  Week.validateForm = function(form) {
-    var taskIdField = $(form).find('.add-task-id'),
-      taskId = taskIdField.val();
-    if(taskId.length === 0) {
-      return 'Issue ID is required.';
-    } else if(!/^\s*\d+\s*$/.test(taskId)) {
-      return 'Issue ID should be a number.';
-    } else {
-      return true;
+    row: function(data, table) {
+      var taskRow = $(data),
+        taskTableBody = $(table).find('tbody'),
+        firstTaskRow = taskTableBody.find('tr').first();
+      if(firstTaskRow && firstTaskRow.hasClass('even')) {
+        taskRow.addClass('odd');
+      } else {
+        taskRow.addClass('even');
+      }
+      taskTableBody.append(taskRow);
+      return taskRow;
+    },
+
+    validate: function(form) {
+      var taskIdField = form.find('.add-task-id'),
+        taskId = taskIdField.val();
+      if(taskId.length === 0) {
+        return 'Issue ID is required.';
+      } else if(!/^\s*\d+\s*$/.test(taskId)) {
+        return 'Issue ID should be a number.';
+      } else {
+        return true;
+      }
+    },
+
+    submit: function(form) {
+      var table = $('#' + form.attr('data-table'));
+      $.ajax({
+        type: 'post',
+        url: '/week_logs/add_task',
+        data: form.serialize(),
+        success: function(data) {
+          var taskRow = Week.addTask.row(data, table);
+          Week.refreshTableDates();
+          $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
+            if(taskRow.effect) {
+              taskRow.effect('highlight');
+            }
+          });
+          form.find('input').not('.add-task-submit').attr('disabled', false);
+          form.find('.add-task-id').focus();
+        },
+        error: function(data) {
+          form.find('.error').text(data.responseText).removeClass('hidden');
+          form.find('input').not('.add-task-submit').attr('disabled', false);
+          form.find('.add-task-id').focus();
+        },
+        beforeSend: function() {
+          form.find('input').attr('disabled', true);
+        }
+      });
     }
   };
 
   $('.head-button, .add-task-cancel').click(function() {
-    Week.toggleAddTaskForm(this);
+    Week.addTask.toggleForm(this);
   });
   $('.add-task-form')
   .attr('action', '')
   .submit(function(e) {
-    var form = $(this), validOrError = Week.validateForm(this),
+    var form = $(this),
+      validOrError = Week.addTask.validate(form),
       table = $('#' + form.attr('data-table'));
     e.preventDefault();
+    if(form.find('.add-task-submit').is(':disabled')) {
+      return false;
+    }
     if(validOrError === true) {
       var taskTableBody = table.find('tbody'),
         existingTaskId = form.find('.add-task-id').val(),
@@ -161,30 +200,7 @@ function initializers() {
           }
         });
       } else {
-        $.ajax({
-          type: 'post',
-          url: '/week_logs/add_task',
-          data: form.serialize(),
-          success: function(data) {
-            var taskRow = Week.addTaskRow(data, table);
-            Week.refreshTableDates();
-            $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
-              if(taskRow.effect) {
-                taskRow.effect('highlight');
-              }
-            });
-            form.find('input').not('.add-task-submit').attr('disabled', false);
-            form.find('.add-task-id').focus();
-          },
-          error: function(data) {
-            form.find('.error').text(data.responseText).removeClass('hidden');
-            form.find('input').not('.add-task-submit').attr('disabled', false);
-            form.find('.add-task-id').focus();
-          },
-          beforeSend: function() {
-            form.find('input').attr('disabled', true);
-          }
-        });
+        Week.addTask.submit(form);
       }
       form.find('.add-task-submit').attr('disabled', true);
       form.find('.add-task-id').val('');
