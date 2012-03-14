@@ -65,10 +65,20 @@ function initializers() {
                 row[id] = {}
                 break;
               case 2:
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
               case 3:
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
               case 4:
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
               case 5:
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
               case 6:
+                row[id][row_date] = {hours:$(this).find("input").val()};
+                break;
               case 7:
                 row[id][row_date] = {hours:$(this).find("input").val()};
                 break;
