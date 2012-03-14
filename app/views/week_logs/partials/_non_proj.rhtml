@@ -19,13 +19,12 @@
       <tr>
         <th></th>
         <th class="custom">Task/Activity</th>
-        <th class = "mon">Mon<br/>1</th>
-        <th class = "tue">Tue<br/>2</th>
-        <th class = "wed">Wed<br/>3</th>
-        <th class = "thu">Thur<br/>4</th>
-        <th class = "fri">Fri<br/>5</th>
-        <th class = "sat">Sat<br/>6</th>
-        <th class = "sun">Sun<br/>7</th>
+        <% week_dates.each do |day| -%>
+          <% content_tag :th, :class => day.strftime('%a').downcase do -%>
+            <%= day.strftime('%a') %><br/>
+            <%= day.strftime('%d').to_i %>
+          <% end -%>
+        <% end -%>
         <th>Total</th>
       </tr>
     </thead>
@@ -36,15 +35,11 @@
     <tfoot>
       <tr  class = "total">
         <td></td>
-        <td class = "mon"></td>
-        <td class = "tue"></td>
-        <td class = "wed"></td>
-        <td class = "thu"></td>
-        <td class = "fri"></td>
-        <td class = "sat"></td>
-        <td class = "sun"></td>
+        <% week_days.each do |day| -%>
+          <%= content_tag :td, nil, :class => day.downcase -%>
+        <% end -%>
         <td><%= label_tag 'total' %></td>
-        <td class = "border-cell"><%= text_field_tag 'total_non_proj', "", :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input", :value => "#{@total}" %></td>
+        <td class = "border-cell"><%= text_field_tag 'total_non_proj', @total, :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
       </tr>
     </tfoot>
   </table>
