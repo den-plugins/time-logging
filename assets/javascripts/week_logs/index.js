@@ -58,6 +58,7 @@ function initializers() {
       $(id).find("tr").each(function(i) {
         if($(this).attr("class")!="total") {
           $(this).find("td").each(function(y){
+            alert($(this).attr("class"))
             var row_date = (start.getDate()+y-2)+"-"+(start.getMonth()+1)+"-"+start.getFullYear();
             if(y == 1) {
                 id = $(this).text().match(/\d+/);
@@ -84,7 +85,7 @@ function initializers() {
   $(".hide-button").live("click", function(){
     var row = $(this).parents('tr'),
       table = row.parents('table');
-    row.addClass('hidden');
+    row.remove();
     Week.refreshTableRowColors(table);
   });
 
