@@ -12,4 +12,5 @@
   <td class = "sat border-cell date"><%= text_field_tag 'sat', "", :size=>2, :maxlength=>1, :value=>hours[5]%></td>
   <td class = "sun border-cell date"><%= text_field_tag 'sun', "", :class=>"sun", :size=>2, :maxlength=>1, :value=>hours[6]%></td>
   <td class = "border-cell"><%= text_field_tag 'total', "", :size=>2, :maxlength=>1, :readonly=>"readonly", :value=>hours.inject(:+)  %></td>
+  <% @total += TimeEntry.get_total(@week_start, issue) %>
 </tr>
