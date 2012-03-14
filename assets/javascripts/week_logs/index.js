@@ -59,30 +59,12 @@ function initializers() {
         if($(this).attr("class")!="total") {
           $(this).find("td").each(function(y){
             var row_date = (start.getDate()+y-2)+"-"+(start.getMonth()+1)+"-"+start.getFullYear();
-            switch(y) {
-              case 1:
+            if(y == 1) {
                 id = $(this).text().match(/\d+/);
                 row[id] = {}
-                break;
-              case 2:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
-              case 3:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
-              case 4:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
-              case 5:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
-              case 6:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
-              case 7:
-                row[id][row_date] = {hours:$(this).find("input").val()};
-                break;
             }
+            else if(y>1 && y<=7)
+              row[id][row_date] = {hours:$(this).find("input").val()};
           });
         }
       });
