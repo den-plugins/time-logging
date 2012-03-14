@@ -4,6 +4,8 @@ class WeekLogsController < ApplicationController
   require 'json'
   
   def index
+    params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
+    @week_start = ((@week_start-6)..(@week_start+6)).find{|wk| wk.cwday == 1}
     @issues = { :project_related => Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
                 :non_project_related => Issue.in_projects(@projects[:admin]) }
     respond_to do |format|
@@ -11,6 +13,7 @@ class WeekLogsController < ApplicationController
       format.json do
         render :json => @issues.to_json
       end
+      format.js { render :layout => false}
     end
   end
 

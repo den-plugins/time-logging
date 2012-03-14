@@ -16,8 +16,8 @@ function initializers() {
     var current_date = new Date();
     var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay()+1);
     var end = current_date;
-    var start_output = start.getDate()+"/"+(start.getMonth()+1)+"/"+start.getFullYear();
-    var end_output = end.getDate()+"/"+(end.getMonth()+1)+"/"+end.getFullYear();
+    var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
+    var end_output = (end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
     var maxDate = new Date(currentYear, currentMonth, currentDate);
     $('#week_start').val(start_output);
     $('#week_end').val(end_output);
@@ -25,7 +25,6 @@ function initializers() {
     $('#js_week_start').val(start);
     $('#js_week_end').val(end);
     Week.refreshTableDates();
-
     $('#week_selector').datepicker({
       maxDate: maxDate,
       showOn: "button",
@@ -37,13 +36,14 @@ function initializers() {
         end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 7);
         if(end > maxDate)
           end = maxDate;
-        start_output = start.getDate()+"/"+(start.getMonth()+1)+"/"+start.getFullYear();
-        end_output = end.getDate()+"/"+(end.getMonth()+1)+"/"+end.getFullYear();
+        var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
+        var end_output = (end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
         $('#week_start').val(start_output);
         $('#week_end').val(end_output);
         $('#week_selector').val(start_output+" to "+end_output);
         $('#js_week_start').val(start);
         $('#js_week_end').val(end);
+        Week.repopulateTable();
         Week.refreshTableDates();
       },
       beforeShowDay: function(dates) {
@@ -76,7 +76,8 @@ function initializers() {
       $.post("/week_logs/update", {
                   project: JSON.stringify(createJsonObject("#proj_table")),
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
-      });
+      })
+      .success(function() {Week.repopulateTable();});
     });
   }
 
@@ -138,6 +139,7 @@ function initializers() {
         data: form.serialize(),
         success: function(data) {
           var taskRow = Week.addTask.row(data, table);
+          Week.repopulateTable();
           Week.refreshTableDates();
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
             if(taskRow.effect) {
@@ -218,7 +220,13 @@ function initializers() {
       inspect.setDate(inspect.getDate()+1);
     }
   };
-
+  
+  Week.repopulateTable = function() {
+    var href = "/week_logs?";
+    href+="&week_start="+$("#week_start").val();
+    $.getScript(href);
+  }
+  
   Week.refreshTableRowColors = function(table) {
     var rows = table.find('tbody').find('tr').not('.hidden'), i;
     for(i = 0; length = rows.length, i < length; i++) {

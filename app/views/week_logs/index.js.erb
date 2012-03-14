@@ -1,0 +1,4 @@
+$("#proj_related").html("<%= escape_javascript(render :partial => '/week_logs/partials/proj_related.rhtml', :locals=>{:issues => @issues[:project_related]})%>");
+$("#non_proj_related").html("<%= escape_javascript(render :partial => '/week_logs/partials/non_proj.rhtml', :locals=>{:issues => @issues[:non_project_related]})%>");
+
+Week.refreshTableDates();
