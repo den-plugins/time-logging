@@ -56,16 +56,14 @@ function initializers() {
     function createJsonObject(id) {
       var row = {};
       $(id).find("tr").each(function(i) {
+        id = $(this).text().match(/\d+/);
+        row[id] = {}
         if($(this).attr("class")!="total") {
-          $(this).find("td").each(function(y){
-            alert($(this).attr("class"))
-            var row_date = (start.getDate()+y-2)+"-"+(start.getMonth()+1)+"-"+start.getFullYear();
-            if(y == 1) {
-                id = $(this).text().match(/\d+/);
-                row[id] = {}
-            }
-            else if(y>1 && y<=7)
-              row[id][row_date] = {hours:$(this).find("input").val()};
+          $(this).find("td.date").each(function(y){
+            var inc = new Date(start);
+            inc.setDate(inc.getDate()+y)
+            var row_date = (inc.getMonth()+1)+"/"+(inc.getDate())+"/"+inc.getFullYear();
+            row[id][row_date] = {hours:$(this).find("input").val()};
           });
         }
       });
