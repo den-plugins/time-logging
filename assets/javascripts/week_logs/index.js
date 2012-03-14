@@ -99,7 +99,10 @@ function initializers() {
   }
 
   $(".hide-button").live("click", function(){
-    $(this).parent().parent().hide();
+    var row = $(this).parents('tr'),
+      table = row.parents('table');
+    row.addClass('hidden');
+    Week.refreshTableRowColors(table);
   });
 
   Week.addTask = {
@@ -193,7 +196,7 @@ function initializers() {
         existingTask = taskTableBody.find('#' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
-        existingTask.show();
+        existingTask.removeClass('hidden');
         $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
           if(existingTask.effect) {
             existingTask.effect('highlight');
@@ -204,6 +207,7 @@ function initializers() {
       }
       form.find('.add-task-submit').attr('disabled', true);
       form.find('.add-task-id').val('');
+      Week.refreshTableRowColors(table);
     } else {
       form.find('.error').text(validOrError).removeClass('hidden');
     }
@@ -230,6 +234,13 @@ function initializers() {
         flag = true;
       i++;
       inspect.setDate(inspect.getDate()+1);
+    }
+  };
+
+  Week.refreshTableRowColors = function(table) {
+    var rows = table.find('tbody').find('tr').not('.hidden'), i;
+    for(i = 0; length = rows.length, i < length; i++) {
+      $(rows[i]).removeClass('odd even').addClass(i % 2 != 0 ? 'even' : 'odd');
     }
   };
 }
