@@ -55,15 +55,15 @@ function initializers() {
     });
     function createJsonObject(id) {
       var row = {};
-      $(id).find("tr").each(function(i) {
-        id = $(this).text().match(/\d+/);
-        row[id] = {}
+      $(id).find("tbody tr").each(function(i) {
         if($(this).attr("class")!="total") {
+          issue = $(this).text().match(/\d+/);
+          row[issue] = {}
           $(this).find("td.date").each(function(y){
             var inc = new Date(start);
             inc.setDate(inc.getDate()+y)
             var row_date = (inc.getMonth()+1)+"/"+(inc.getDate())+"/"+inc.getFullYear();
-            row[id][row_date] = {hours:$(this).find("input").val()};
+            row[issue][row_date] = {hours:$(this).find("input").val()};
           });
         }
       });
@@ -71,7 +71,6 @@ function initializers() {
     }
 
     $("#submit_button").live("click", function(){
-      var id;
       $.post("/week_logs/update", {
                   project: JSON.stringify(createJsonObject("#proj_table")),
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
