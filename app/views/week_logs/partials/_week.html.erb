@@ -3,41 +3,13 @@
   <td class="subject">
     <%= link_to "#{issue.id} - #{h(truncate(issue.subject,80))}", :controller => :issues, :action => :show, :id => issue %>
   </td>
-  <td class = "mon border-cell"><%= text_field_tag 'mon', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start, issue) %>
-  </td>
-  <td class = "tue border-cell"><%= text_field_tag 'tue', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+1, issue) %>
-  </td>
-  <td class = "wed border-cell"><%= text_field_tag 'wed', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+2, issue) %>
-  </td>
-  <td class = "thu border-cell"><%= text_field_tag 'thu', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+3, issue) %>
-  </td>
-  <td class = "fri border-cell"><%= text_field_tag 'fri', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+4, issue) %>
-  </td>
-  <td class = "sat border-cell"><%= text_field_tag 'sat', "", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+5, issue) %>
-  </td>
-  <td class = "sun border-cell"><%= text_field_tag 'sun', "", 
-                                                   :class=>"sun", 
-                                                   :size=>2, 
-                                                   :maxlength=>1,
-                                                   :value=>TimeEntry.get_hours_by_date(@week_start+6, issue) %>
-  </td>
-  <td class = "border-cell"><%= text_field_tag 'total', "", :size=>2, :maxlength=>1, :readonly=>"readonly"  %></td>
+  <% hours = TimeEntry.get_hours_by_date(@week_start, issue)%>
+  <td class = "mon border-cell"><%= text_field_tag 'mon', "", :size=>2, :maxlength=>1, :value=>hours[0]%></td>
+  <td class = "tue border-cell"><%= text_field_tag 'tue', "", :size=>2, :maxlength=>1, :value=>hours[1]%></td>
+  <td class = "wed border-cell"><%= text_field_tag 'wed', "", :size=>2, :maxlength=>1, :value=>hours[2]%></td>
+  <td class = "thu border-cell"><%= text_field_tag 'thu', "", :size=>2, :maxlength=>1, :value=>hours[3]%></td>
+  <td class = "fri border-cell"><%= text_field_tag 'fri', "", :size=>2, :maxlength=>1, :value=>hours[4]%></td>
+  <td class = "sat border-cell"><%= text_field_tag 'sat', "", :size=>2, :maxlength=>1, :value=>hours[5]%></td>
+  <td class = "sun border-cell"><%= text_field_tag 'sun', "", :class=>"sun", :size=>2, :maxlength=>1, :value=>hours[6]%></td>
+  <td class = "border-cell"><%= text_field_tag 'total', "", :size=>2, :maxlength=>1, :readonly=>"readonly", :value=>hours.inject(:+)  %></td>
 </tr>
