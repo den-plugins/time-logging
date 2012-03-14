@@ -12,6 +12,10 @@ module TimeEntryExtn
       end
       arr
     end
+
+    def get_total(week_start, issue)
+      TimeEntry.sum(:hours, :conditions=>["issue_id = ? AND spent_on BETWEEN ? AND ?", issue.id, week_start, week_start + 7.day]).to_f
+    end
   end
 end
 
