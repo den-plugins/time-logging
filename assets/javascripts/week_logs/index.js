@@ -14,7 +14,7 @@ function initializers() {
 
   Week.init = function() {
     var current_date = new Date();
-    var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay()+1);
+    var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay());
     var end = current_date;
     var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
     var end_output = (end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
@@ -31,11 +31,11 @@ function initializers() {
       maxDate: maxDate,
       showOn: "button",
       buttonImage: "",
-      firstDay: 1,
+      firstDay: 7,
       onSelect: function(select_date) {
         var sd = $(this).datepicker('getDate');
-        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay()+1);
-        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 7);
+        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay());
+        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
         if(end > maxDate)
           end = maxDate;
         var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
@@ -214,8 +214,8 @@ function initializers() {
     var inspect = new Date(start);
     var i = 0;
     var flag = false;
-    var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 7);
-    var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 6);
+    var days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     while(inspect <= maxDate) {
       $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
       flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
