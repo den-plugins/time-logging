@@ -284,7 +284,7 @@ function initializers() {
 
   $("#dialog-remove-task").dialog({
 			        autoOpen: false,
-			        height: 250,
+			        height: 150,
 			        width: 450,
 			        modal: true,
 			        buttons: {
