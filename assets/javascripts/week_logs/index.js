@@ -56,17 +56,15 @@ function initializers() {
     });
     function createJsonObject(id) {
       var row = {};
-      $(id).find("tbody tr").each(function(i) {
-        if($(this).attr("class")!="total") {
-          issue = $(this).text().match(/\d+/);
-          row[issue] = {}
-          $(this).find("td.date").each(function(y){
-            var inc = new Date(start);
-            inc.setDate(inc.getDate()+y)
-            var row_date = (inc.getMonth()+1)+"/"+(inc.getDate())+"/"+inc.getFullYear();
-            row[issue][row_date] = {hours:$(this).find("input").val()};
-          });
-        }
+      $(id).find('tr.issue').each(function() {
+        issue = this.id.match(/\d+/);
+        row[issue] = {}
+        $(this).find('td.date').each(function(y){
+          var inc = new Date(start);
+          inc.setDate(inc.getDate()+y)
+          var row_date = (inc.getMonth()+1)+'/'+(inc.getDate())+'/'+inc.getFullYear();
+          row[issue][row_date] = {hours:$(this).find('input').val()};
+        });
       });
       return row;
     }
@@ -93,7 +91,7 @@ function initializers() {
     var row = $(this).parents('tr');
     row.addClass("selected");
  });
- 
+
  Week.addTask = {
     toggleForm: function(button) {
       var button = $(button),
@@ -151,6 +149,25 @@ function initializers() {
 
   $('.date input').live('focus', function() {
     this.select();
+  }).live('keydown', function(e) {
+    // mimic html5 number field behavior
+    var hours = this.value, min = 0, max = 24, step = 0.5;
+    hours = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours);
+    switch(e.which) {
+      case 38: // up
+        if(hours + step <= max)
+          this.value = parseFloat(hours + step).toFixed(1);
+        else
+          this.value = max.toFixed(1);
+        break;
+      case 40: // down
+        if(hours - step >= min)
+          this.value = parseFloat(hours - step).toFixed(1);
+        else
+          this.value = min.toFixed(1);
+        break;
+    }
+    this.select();
   }).live('change keyup', function() {
     var row = $(this).parents('.issue'),
       dateFields = row.find('.date').find('input'),
@@ -173,16 +190,17 @@ function initializers() {
   .attr('action', '')
   .live('submit', function(e) {
     var form = $(this),
+      submitButton = form.find('.add-task-submit'),
       validOrError = Week.addTask.validate(form),
       table = $('#' + form.attr('data-table'));
     e.preventDefault();
-    if(form.find('.add-task-submit').is(':disabled')) {
+    if(submitButton.is(':disabled')) {
       return false;
     }
     if(validOrError === true) {
       var taskTableBody = table.find('tbody'),
         existingTaskId = form.find('.add-task-id').val(),
-        existingTask = taskTableBody.find('#' + existingTaskId);
+        existingTask = taskTableBody.find('#issue-' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
         existingTask.removeClass('hidden');
@@ -194,7 +212,7 @@ function initializers() {
       } else {
         Week.addTask.submit(form);
       }
-      form.find('.add-task-submit').attr('disabled', true);
+      submitButton.attr('disabled', true);
       form.find('.add-task-id').val('');
       Week.refreshTableRowColors(table);
     } else {
@@ -204,7 +222,7 @@ function initializers() {
   })
   .find('.add-task-id')
   .live('change keyup', function() {
-    var submitButton = $('#' + $(this).attr('data-disable'));
+    var submitButton = $(this).siblings().find('.add-task-submit');
     submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
   });
 
@@ -236,7 +254,7 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
-        taskRow = $('#' + taskId);
+        taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
             if(taskRow.effect) {
@@ -267,7 +285,7 @@ function initializers() {
   };
 
   Week.refreshTotalHours = function() {
-    var projTotal = 0, nonProjTotal = 0, total = 0,
+    var projTotal = 0, nonProjTotal = 0,
       issueTotals = $('#proj_table').find('input.total');
     issueTotals.each(function(i, el) {
       projTotal += parseFloat(el.value);
@@ -278,38 +296,37 @@ function initializers() {
       nonProjTotal += parseFloat(el.value);
     });
     $('#total_non_proj').val(parseFloat(nonProjTotal).toFixed(1));
-    total = projTotal + nonProjTotal;
-    $('#total_hours').val(parseFloat(total).toFixed(1));
+    $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
   };
 
   $("#dialog-remove-task").dialog({
-			        autoOpen: false,
-			        height: 150,
-			        width: 450,
-			        modal: true,
-			        buttons: {
-				          "Yes": function() {
-					        var bValid = true;
-					        var row = $("tr.selected"),
+              autoOpen: false,
+              height: 150,
+              width: 450,
+              modal: true,
+              buttons: {
+                  "Yes": function() {
+                  var bValid = true;
+                  var row = $("tr.selected"),
                   table = row.parents('table');
                   row.remove();
                   Week.refreshTableRowColors(table);
                   Week.refreshTotalHours();
                   Week.refreshTabIndices();
                   $.post('/week_logs/remove_task', {id: row.attr('id')});
-                   
-					        if (bValid) {
-	                    //If valid execute script and close the dialog.					
-						          $(this).dialog("close");
-					        }
-				      },
-				          "No": function() {
-					          $(this).dialog("close");
-				          }
-			        },
+
+                  if (bValid) {
+                      //If valid execute script and close the dialog.
+                      $(this).dialog("close");
+                  }
+              },
+                  "No": function() {
+                    $(this).dialog("close");
+                  }
+              },
               close: function(ev, ui) {
                 var row = $("tr.selected");
                 row.removeClass("selected");
               }
-	        });
+          });
 }

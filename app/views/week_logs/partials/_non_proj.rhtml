@@ -7,7 +7,7 @@
       <div id="add-non-proj-task-error" class="flash error hidden"></div>
       <p>
         <%= label_tag :'add-non-proj-task-id', 'Issue' %>
-        <%= text_field_tag :id, nil, :id => 'add-non-proj-task-id', :class => 'add-task-id', :'data-disable' => 'add-non-proj-task-submit', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
+        <%= text_field_tag :id, nil, :id => 'add-non-proj-task-id', :class => 'add-task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
         <%= hidden_field_tag :type, 'admin', :id => 'add-non-proj-task-type', :class => 'add-task-type' %>
         <span class="buttons">
           <%= submit_tag 'Add', :class => 'add-task-submit', :id => 'add-non-proj-task-submit', :disabled => true %>
