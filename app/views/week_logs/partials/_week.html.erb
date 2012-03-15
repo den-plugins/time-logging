@@ -6,7 +6,7 @@
   <% hours = TimeEntry.get_hours_by_date(@week_start, issue) %>
   <% week_days.each_with_index do |day, offset| -%>
     <% content_tag :td, :class => "#{day.downcase} border-cell date" do %>
-      <%= text_field_tag day.downcase, hours[offset], :size => 2, :maxlength => 1 %>
+      <%= text_field_tag day.downcase, hours[offset], :size => 2, :maxlength => 5, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0) %>
     <% end -%>
   <% end -%>
   <td class = "border-cell">

@@ -26,6 +26,7 @@ function initializers() {
     $('#js_week_end').val(end);
     Week.refreshTableDates();
     Week.refreshTotalHours();
+    Week.refreshTabIndices();
     $('#week_selector').datepicker({
       maxDate: maxDate,
       showOn: "button",
@@ -148,6 +149,23 @@ function initializers() {
     }
   };
 
+  $('.date input').live('focus', function() {
+    this.select();
+  }).live('change keyup', function() {
+    var row = $(this).parents('.issue'),
+      dateFields = row.find('.date').find('input'),
+      totalField = row.find('.total'),
+      total = 0, i, hours;
+    for(i = 0; length = dateFields.length, i < length; i++) {
+      hours = dateFields[i].value;
+      total += parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours);
+    }
+    totalField.val(total.toFixed(1));
+    Week.refreshTotalHours();
+  }).live('blur', function() {
+    var hours = this.value;
+    this.value = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours).toFixed(1);
+  });
   $('.head-button, .add-task-cancel').live('click', function() {
     Week.addTask.toggleForm(this);
   });
@@ -215,6 +233,7 @@ function initializers() {
     $.getScript(href, function() {
       Week.refreshTotalHours();
       Week.refreshTableDates();
+      Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
         taskRow = $('#' + taskId);
@@ -230,10 +249,21 @@ function initializers() {
   }
 
   Week.refreshTableRowColors = function(table) {
-    var rows = table.find('tbody').find('tr').not('.hidden'), i;
+    var rows = table.find('tbody').find('tr.issue').not('.hidden'), i;
     for(i = 0; length = rows.length, i < length; i++) {
       $(rows[i]).removeClass('odd even').addClass(i % 2 != 0 ? 'even' : 'odd');
     }
+  };
+
+  Week.refreshTabIndices = function() {
+    var rows = $('tr.issue').not('.hidden'), cells, i, j;
+    for(i = 0; length = rows.length, i < length; i++) {
+      cells = $(rows[i]).find('td.date').not(':hidden').find('input');
+      for(j = 0; sublength = cells.length, j < sublength; j++) {
+        cells[j].tabIndex = (i * 7) + (j + 1);
+      }
+    }
+    document.getElementById('submit_button').tabIndex = (i * 7) + (j + 1);
   };
 
   Week.refreshTotalHours = function() {
@@ -265,6 +295,7 @@ function initializers() {
                   row.remove();
                   Week.refreshTableRowColors(table);
                   Week.refreshTotalHours();
+                  Week.refreshTabIndices();
                   $.post('/week_logs/remove_task', {id: row.attr('id')});
                    
 					        if (bValid) {
