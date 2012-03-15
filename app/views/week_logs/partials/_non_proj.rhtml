@@ -32,7 +32,7 @@
     </thead>
     <tbody>
       <% @total = 0 %>
-      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue %>
+      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue, :locals=>{:state=>state}%>
     </tbody>
     <tfoot>
       <tr  class = "total">

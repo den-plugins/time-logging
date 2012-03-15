@@ -79,16 +79,21 @@ function initializers() {
     });
   }
 
-  $(".hide-button").live("click", function(){
-    var row = $(this).parents('tr'),
-      table = row.parents('table');
-    row.remove();
-    Week.refreshTableRowColors(table);
-    Week.refreshTotalHours();
-    $.post('/week_logs/remove_task', {id: row.attr('id')});
-  });
+  $(".hide-button.proj").live("click", function(){
+    $("#dialog-remove-task").dialog('option', 'title', 'Remove Project Related Task');
+    $("#dialog-remove-task").dialog("open");
+    var row = $(this).parents('tr');
+    row.addClass("selected");
+ });
 
-  Week.addTask = {
+ $(".hide-button.non_proj").live("click", function(){
+    $("#dialog-remove-task").dialog('option', 'title', 'Remove Non-Project (Admin) Related Task');
+    $("#dialog-remove-task").dialog("open");
+    var row = $(this).parents('tr');
+    row.addClass("selected");
+ });
+ 
+ Week.addTask = {
     toggleForm: function(button) {
       var button = $(button),
         form = $('#' + button.attr('data-toggle'));
@@ -246,4 +251,34 @@ function initializers() {
     total = projTotal + nonProjTotal;
     $('#total_hours').val(parseFloat(total).toFixed(1));
   };
+
+  $("#dialog-remove-task").dialog({
+			        autoOpen: false,
+			        height: 250,
+			        width: 450,
+			        modal: true,
+			        buttons: {
+				          "Yes": function() {
+					        var bValid = true;
+					        var row = $("tr.selected"),
+                  table = row.parents('table');
+                  row.remove();
+                  Week.refreshTableRowColors(table);
+                  Week.refreshTotalHours();
+                  $.post('/week_logs/remove_task', {id: row.attr('id')});
+                   
+					        if (bValid) {
+	                    //If valid execute script and close the dialog.					
+						          $(this).dialog("close");
+					        }
+				      },
+				          "No": function() {
+					          $(this).dialog("close");
+				          }
+			        },
+              close: function(ev, ui) {
+                var row = $("tr.selected");
+                row.removeClass("selected");
+              }
+	        });
 }

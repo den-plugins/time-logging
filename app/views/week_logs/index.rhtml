@@ -13,14 +13,18 @@
 </div>
 
 <div id="proj_related">
-  <%= render :partial => "/week_logs/partials/proj_related.rhtml", :locals => {:issues => @issues[:project_related]} %>
+  <%= render :partial => "/week_logs/partials/proj_related.rhtml", :locals => {:issues => @issues[:project_related], :state=>"proj"} %>
 </div>
 
 <div id="non_proj_related">
-  <%= render :partial => "/week_logs/partials/non_proj.rhtml", :locals => {:issues => @issues[:non_project_related]} %>
+  <%= render :partial => "/week_logs/partials/non_proj.rhtml", :locals => {:issues => @issues[:non_project_related], :state=>"non_proj"} %>
 </div>
 
 <input type="button" id="submit_button" class="submit_button" value="Submit"/>
+
+<div id="dialog-remove-task" class="dialog hidden">
+  <p>Are you sure you want to remove this task?</p>
+</div>
 
 <%= stylesheet_link_tag "week_logs/index", :plugin => 'time_logging' %>
 <%= stylesheet_link_tag "jquery-ui-1.8.18.custom.css", :plugin => 'time_logging' %>
