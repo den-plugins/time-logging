@@ -16,14 +16,18 @@ function initializers() {
     var current_date = new Date();
     var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay());
     var end = current_date;
-    var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
-    var end_output = (end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
+    var rStart = new Date(start);
+    var rEnd = new Date(start);
+    rStart.setDate(rStart.getDate()+1);
+    rEnd.setDate(rEnd.getDate()+6)
+    var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
+    var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
     var maxDate = new Date(currentYear, currentMonth, currentDate);
     $('#week_start').val(start_output);
     $('#week_end').val(end_output);
     $('#week_selector').val(start_output+" to "+end_output);
-    $('#js_week_start').val(start);
-    $('#js_week_end').val(end);
+    $('#js_week_start').val(rStart);
+    $('#js_week_end').val(rEnd);
     Week.refreshTableDates();
     Week.refreshTotalHours();
     Week.refreshTabIndices();
@@ -38,13 +42,17 @@ function initializers() {
         end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
         if(end > maxDate)
           end = maxDate;
-        var start_output = (start.getMonth()+1)+"/"+start.getDate()+"/"+start.getFullYear();
-        var end_output = (end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
+        var rStart = new Date(start);
+        var rEnd = new Date(start);
+        rStart.setDate(rStart.getDate()+1);
+        rEnd.setDate(rEnd.getDate()+6)
+        var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
+        var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
         $('#week_start').val(start_output);
         $('#week_end').val(end_output);
         $('#week_selector').val(start_output+" to "+end_output);
-        $('#js_week_start').val(start);
-        $('#js_week_end').val(end);
+        $('#js_week_start').val(rStart);
+        $('#js_week_end').val(rEnd);
         Week.repopulateTable();
       },
       beforeShowDay: function(dates) {
@@ -59,14 +67,11 @@ function initializers() {
       $(id).find('tr.issue').each(function() {
         issue = this.id.match(/\d+/);
         row[issue] = {}
-        var orig = new Date(start);
+        var rStart = new Date(start);
+        rStart.setDate(rStart.getDate()+1);
         $(this).find('td.date').each(function(y){
-          var inc = new Date(start);
-          inc.setDate(inc.getDate()+y+1)
-          if(y==6)
-            var row_date = (orig.getMonth()+1)+'/'+(orig.getDate())+'/'+orig.getFullYear();
-          else
-            var row_date = (inc.getMonth()+1)+'/'+(inc.getDate())+'/'+inc.getFullYear();
+          rStart.setDate(rStart.getDate()+y);
+          var row_date = (rStart.getMonth()+1)+'/'+(rStart.getDate())+'/'+rStart.getFullYear();
           row[issue][row_date] = {hours:$(this).find('input').val()};
         });
       });
@@ -234,7 +239,7 @@ function initializers() {
     var i = 0;
     var flag = false;
     var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 6);
-    var days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     while(inspect <= maxDate) {
       $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
       flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();

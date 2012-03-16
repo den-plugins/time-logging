@@ -82,14 +82,7 @@ class WeekLogsController < ApplicationController
 
     def get_week_start
       params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
-      case @week_start.cwday
-        when 7 then @week_start = @week_start+1      
-        when 2 then @week_start = @week_start-1
-        when 3 then @week_start = @week_start-2
-        when 4 then @week_start = @week_start-3
-        when 5 then @week_start = @week_start-4
-        when 6 then @week_start = @week_start-5
-      end
+      @week_start = @week_start.beginning_of_week
     end
 
     def find_user_projects
