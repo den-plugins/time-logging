@@ -8,7 +8,7 @@ td.subject {width:530px;}
 .custom {padding-right:100px; float:left;}
 .head-button {margin-bottom:10px;}
 .border-cell {border:1px solid black;}
-.total_column {border:2px solid black;}
+.total_column {border:1px solid black;}
 .add-task-form {width:270px;display:block;margin:0 auto;}
 .add-task-id {width:5em;}
 .add-task-form .buttons {float: right}

@@ -20,7 +20,7 @@ class WeekLogsController < ApplicationController
 
   def update
     SaveWeekLogs.save(JSON(params[:project]), User.current)
-    #SaveWeekLogs.save(JSON(params[:non_project]), User.current)
+    SaveWeekLogs.save(JSON(params[:non_project]), User.current)
     render :nothing=>true
   end
 
