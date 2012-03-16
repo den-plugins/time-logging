@@ -25,6 +25,15 @@
 <div id="dialog-remove-task" class="dialog hidden">
   <p>Are you sure you want to remove this task?</p>
 </div>
+<div id="dialog-add-task" class="dialog hidden">
+  <% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-form' }) do -%>
+    <div class="flash error hidden"></div>
+    <p>
+      <%= label_tag :'task-id', 'Issue #' %>
+      <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
+    </p>
+  <% end -%>
+</div>
 
 <%= stylesheet_link_tag "week_logs/index", :plugin => 'time_logging' %>
 <%= stylesheet_link_tag "jquery-ui-1.8.18.custom.css", :plugin => 'time_logging' %>

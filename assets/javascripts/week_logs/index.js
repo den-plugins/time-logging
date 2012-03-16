@@ -78,40 +78,47 @@ function initializers() {
     });
   }
 
-  $(".hide-button.proj").live("click", function(){
-    $("#dialog-remove-task").dialog('option', 'title', 'Remove Project Related Task');
-    $("#dialog-remove-task").dialog("open");
-    var row = $(this).parents('tr');
-    row.addClass("selected");
- });
+  $(".hide-button").live("click", function(){
+    var title = 'Remove Task';
+    if($(this).hasClass('proj'))
+      title = 'Remove Project Related Task';
+    else if($(this).hasClass('non_proj'))
+      title = 'Remove Non-Project (Admin) Related Task';
 
- $(".hide-button.non_proj").live("click", function(){
-    $("#dialog-remove-task").dialog('option', 'title', 'Remove Non-Project (Admin) Related Task');
+    $("#dialog-remove-task").dialog('option', 'title', title);
     $("#dialog-remove-task").dialog("open");
     var row = $(this).parents('tr');
     row.addClass("selected");
  });
 
  Week.addTask = {
-    toggleForm: function(button) {
+    openDialog: function(button) {
       var button = $(button),
-        form = $('#' + button.attr('data-toggle'));
-      button = $('#' + form.attr('data-button'));
-      if(form.hasClass('hidden')) {
-        form.removeClass('hidden');
-        form.find('.add-task-id').focus();
-        button.addClass('hidden');
-      } else {
-        form.addClass('hidden');
-        button.removeClass('hidden');
-      }
-      form.find('.add-task-submit').attr('disabled', true);
-      form.find('.add-task-id').val('');
+        form = $('#add-task-form'),
+        title = 'Add Task',
+        taskType;
+      taskType = button.attr('rel');
+      form.attr('rel', taskType);
+
+      if(taskType == 'project')
+        title = 'Add Project Related Task';
+      else if(taskType == 'admin')
+        title = 'Add Non-Project (Admin) Related Task';
+
+      $('#dialog-add-task').dialog('option', 'title', title);
+      $('#dialog-add-task').dialog('open');
+      form.find('#task-id').focus();
+      Week.addTask.resetForm();
+    },
+
+    resetForm: function() {
+      var form = $('#add-task-form');
+      form.find('#task-id').val('');
       form.find('.error').addClass('hidden').text('');
     },
 
     validate: function(form) {
-      var taskIdField = form.find('.add-task-id'),
+      var taskIdField = form.find('#task-id'),
         taskId = taskIdField.val();
       if(taskId.length === 0) {
         return 'Issue ID is required.';
@@ -122,26 +129,23 @@ function initializers() {
       }
     },
 
-    submit: function(form) {
-      var table = $('#' + form.attr('data-table')),
-        id = form.find('.add-task-id').val().trim();
+    submit: function() {
+      var form = $('#add-task-form'),
+        taskIdField = form.find('#task-id'),
+        taskId = taskIdField.val().trim(),
+        taskType = form.attr('rel');
       $.ajax({
         type: 'post',
         url: '/week_logs/add_task',
-        data: form.serialize() + '&' + $('#week_start').serialize(),
+        data: { 'id': taskId, 'type': taskType, 'week_start': $('#week_start').val() },
         success: function() {
-          Week.repopulateTable(id);
+          $('#dialog-add-task').dialog('close');
+          Week.repopulateTable(taskId);
           Week.refreshTableDates();
-          form.find('input').not('.add-task-submit').attr('disabled', false);
-          form.find('.add-task-id').focus();
         },
         error: function(data) {
           form.find('.error').text(data.responseText).removeClass('hidden');
-          form.find('input').not('.add-task-submit').attr('disabled', false);
-          form.find('.add-task-id').focus();
-        },
-        beforeSend: function() {
-          form.find('input').attr('disabled', true);
+          idField.focus().select();
         }
       });
     }
@@ -183,26 +187,22 @@ function initializers() {
     var hours = this.value;
     this.value = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours).toFixed(1);
   });
-  $('.head-button, .add-task-cancel').live('click', function() {
-    Week.addTask.toggleForm(this);
+  $('.head-button').live('click', function() {
+    Week.addTask.showDialog(this);
   });
-  $('.add-task-form')
+  $('#add-task-form')
   .attr('action', '')
   .live('submit', function(e) {
     var form = $(this),
-      submitButton = form.find('.add-task-submit'),
       validOrError = Week.addTask.validate(form),
       table = $('#' + form.attr('data-table'));
     e.preventDefault();
-    if(submitButton.is(':disabled')) {
-      return false;
-    }
     if(validOrError === true) {
-      var taskTableBody = table.find('tbody'),
-        existingTaskId = form.find('.add-task-id').val(),
-        existingTask = taskTableBody.find('#issue-' + existingTaskId);
+      var existingTaskId = form.find('#task-id').val(),
+        existingTask = $('#issue-' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
+        $('#dialog-add-task').dialog('close');
         existingTask.removeClass('hidden');
         $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
           if(existingTask.effect) {
@@ -210,20 +210,13 @@ function initializers() {
           }
         });
       } else {
-        Week.addTask.submit(form);
+        Week.addTask.submit();
       }
-      submitButton.attr('disabled', true);
-      form.find('.add-task-id').val('');
-      Week.refreshTableRowColors(table);
+      Week.addTask.resetForm();
     } else {
       form.find('.error').text(validOrError).removeClass('hidden');
     }
     return false;
-  })
-  .find('.add-task-id')
-  .live('change keyup', function() {
-    var submitButton = $(this).siblings().find('.add-task-submit');
-    submitButton.attr('disabled', $(this).val().length == 0 || /\D+/.test($(this).val()));
   });
 
   Week.refreshTableDates = function() {
@@ -320,33 +313,52 @@ function initializers() {
   };
 
   $("#dialog-remove-task").dialog({
-              autoOpen: false,
-              height: 150,
-              width: 450,
-              modal: true,
-              buttons: {
-                  "Yes": function() {
-                  var bValid = true;
-                  var row = $("tr.selected"),
-                  table = row.parents('table');
-                  row.remove();
-                  Week.refreshTableRowColors(table);
-                  Week.refreshTotalHours();
-                  Week.refreshTabIndices();
-                  $.post('/week_logs/remove_task', {id: row.attr('id')});
+    autoOpen: false,
+    width: 300,
+    resizable: false,
+    modal: true,
+    buttons: {
+      "Yes": function() {
+      var bValid = true;
+      var row = $("tr.selected"),
+      table = row.parents('table');
+      row.remove();
+      Week.refreshTableRowColors(table);
+      Week.refreshTotalHours();
+      Week.refreshTabIndices();
+      $.post('/week_logs/remove_task', {id: row.attr('id').replace(/\D+/g, '')});
 
-                  if (bValid) {
-                      //If valid execute script and close the dialog.
-                      $(this).dialog("close");
-                  }
-              },
-                  "No": function() {
-                    $(this).dialog("close");
-                  }
-              },
-              close: function(ev, ui) {
-                var row = $("tr.selected");
-                row.removeClass("selected");
-              }
-          });
+      if (bValid) {
+        //If valid execute script and close the dialog.
+        $(this).dialog("close");
+      }
+    },
+      "No": function() {
+        $(this).dialog("close");
+      }
+    },
+    close: function(ev, ui) {
+      var row = $("tr.selected");
+      row.removeClass("selected");
+    }
+  });
+
+  $("#dialog-add-task").dialog({
+    autoOpen: false,
+    width: 300,
+    modal: true,
+    resizable: false,
+    title: 'Add Task',
+    buttons: {
+      "Add": function() {
+        $('#add-task-form').submit();
+      },
+      "Cancel": function() {
+        $(this).dialog("close");
+      }
+    },
+    close: function(ev, ui) {
+      Week.addTask.resetForm($('#add-task-form'));
+    }
+  });
 }
