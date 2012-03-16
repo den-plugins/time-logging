@@ -145,7 +145,7 @@ function initializers() {
         },
         error: function(data) {
           form.find('.error').text(data.responseText).removeClass('hidden');
-          idField.focus().select();
+          taskIdField.focus().select();
         }
       });
     }
@@ -188,7 +188,7 @@ function initializers() {
     this.value = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours).toFixed(1);
   });
   $('.head-button').live('click', function() {
-    Week.addTask.showDialog(this);
+    Week.addTask.openDialog(this);
   });
   $('#add-task-form')
   .attr('action', '')
@@ -309,7 +309,7 @@ function initializers() {
           total += parseFloat($(this).val());
         });
         textField.val(total.toFixed(1));
-    });   
+    });
   };
 
   $("#dialog-remove-task").dialog({
