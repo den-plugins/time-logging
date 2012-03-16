@@ -136,7 +136,7 @@ function initializers() {
         taskType = form.attr('rel');
       $.ajax({
         type: 'post',
-        url: '/week_logs/add_task',
+        url: '/week_logs/add_task.js',
         data: { 'id': taskId, 'type': taskType, 'week_start': $('#week_start').val() },
         success: function() {
           $('#dialog-add-task').dialog('close');
@@ -326,7 +326,7 @@ function initializers() {
       Week.refreshTableRowColors(table);
       Week.refreshTotalHours();
       Week.refreshTabIndices();
-      $.post('/week_logs/remove_task', {id: row.attr('id').replace(/\D+/g, '')});
+      $.post('/week_logs/remove_task.js', {id: row.attr('id').replace(/\D+/g, '')});
 
       if (bValid) {
         //If valid execute script and close the dialog.
