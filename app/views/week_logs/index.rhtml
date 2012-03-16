@@ -2,7 +2,7 @@
 
 <div id="control_panel">
   <%= label_tag 'week_selector' %>
-  <%= text_field_tag 'week_selector' %>
+  <%= text_field_tag 'week_selector', "",  :disabled => "true" %>
   <%= label_tag 'total_hours' %>
   <%= text_field_tag 'total_hours', 0, :maxlength=>5, :readonly=>"readonly" %>
 
