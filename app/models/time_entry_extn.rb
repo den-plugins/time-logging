@@ -10,8 +10,6 @@ module TimeEntryExtn
       (0..6).each do |val| 
         ret = TimeEntry.find(:all, :conditions=>["spent_on = ? AND issue_id = ?", current_date+val, issue.id])
         arr << (ret.empty? ? 0.0 : ret.first.hours)
-        puts (current_date+val)
-        puts arr[val]
       end
       sun = arr[0]
       arr.delete_at 0
