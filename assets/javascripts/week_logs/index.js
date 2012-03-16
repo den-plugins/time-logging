@@ -159,23 +159,25 @@ function initializers() {
     this.select();
   }).live('keydown', function(e) {
     // mimic html5 number field behavior
-    var hours = this.value, min = 0, max = 24, step = 0.5;
-    hours = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours);
+    var hours = Week.parseHours(this.value), min = 0, max = 24, step = 0.5;
     switch(e.which) {
       case 38: // up
         if(hours + step <= max)
-          this.value = parseFloat(hours + step).toFixed(1);
+          this.value = parseFloat(hours + step);
         else
-          this.value = max.toFixed(1);
+          this.value = max;
+        this.value = parseFloat(this.value).toFixed(1);
+        this.select();
         break;
       case 40: // down
         if(hours - step >= min)
-          this.value = parseFloat(hours - step).toFixed(1);
+          this.value = parseFloat(hours - step);
         else
-          this.value = min.toFixed(1);
+          this.value = min;
+        this.value = parseFloat(this.value).toFixed(1);
+        this.select();
         break;
     }
-    this.select();
   }).live('change keyup', function() {
     var row = $(this).parents('.issue'),
       dateFields = row.find('.date').find('input'),
@@ -183,13 +185,15 @@ function initializers() {
       total = 0, i, hours;
     for(i = 0; length = dateFields.length, i < length; i++) {
       hours = dateFields[i].value;
-      total += parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours);
+      total += Week.parseHours(hours);
     }
     totalField.val(total.toFixed(1));
     Week.refreshTotalHours();
   }).live('blur', function() {
     var hours = this.value;
-    this.value = parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours).toFixed(1);
+    if(!Week.isHours(hours)) {
+      this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0).toFixed(1);
+    }
   });
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
@@ -251,6 +255,7 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
+        $('#success_message').text('Successfully added task #' + taskId + '.').removeClass('hidden');
         taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
@@ -300,7 +305,7 @@ function initializers() {
       var total = 0.0;
       var hoursDay = $("#proj_table").find("input."+textField.attr("summary"));
         hoursDay.each(function(i, el) {
-          total += parseFloat($(this).val());
+          total += Week.parseHours($(this).val());
         });
         textField.val(total.toFixed(1));
     });
@@ -310,10 +315,29 @@ function initializers() {
       var total = 0.0;
       var hoursDay = $("#non_proj_table").find("input."+textField.attr("summary"));
         hoursDay.each(function(i, el) {
-          total += parseFloat($(this).val());
+          total += Week.parseHours($(this).val());
         });
         textField.val(total.toFixed(1));
     });
+  };
+
+  Week.parseHours = function(hours) {
+    // ported from Rails Redmine Core
+    hours = hours.trim();
+    if(hours.length > 0) {
+      if(/^(\d+([.,]\d+)?)h?$/.test(hours)) {
+        hours = hours.match(/\d+([.,]\d+)?/)[0];
+      } else {
+        hours = hours.replace(/^(\d+):(\d+)$/, function(str, h, m) { return parseInt(h) + parseInt(m) / 60.0; });
+        hours = hours.replace(/^((\d+)\s*(?:h|hours))?\s*((\d+)\s*(m|min)?)?$/, function(str, hgrp, h, mgrp, m) { return ((hgrp || mgrp) ? (parseInt(h || 0) + parseInt(m || 0) / 60.0) : str[0]); });
+      }
+      hours = hours.replace(',', '.');
+    }
+    return parseFloat(hours.length == 0 || isNaN(hours) ? 0 : hours);
+  };
+
+  Week.isHours = function(hours) {
+    return /^(\d+([.,]\d+)?h?|\d+:\d+|(\d+\s*(h|hours))?\s*(\d+\s*(m|min)?)?)$/.test(hours);
   };
 
   $("#dialog-remove-task").dialog({
@@ -325,12 +349,15 @@ function initializers() {
       "Yes": function() {
       var bValid = true;
       var row = $("tr.selected"),
-      table = row.parents('table');
+        table = row.parents('table'),
+        taskId = row.attr('id').replace(/\D+/g, '');
       row.remove();
       Week.refreshTableRowColors(table);
       Week.refreshTotalHours();
       Week.refreshTabIndices();
-      $.post('/week_logs/remove_task.js', {id: row.attr('id').replace(/\D+/g, '')});
+      $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
+        $('#success_message').text('Successfully removed task #' + taskId + '.').removeClass('hidden');
+      });
 
       if (bValid) {
         //If valid execute script and close the dialog.
