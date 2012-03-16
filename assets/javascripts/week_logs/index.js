@@ -19,7 +19,7 @@ function initializers() {
     var rStart = new Date(start);
     var rEnd = new Date(start);
     rStart.setDate(rStart.getDate()+1);
-    rEnd.setDate(rEnd.getDate()+6)
+    rEnd.setDate(rEnd.getDate()+7)
     var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
     var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
     var maxDate = new Date(currentYear, currentMonth, currentDate);
@@ -45,7 +45,7 @@ function initializers() {
         var rStart = new Date(start);
         var rEnd = new Date(start);
         rStart.setDate(rStart.getDate()+1);
-        rEnd.setDate(rEnd.getDate()+6)
+        rEnd.setDate(rEnd.getDate()+7)
         var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
         var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
         $('#week_start').val(start_output);
@@ -239,16 +239,16 @@ function initializers() {
 
   Week.refreshTableDates = function() {
     var start = new Date($("#js_week_start").val());
-    var end = new Date($("#js_week_end").val());
+    var end = new Date();
     var inspect = new Date(start);
     var i = 0;
     var flag = false;
-    var maxDate = new Date(inspect.getFullYear(), inspect.getMonth(), inspect.getDate() - inspect.getDay() + 6);
+    var maxDate = new Date($("#js_week_end").val());
     var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     while(inspect <= maxDate) {
       $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
       flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
-      if(inspect.toDateString() == end.toDateString())
+      if(inspect.toDateString() == end.toDateString() && flag == false)
         flag = true;
       i++;
       inspect.setDate(inspect.getDate()+1);
