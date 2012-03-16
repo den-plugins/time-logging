@@ -252,6 +252,7 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
+        $('#success_message').text('Successfully added task #' + taskId + '.').removeClass('hidden');
         taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
@@ -345,12 +346,15 @@ function initializers() {
       "Yes": function() {
       var bValid = true;
       var row = $("tr.selected"),
-      table = row.parents('table');
+        table = row.parents('table'),
+        taskId = row.attr('id').replace(/\D+/g, '');
       row.remove();
       Week.refreshTableRowColors(table);
       Week.refreshTotalHours();
       Week.refreshTabIndices();
-      $.post('/week_logs/remove_task.js', {id: row.attr('id').replace(/\D+/g, '')});
+      $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
+        $('#success_message').text('Successfully removed task #' + taskId + '.').removeClass('hidden');
+      });
 
       if (bValid) {
         //If valid execute script and close the dialog.
