@@ -79,11 +79,15 @@ function initializers() {
     }
 
     $("#submit_button").live("click", function(){
+      var button = $(this);
+      $('#ajax-indicator').show();
+      button.attr('disabled', true);
       $.post("/week_logs/update", {
                   project: JSON.stringify(createJsonObject("#proj_table")),
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
       })
-      .success(function() {Week.repopulateTable();});
+      .complete(function() { button.attr('disabled', false) })
+      .success(function() { Week.repopulateTable() });
     });
   }
 
@@ -248,6 +252,20 @@ function initializers() {
       i++;
       inspect.setDate(inspect.getDate()+1);
     }
+      var inputs = document.getElementsByTagName("input");
+		for (var i = 0; i < inputs.length; i++ ) {
+			if(inputs[i].type == "text") {
+				inputs[i].valueHtml = inputs[i].value;
+				inputs[i].onblur = function () {
+					if(this.value == "") {
+						this.value = this.valueHtml;
+					}
+
+				}
+
+
+			}
+		}
   };
 
   Week.repopulateTable = function(taskId) {
