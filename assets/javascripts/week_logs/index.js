@@ -155,15 +155,14 @@ function initializers() {
     this.select();
   }).live('keydown', function(e) {
     // mimic html5 number field behavior
-    var hours = this.value, min = 0, max = 24, step = 0.5;
-    hours = Week.parseHours(hours);
+    var hours = Week.parseHours(this.value), min = 0, max = 24, step = 0.5;
     switch(e.which) {
       case 38: // up
         if(hours + step <= max)
           this.value = parseFloat(hours + step);
         else
           this.value = max;
-        this.value = this.value.toFixed(1);
+        this.value = parseFloat(this.value).toFixed(1);
         this.select();
         break;
       case 40: // down
@@ -171,7 +170,7 @@ function initializers() {
           this.value = parseFloat(hours - step);
         else
           this.value = min;
-        this.value = this.value.toFixed(1);
+        this.value = parseFloat(this.value).toFixed(1);
         this.select();
         break;
     }
