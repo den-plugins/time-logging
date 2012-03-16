@@ -308,6 +308,7 @@ function initializers() {
           total += Week.parseHours($(this).val());
         });
         textField.val(total.toFixed(1));
+        if(total > 24){alert("Cannot log more than 24 hours per day");}
     });
     var nonProjDailyTotals = $('#non_proj_table').find("input.daily");
     nonProjDailyTotals.each(function(i, el) {
@@ -318,6 +319,7 @@ function initializers() {
           total += Week.parseHours($(this).val());
         });
         textField.val(total.toFixed(1));
+        if(total > 24){alert("Cannot log more than 24 hours per day");}
     });
   };
 
