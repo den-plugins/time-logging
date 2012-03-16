@@ -59,10 +59,14 @@ function initializers() {
       $(id).find('tr.issue').each(function() {
         issue = this.id.match(/\d+/);
         row[issue] = {}
+        var orig = new Date(start);
         $(this).find('td.date').each(function(y){
           var inc = new Date(start);
-          inc.setDate(inc.getDate()+y)
-          var row_date = (inc.getMonth()+1)+'/'+(inc.getDate())+'/'+inc.getFullYear();
+          inc.setDate(inc.getDate()+y+1)
+          if(y==6)
+            var row_date = (orig.getMonth()+1)+'/'+(orig.getDate())+'/'+orig.getFullYear();
+          else
+            var row_date = (inc.getMonth()+1)+'/'+(inc.getDate())+'/'+inc.getFullYear();
           row[issue][row_date] = {hours:$(this).find('input').val()};
         });
       });

@@ -11,7 +11,7 @@ module SaveWeekLogs
           if(hours > 0 && total_time_entry <= 24)
             proj_i = Issue.find(issue)
             new_time = TimeEntry.new(:project => proj_i.project, :issue => proj_i, :user => User.current)
-            new_time.hours = Float hours 
+            new_time.hours = hours 
             new_time.spent_on = Date.parse(date)
             new_time.activity_id = 9
             new_time.save!
