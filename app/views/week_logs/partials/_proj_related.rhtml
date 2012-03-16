@@ -37,10 +37,12 @@
     <tfoot>
       <tr class = "total">
         <td></td>
+        <td class="right-aligned">Total</td>
         <% week_days.each do |day| -%>
-          <%= content_tag :td, nil, :class => day.downcase -%>
+          <% content_tag :td, nil, :class => day.downcase+" border-cell date" do -%>
+          <%= text_field_tag 'total', nil, :size=>2, :maxlength=>1, :readonly=>"readonly", :class=>"daily", :summary=>"#{day.downcase}" %>
+          <% end %>
         <% end -%>
-        <td><%= label_tag 'total' %></td>
         <td class = "border-cell"><%= text_field_tag 'total_proj', @total, :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
       </tr>
     </tfoot>

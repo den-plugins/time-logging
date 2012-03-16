@@ -297,6 +297,26 @@ function initializers() {
     });
     $('#total_non_proj').val(parseFloat(nonProjTotal).toFixed(1));
     $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
+    var projDailyTotals = $('#proj_table').find("input.daily");
+    projDailyTotals.each(function(i, el) {
+      var textField = $(this);
+      var total = 0.0;
+      var hoursDay = $("#proj_table").find("input."+textField.attr("summary"));
+        hoursDay.each(function(i, el) {
+          total += parseFloat($(this).val());
+        });
+        textField.val(total.toFixed(1));
+    });
+    var nonProjDailyTotals = $('#non_proj_table').find("input.daily");
+    nonProjDailyTotals.each(function(i, el) {
+      var textField = $(this);
+      var total = 0.0;
+      var hoursDay = $("#non_proj_table").find("input."+textField.attr("summary"));
+        hoursDay.each(function(i, el) {
+          total += parseFloat($(this).val());
+        });
+        textField.val(total.toFixed(1));
+    });   
   };
 
   $("#dialog-remove-task").dialog({

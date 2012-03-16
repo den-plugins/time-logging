@@ -13,4 +13,5 @@ td.subject {width:530px;}
 .add-task-form .buttons {float: right}
 .hidden { display: none }
 .border-cell input {border:none; background:none;text-align:center;}
-#submit_button {float:right; margin-right:650px; height:30px; width:70px;}
+.right-aligned {text-align:right;}
+#submit_button {float:right; margin-right:650px; height:30px; width:70px;
