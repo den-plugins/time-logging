@@ -64,14 +64,15 @@ function initializers() {
     });
     function createJsonObject(id) {
       var row = {};
+      var rStart = new Date(start);
+      rStart.setDate(rStart.getDate()+1);
       $(id).find('tr.issue').each(function() {
         issue = this.id.match(/\d+/);
         row[issue] = {}
-        var rStart = new Date(start);
-        rStart.setDate(rStart.getDate()+1);
         $(this).find('td.date').each(function(y){
-          rStart.setDate(rStart.getDate()+y);
-          var row_date = (rStart.getMonth()+1)+'/'+(rStart.getDate())+'/'+rStart.getFullYear();
+          var inspec = new Date(rStart);
+          inspec.setDate(inspec.getDate()+y);
+          var row_date = (inspec.getMonth()+1)+'/'+(inspec.getDate())+'/'+inspec.getFullYear();
           row[issue][row_date] = {hours:$(this).find('input').val()};
         });
       });
