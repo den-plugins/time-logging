@@ -243,6 +243,20 @@ function initializers() {
       i++;
       inspect.setDate(inspect.getDate()+1);
     }
+      var inputs = document.getElementsByTagName("input");
+		for (var i = 0; i < inputs.length; i++ ) {
+			if(inputs[i].type == "text") {
+				inputs[i].valueHtml = inputs[i].value;
+				inputs[i].onblur = function () {
+					if(this.value == "") {
+						this.value = this.valueHtml;
+					}
+
+				}
+
+
+			}
+		}
   };
 
   Week.repopulateTable = function(taskId) {
