@@ -99,8 +99,8 @@ class WeekLogsController < ApplicationController
       @user = User.current
       time_entry = TimeEntry.find(:all, :conditions=>["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
       issues = time_entry.map {|te| te.issue}
-      proj = issues.select { |i| @projects[:non_admin].include?(i.project) }
-      non_proj = issues.select { |i| i.project == @projects[:admin] }
+      proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
+      non_proj = issues.select { |i| i.project.project_type && i.project.project_type.casecmp("Admin") == 0 }
       @time_issues = {:non_admin => proj, :admin => non_proj }
     end
 end
