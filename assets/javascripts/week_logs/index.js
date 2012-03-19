@@ -14,12 +14,12 @@ function initializers() {
 
   Week.init = function() {
     var current_date = new Date();
-    var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay());
+    var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - (current_date.getDay() - 1));
     var end = current_date;
     var rStart = new Date(start);
-    var rEnd = new Date(start);
-    rStart.setDate(rStart.getDate()+1);
-    rEnd.setDate(rEnd.getDate()+7)
+    var rEnd = new Date(end);
+    rStart.setDate(rStart.getDate());
+    rEnd.setDate(rEnd.getDate()+6);
     var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
     var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
     var maxDate = new Date(currentYear, currentMonth, currentDate);
@@ -33,19 +33,20 @@ function initializers() {
     Week.refreshTabIndices();
     $('#week_selector').datepicker({
       maxDate: maxDate,
+      gotoCurrent: true,
       showOn: "button",
       buttonImage: "",
       firstDay: 7,
       onSelect: function(select_date) {
         var sd = $(this).datepicker('getDate');
-        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay());
-        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
+        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - (sd.getDay() - 1));
+        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 7);
         if(end > maxDate)
           end = maxDate;
         var rStart = new Date(start);
         var rEnd = new Date(start);
-        rStart.setDate(rStart.getDate()+1);
-        rEnd.setDate(rEnd.getDate()+7)
+        rStart.setDate(rStart.getDate());
+        rEnd.setDate(rEnd.getDate()+6)
         var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
         var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
         $('#week_start').val(start_output);
