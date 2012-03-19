@@ -89,8 +89,8 @@ class WeekLogsController < ApplicationController
 
     def find_user_projects
       @user = User.current
-      projects = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) }
-      project_related, non_project_related = projects.partition{ |p| p.name !~ /admin/i }
+      project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name !~ /admin/i && project.project_type.to_s !~ /admin/i }
+      non_project_related = project_related.map { |project| project.root.descendants.active.select { |p| p.project_type && p.project_type.casecmp("Admin") == 0 } }.flatten
       non_project_related = non_project_related.first || Project.find_by_name('Exist Engineering Admin')
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
@@ -99,7 +99,8 @@ class WeekLogsController < ApplicationController
       @user = User.current
       time_entry = TimeEntry.find(:all, :conditions=>["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
       issues = time_entry.map {|te| te.issue}
-      proj, non_proj = issues.partition{ |t| t.project.name !~ /admin/i }
+      proj = issues.select { |i| @projects[:non_admin].include?(i.project) }
+      non_proj = issues.select { |i| i.project == @projects[:admin] }
       @time_issues = {:non_admin => proj, :admin => non_proj }
     end
 end
