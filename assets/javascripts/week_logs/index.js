@@ -220,6 +220,7 @@ function initializers() {
         existingTask = $('#issue-' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
+        $('#success_message').text('You have already added this task.').removeClass('hidden');
         $('#dialog-add-task').dialog('close');
         existingTask.removeClass('hidden');
         $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
