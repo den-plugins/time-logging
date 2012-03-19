@@ -54,6 +54,8 @@ function initializers() {
         $('#js_week_start').val(rStart);
         $('#js_week_end').val(rEnd);
         Week.repopulateTable();
+        Week.refreshTotalHours();
+        Week.refreshTabIndices();
       },
       beforeShowDay: function(dates) {
           var cssClass = '';
@@ -200,9 +202,12 @@ function initializers() {
     totalField.val(total.toFixed(1));
     Week.refreshTotalHours();
   }).live('blur', function() {
-    var hours = this.value;
+    var hours = this.value.trim();
     if(!Week.isHours(hours)) {
       this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0).toFixed(1);
+    }
+    if(/^\d+(\.\d+)?$/.test(hours)) {
+      this.value = parseFloat(hours).toFixed(1);
     }
   });
   $('.head-button').live('click', function() {
@@ -254,20 +259,6 @@ function initializers() {
       i++;
       inspect.setDate(inspect.getDate()+1);
     }
-      var inputs = document.getElementsByTagName("input");
-		for (var i = 0; i < inputs.length; i++ ) {
-			if(inputs[i].type == "text") {
-				inputs[i].valueHtml = inputs[i].value;
-				inputs[i].onblur = function () {
-					if(this.value == "") {
-						this.value = this.valueHtml;
-					}
-
-				}
-
-
-			}
-		}
   };
 
   Week.repopulateTable = function(taskId) {
@@ -364,7 +355,7 @@ function initializers() {
   };
 
   Week.isHours = function(hours) {
-    return /^(\d+([.,]\d+)?h?|\d+:\d+|(\d+\s*(h|hours))?\s*(\d+\s*(m|min)?)?)$/.test(hours);
+    return /^(\d+([.,]\d+)?h?|\d+:\d+|\d+\s*(h|hours)\s*(\d+\s*(m|min)?)?|\d+\s*(m|min)?)$/.test(hours);
   };
 
   $("#dialog-remove-task").dialog({
