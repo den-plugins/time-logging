@@ -15,4 +15,4 @@ td.subject {width:530px;}
 .hidden { display: none }
 .border-cell input, .total_column input {border:none; background:none;text-align:center;}
 .right-aligned {text-align:right;}
-#submit_button {float:right; margin-right:650px; height:30px; width:70px;
+#submit_button {float:right; margin-right:650px; height:30px; width:70px;}
