@@ -5,12 +5,12 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : (Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]) + @time_issues[:non_admin]),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : (Issue.in_projects(@projects[:admin]) + @time_issues[:admin]) }
-    @issues[:project_related].uniq!
-    @issues[:non_project_related].uniq!
-    session[:project_issue_ids] = @issues[:project_related].map(&:id)
-    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id)
+    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]) }
+    session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
+    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
+    @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
+    @issues[:non_project_related] = (@issues[:non_project_related]+ @time_issues[:admin]).uniq
     respond_to do |format|
       format.html
       format.json do
