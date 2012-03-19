@@ -1,14 +1,16 @@
 class WeekLogsController < ApplicationController
   before_filter :get_week_start, :only => [:index, :add_task]
   before_filter :find_user_projects, :only => [:index, :add_task]
-
+  before_filter :find_time_entries, :only => [:index, :add_task]
   require 'json'
 
   def index
-    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]) }
-    session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
-    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
+    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : (Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]) + @time_issues[:non_admin]),
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : (Issue.in_projects(@projects[:admin]) + @time_issues[:admin]) }
+    @issues[:project_related].uniq!
+    @issues[:non_project_related].uniq!
+    session[:project_issue_ids] = @issues[:project_related].map(&:id)
+    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id)
     respond_to do |format|
       format.html
       format.json do
@@ -91,5 +93,13 @@ class WeekLogsController < ApplicationController
       project_related, non_project_related = projects.partition{ |p| p.name !~ /admin/i }
       non_project_related = non_project_related.first || Project.find_by_name('Exist Engineering Admin')
       @projects = { :non_admin => project_related, :admin => non_project_related }
+    end
+
+    def find_time_entries
+      @user = User.current
+      time_entry = TimeEntry.find(:all, :conditions=>["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
+      issues = time_entry.map {|te| te.issue}
+      proj, non_proj = issues.partition{ |t| t.project.name !~ /admin/i }
+      @time_issues = {:non_admin => proj, :admin => non_proj }
     end
 end
