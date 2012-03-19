@@ -1,6 +1,7 @@
 require 'redmine'
 require File.dirname(__FILE__) + '/app/helpers/save_week_logs'
 require File.dirname(__FILE__) + '/app/models/time_entry_extn'
+require File.dirname(__FILE__) + '/app/helpers/extend_account_controller'
 
 Dispatcher.to_prepare do
   Issue.send(:include, TimeLogging::IssuePatch)
