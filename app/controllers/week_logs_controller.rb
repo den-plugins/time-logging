@@ -5,12 +5,11 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]) }
+    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.updated_on DESC"),
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.updated_on DESC") }
     session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
-    @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
-    @issues[:non_project_related] = (@issues[:non_project_related]+ @time_issues[:admin]).uniq
+    @issues[:project_related] = @issues[:project_related].concat(@time_issues).uniq
     respond_to do |format|
       format.html
       format.json do
@@ -96,11 +95,9 @@ class WeekLogsController < ApplicationController
     end
 
     def find_time_entries
-      @user = User.current
-      time_entry = TimeEntry.find(:all, :conditions=>["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
-      issues = time_entry.map {|te| te.issue}
-      proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
-      non_proj = issues.select { |i| i.project.project_type && i.project.project_type.casecmp("Admin") == 0 }
-      @time_issues = {:non_admin => proj, :admin => non_proj }
+      @user ||= User.current
+      time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
+      issues = time_entry.map(&:issue)
+      @time_issues = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
     end
 end
