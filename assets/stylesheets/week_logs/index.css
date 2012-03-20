@@ -14,3 +14,4 @@ tr.issue:hover input[type=text] {background: #FFE;}
 .zero {color: #ddd}
 table.list td.right-aligned {text-align:right;}
 #submit_button {float:right; margin-right:650px; height:30px; width:70px;}
+table.list th {border:1px solid #ccc }
