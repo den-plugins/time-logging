@@ -6,7 +6,8 @@
     <thead>
       <tr>
         <th></th>
-        <th class="custom">Task/Activity</th>
+        <th class="custom">Project</th>
+        <th>Task/Activity</th>
         <% week_dates.each do |date| -%>
           <% content_tag :th, :class => date.strftime('%a').downcase do -%>
             <%= date.strftime('%a') %><br/>
@@ -22,6 +23,7 @@
     </tbody>
     <tfoot>
       <tr class = "total">
+        <td></td>
         <td></td>
         <td class="right-aligned">Total</td>
         <% week_days.each do |day| -%>
