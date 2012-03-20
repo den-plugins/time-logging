@@ -225,7 +225,7 @@ function initializers() {
         existingTask = $('#issue-' + existingTaskId);
       form.find('.error').addClass('hidden').text('');
       if(existingTask.length > 0) {
-        $('#success_message').text('You have already added this task.').removeClass('hidden');
+        $('#success_message').text('You have already added this issue.').removeClass('hidden');
         $('#dialog-add-task').dialog('close');
         existingTask.removeClass('hidden');
         $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
@@ -272,7 +272,7 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
-        $('#success_message').text('Successfully added task #' + taskId + '.').removeClass('hidden');
+        $('#success_message').text('Successfully added #' + taskId + '.').removeClass('hidden');
         taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
@@ -375,7 +375,7 @@ function initializers() {
       Week.refreshTotalHours();
       Week.refreshTabIndices();
       $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
-        $('#success_message').text('Successfully removed task #' + taskId + '.').removeClass('hidden');
+        $('#success_message').text('Successfully removed #' + taskId + '.').removeClass('hidden');
       });
 
       if (bValid) {
