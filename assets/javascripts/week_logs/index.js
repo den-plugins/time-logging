@@ -249,9 +249,10 @@ function initializers() {
     var inspect = new Date(start);
     var i = 0;
     var flag = false;
-    var maxDate = new Date($("#js_week_end").val());
+    var maxDate = new Date(inspect);
     var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    while(inspect.toDateString() != maxDate.toDateString()) {
+    maxDate.setDate(maxDate.getDate()+7);
+    while(i<7) {
       $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
       flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
       if(inspect.toDateString() == end.toDateString() && flag == false)
