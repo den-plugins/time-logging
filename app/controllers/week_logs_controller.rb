@@ -89,7 +89,7 @@ class WeekLogsController < ApplicationController
     def find_user_projects
       @user = User.current
       project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name !~ /admin/i && project.project_type.to_s !~ /admin/i }
-      non_project_related = project_related.map { |project| project.root.descendants.active.select { |p| p.project_type && p.project_type.casecmp("Admin") == 0 } }.flatten
+      non_project_related = project_related.map { |project| project.root.descendants.active.select { |p| p.project_type &&  p.project_type.to_s.downcase.include?("admin") && @user.member_of?(p) }}.flatten.uniq
       non_project_related = non_project_related.first || Project.find_by_name('Exist Engineering Admin')
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
