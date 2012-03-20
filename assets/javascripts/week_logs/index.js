@@ -17,7 +17,7 @@ function initializers() {
     var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay());
     var end = current_date;
     var rStart = new Date(start);
-    var rEnd = new Date(end);
+    var rEnd = new Date(start);
     rStart.setDate(rStart.getDate()+1);
     rEnd.setDate(rEnd.getDate()+7);
     var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
@@ -252,7 +252,6 @@ function initializers() {
     var maxDate = new Date($("#js_week_end").val());
     var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     while(inspect.toDateString() != maxDate.toDateString()) {
-      console.log(inspect+" "+maxDate);
       $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
       flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
       if(inspect.toDateString() == end.toDateString() && flag == false)
