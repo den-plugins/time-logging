@@ -5,8 +5,8 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.updated_on DESC"),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.updated_on DESC") }
+    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
     @issues[:project_related] = @issues[:project_related].concat(@time_issues).uniq
