@@ -31,7 +31,7 @@ module SaveWeekLogs
           total_time_entry += hours
           if time_entry.empty?
             if(hours > 0)
-              new_time = TimeEntry.new(:project => proj_i.project, :issue => proj_i, :user => User.current)
+              new_time = TimeEntry.new(:project => proj_issue.project, :issue => proj_issue, :user => User.current)
               new_time.hours = hours
               new_time.spent_on = Date.parse(date)
               new_time.activity_id = 9
