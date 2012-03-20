@@ -2,19 +2,19 @@
     <h2>Project Related Tasks</h2>
     <input type="button" class="head-button" value="+" rel="project" />
   </div>
-  <table id="proj_table">
+  <table id="proj_table" class="list">
     <thead>
       <tr>
-        <th></th>
-        <th class="custom">Project</th>
-        <th>Task/Activity</th>
+        <th class="remove"></th>
+        <th class="subject project">Project</th>
+        <th class="subject">Task/Activity</th>
         <% week_dates.each do |date| -%>
           <% content_tag :th, :class => date.strftime('%a').downcase do -%>
             <%= date.strftime('%a') %><br/>
             <%= date.day %>
           <% end -%>
         <% end -%>
-        <th>Total</th>
+        <th class="total_column">Total</th>
       </tr>
     </thead>
     <tbody>

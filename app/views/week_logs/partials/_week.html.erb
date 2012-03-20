@@ -1,13 +1,13 @@
 <tr id="issue-<%= issue.id %>" class="issue hascontextmenu <%= cycle('odd', 'even') %> <%= "status-#{issue.status.position} priority-#{issue.priority.position}" %>">
-  <td><input type="button" class="hide-button <%=state%>" value="-"/></td>
-  <td class="project_name"><%= link_to "#{issue.project.name}", :controller => :projects, :action => :show, :id => issue.project %></td>
+  <td class="remove"><input type="button" class="hide-button <%=state%>" value="-"/></td>
+  <td class="subject project"><%= link_to "#{issue.project.name}", :controller => :projects, :action => :show, :id => issue.project %></td>
   <td class="subject">
     <%= link_to "#{issue.id} - #{h(truncate(issue.subject,80))}", :controller => :issues, :action => :show, :id => issue %>
   </td>
   <% hours = TimeEntry.get_hours_by_date(@week_start, issue) %>
   <% week_days.each_with_index do |day, offset| -%>
     <% content_tag :td, :class => "#{day.downcase} border-cell date" do %>
-      <%= text_field_tag day.downcase, hours[offset], :class=>day.downcase, :size => 2, :maxlength => 5, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0) %>
+      <%= text_field_tag day.downcase, hours[offset], :class => "#{day.downcase}", :maxlength => 5, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0) %>
     <% end -%>
   <% end -%>
   <td class = "total_column">

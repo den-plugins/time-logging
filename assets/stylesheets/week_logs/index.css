@@ -1,19 +1,16 @@
-#total_hours {width:30px;}
-#control_panel, #proj_related, #non_proj_related {padding-left:10px; padding-bottom:20px;}
+#total_hours { width: 50px; text-align:center }
+#control_panel, #proj_related, #non_proj_related {padding: 10px 0 20px 0;}
+#control_panel .right {float: right}
 h2 {display:inline;}
 
-table {text-align:center; padding:5px 10px;}
-thead th, tbody td {padding-left:10px 10px;}
-td.subject {width:530px;}
-td.project_name {width:270px; text-align: left}
-.custom {padding-right:100px; float:left;}
-.head-button {margin-bottom:10px;}
-.border-cell {border:1px solid black;}
-.total_column {border:1px solid black;}
-.add-task-form {width:270px;display:block;margin:0 auto;}
-.add-task-id {width:5em;}
-.add-task-form .buttons {float: right}
+div.header { margin-bottom: 1em }
+table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
+.head-button {vertical-align: top}
+table.list td.remove { width: 20px; padding-right: 10px }
 .hidden { display: none }
-.border-cell input, .total_column input {border:none; background:none;text-align:center;}
-.right-aligned {text-align:right;}
+table.list input[type=text] {border:1px solid #ddd; background: #FFF; text-align:center; margin: 1px; height: 100%; width: 50px;}
+tr.issue:hover input[type=text] {background: #FFE;}
+.date, .total_column { width: 50px; }
+.zero {color: #ddd}
+table.list td.right-aligned {text-align:right;}
 #submit_button {float:right; margin-right:650px; height:30px; width:70px;}
