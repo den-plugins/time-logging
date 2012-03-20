@@ -34,8 +34,9 @@ class WeekLogsController < ApplicationController
         begin
           issue_id = params[:id].to_i
           issue_type = params[:type].to_s
-          issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => 'id ASC').concat(@time_entries).uniq,
-                     'admin' => Issue.in_projects(@projects[:admin]).all(:order => 'id ASC') }
+          issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
+          issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
+                     'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
           @issue = issues[issue_type].find(issue_id)
           @total = 0 #placeholder
           case issue_type

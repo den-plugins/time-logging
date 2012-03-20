@@ -6,7 +6,7 @@ h2 {display:inline;}
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
 .head-button {vertical-align: top}
-table.list td.remove { width: 20px; padding-right: 10px }
+table.list td.remove { width: 20px; padding: 0 10px 0 5px; text-align: center;}
 .hidden { display: none }
 table.list input[type=text] {border:1px solid #ddd; background: #FFF; text-align:center; margin: 1px; height: 100%; width: 50px;}
 tr.issue:hover input[type=text] {background: #FFE;}
@@ -15,3 +15,5 @@ tr.issue:hover input[type=text] {background: #FFE;}
 table.list td.right-aligned {text-align:right;}
 #submit_button {float:right; margin-right:650px; height:30px; width:70px;}
 table.list th {border:1px solid #ccc }
+table.list th.project.subject {width: 330px;}
+table.list td.subject {padding-left:10px;}
