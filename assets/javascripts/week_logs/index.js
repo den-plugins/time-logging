@@ -89,7 +89,7 @@ function initializers() {
       $.post("/week_logs/update", {
                   project: JSON.stringify(createJsonObject("#proj_table")),
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
-      }, function(data) { 
+      }, function(data) {
                           Week.repopulateTable();
                           Week.createErrorDialog(data);
                         })
@@ -194,16 +194,7 @@ function initializers() {
         break;
     }
   }).live('change keyup', function() {
-    var row = $(this).parents('.issue'),
-      dateFields = row.find('.date').find('input'),
-      totalField = row.find('.total'),
-      total = 0, i, hours;
-    for(i = 0; length = dateFields.length, i < length; i++) {
-      hours = dateFields[i].value;
-      total += Week.parseHours(hours);
-    }
-    totalField.val(total.toFixed(1));
-    Week.refreshTotalHours();
+    Week.refreshIssueTotal(this);
   }).live('blur', function() {
     var hours = this.value.trim();
     if(!Week.isHours(hours)) {
@@ -212,6 +203,7 @@ function initializers() {
     if(/^\d+(\.\d+)?$/.test(hours)) {
       this.value = parseFloat(hours).toFixed(1);
     }
+    Week.refreshIssueTotal(this);
   });
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
@@ -306,41 +298,67 @@ function initializers() {
     document.getElementById('submit_button').tabIndex = (i * 7) + (j + 1);
   };
 
-  Week.refreshTotalHours = function() {
-    var projTotal = 0, nonProjTotal = 0,
-      issueTotals = $('#proj_table').find('input.total');
-    issueTotals.each(function(i, el) {
-      projTotal += parseFloat(el.value);
+  Week.refreshIssueTotal = function(field) {
+    var row = $(field).parents('.issue'),
+      dateFields = row.find('.date').find('input'),
+      totalField = row.find('.total'),
+      total = 0, i, hours;
+    for(i = 0; length = dateFields.length, i < length; i++) {
+      hours = dateFields[i].value;
+      total += Week.parseHours(hours);
+    }
+    totalField.val(total.toFixed(1));
+    Week.refreshTotalHours(field);
+  };
+
+  Week.refreshTotalHours = function(field) {
+    var projTotal = 0.0, nonProjTotal = 0.0,
+      dialogWin = $('#dialog-error-messages'),
+      dailyTotals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      projDailyTotals, nonProjDailyTotals;
+    projDailyTotals = $('#proj_table').find("input.daily");
+    projDailyTotals.each(function(h, e) {
+      var total = 0.0,
+        hoursDay = $("#proj_table").find("input." + $(e).attr("summary"));
+      hoursDay.each(function(i, el) {
+        total += Week.parseHours(el.value);
+      });
+      e.value = total.toFixed(1);
+      dailyTotals[h] += total;
+      projTotal += total;
     });
+    nonProjDailyTotals = $('#non_proj_table').find("input.daily");
+    nonProjDailyTotals.each(function(h, e) {
+      var total = 0.0,
+        hoursDay = $("#non_proj_table").find("input." + $(e).attr("summary"));
+      hoursDay.each(function(i, el) {
+        total += Week.parseHours(el.value);
+      });
+      e.value = total.toFixed(1);
+      dailyTotals[h] += total;
+      nonProjTotal += total;
+    });
+
     $('#total_proj').val(parseFloat(projTotal).toFixed(1));
-    issueTotals = $('#non_proj_table').find('input.total');
-    issueTotals.each(function(i, el) {
-      nonProjTotal += parseFloat(el.value);
-    });
     $('#total_non_proj').val(parseFloat(nonProjTotal).toFixed(1));
     $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
-    var projDailyTotals = $('#proj_table').find("input.daily");
-    projDailyTotals.each(function(i, el) {
-      var textField = $(this);
-      var total = 0.0;
-      var hoursDay = $("#proj_table").find("input."+textField.attr("summary"));
-        hoursDay.each(function(i, el) {
-          total += Week.parseHours($(this).val());
-        });
-        textField.val(total.toFixed(1));
-        if(total > 24){alert("Cannot log more than 24 hours per day");}
-    });
-    var nonProjDailyTotals = $('#non_proj_table').find("input.daily");
-    nonProjDailyTotals.each(function(i, el) {
-      var textField = $(this);
-      var total = 0.0;
-      var hoursDay = $("#non_proj_table").find("input."+textField.attr("summary"));
-        hoursDay.each(function(i, el) {
-          total += Week.parseHours($(this).val());
-        });
-        textField.val(total.toFixed(1));
-        if(total > 24){alert("Cannot log more than 24 hours per day");}
-    });
+
+    for(var d = 0; d < dailyTotals.length; d++) {
+      if(dailyTotals[d] > 24) {
+        var row = $(field).parents('.issue'),
+          issueTotal = row.find('input.total');
+        if(field) {
+          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)).toFixed(1));
+          field.value = '0.0';
+          Week.refreshTotalHours();
+        }
+        dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
+        dialogWin.dialog('option', 'title', 'Error');
+        dialogWin.dialog('open');
+        field.focus();
+        break;
+      }
+    }
   };
   Week.createErrorDialog = function(data) {
     var dialogWin = $("#dialog-error-messages")
