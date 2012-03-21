@@ -38,32 +38,34 @@ class WeekLogsController < ApplicationController
           issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
           issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                      'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
-          @issue = issues[issue_type].find(issue_id)
+          @issue = issues[issue_type].find {|param| param.id == issue_id} 
           @total = 0 #placeholder
-          case issue_type
-          when 'project'
-            session[:project_issue_ids] ||= []
-            session[:project_issue_ids] << issue_id
-          when 'admin'
-            session[:non_project_issue_ids] ||= []
-            session[:non_project_issue_ids] << issue_id
-          end
-          # render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
-          head :created
-        rescue ActiveRecord::RecordNotFound
-          other_issues = case issue_type
-                         when 'admin'
-                           issues['project']
-                         when 'project'
-                           issues['admin']
-                         end
-          if other_issues.map(&:id).include? issue_id
-            phrase = (issue_type == 'admin' ? 'an admin' : 'a project')
-            render :text => "Issue ##{issue_id} is not #{phrase} task.", :status => 400
-          elsif Issue.exists? issue_id
-            render :text => "You are not allowed to log time to issue ##{issue_id}.", :status => 400
+          if @issue
+            case issue_type
+              when 'project'
+                session[:project_issue_ids] ||= []
+                session[:project_issue_ids] << issue_id
+              when 'admin'
+                session[:non_project_issue_ids] ||= []
+                session[:non_project_issue_ids] << issue_id
+            end
+            # render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
+            head :created
           else
-            render :text => "Issue ##{issue_id} does not exist.", :status => 404
+            other_issues = case issue_type
+                           when 'admin'
+                             issues['project']
+                           when 'project'
+                             issues['admin']
+                           end
+            if other_issues.map(&:id).include? issue_id
+              phrase = (issue_type == 'admin' ? 'an admin' : 'a project')
+              render :text => "Issue ##{issue_id} is not #{phrase} task.", :status => 400
+            elsif Issue.exists? issue_id
+              render :text => "You are not allowed to log time to issue ##{issue_id}.", :status => 400
+            else
+              render :text => "Issue ##{issue_id} does not exist.", :status => 404
+            end
           end
         end
       end
