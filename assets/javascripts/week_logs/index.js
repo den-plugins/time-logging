@@ -91,7 +91,7 @@ function initializers() {
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
       }, function(data) { 
                           Week.repopulateTable();
-                          alert(JSON.stringify(data["project"])); 
+                          Week.createErrorDialog(data);
                         })
       .complete(function() { button.attr('disabled', false) })
     });
@@ -342,7 +342,27 @@ function initializers() {
         if(total > 24){alert("Cannot log more than 24 hours per day");}
     });
   };
+  Week.createErrorDialog = function(data) {
+    var dialogWin = $("#dialog-error-messages")
+    var project = data["project"], nonProj = data["non_project"]
+    dialogWin.html("");
+    if(JSON.stringify(project)!="{}" || JSON.stringify(nonProj)!="{}") {
+      if(JSON.stringify(project)!="{}") {
+        dialogWin.append("<h3>Project</h3>");
+        for(var i in project){
+          dialogWin.append("<p>"+i+":"+project[i]+"</p>");
+        }
+      }
 
+      if(JSON.stringify(nonProj)!="{}") {
+        dialogWin.append("<h3>Non-project</h3>");
+        for(var v in nonProj) {
+          dialogWin.append("<p>"+v+":"+nonProj[v]+"</p>");
+        }
+      }
+      dialogWin.dialog("open");
+    }
+  };
   Week.parseHours = function(hours) {
     // ported from Rails Redmine Core
     hours = hours.trim();
@@ -413,5 +433,18 @@ function initializers() {
     close: function(ev, ui) {
       Week.addTask.resetForm($('#add-task-form'));
     }
+  });
+
+  $("#dialog-error-messages").dialog({
+    autoOpen: false,
+    width: 500,
+    modal: true,
+    resizable: false,
+    title: 'Error Messages',
+    buttons: {
+      "Ok": function() {
+        $(this).dialog("close");
+      }
+    },
   });
 }
