@@ -9,7 +9,8 @@ class WeekLogsController < ApplicationController
                 :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
-    @issues[:project_related] = @issues[:project_related].concat(@time_issues).uniq
+    @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
+    @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
     respond_to do |format|
       format.html
       format.json do
@@ -33,8 +34,9 @@ class WeekLogsController < ApplicationController
         begin
           issue_id = params[:id].to_i
           issue_type = params[:type].to_s
-          issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => 'id ASC').concat(@time_entries).uniq,
-                     'admin' => Issue.in_projects(@projects[:admin]).all(:order => 'id ASC') }
+          issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
+          issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
+                     'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
           @issue = issues[issue_type].find(issue_id)
           @total = 0 #placeholder
           case issue_type
@@ -98,6 +100,8 @@ class WeekLogsController < ApplicationController
       @user ||= User.current
       time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
       issues = time_entry.map(&:issue)
-      @time_issues = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
+      proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
+      non_proj = issues.select { |i| i.project.project_type && i.project.project_type["Admin"]}
+      @time_issues = {:non_admin => proj, :admin => non_proj }
     end
 end
