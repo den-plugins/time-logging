@@ -21,9 +21,10 @@ class WeekLogsController < ApplicationController
   end
 
   def update
-    SaveWeekLogs.save(JSON(params[:project]), User.current)
-    SaveWeekLogs.save(JSON(params[:non_project]), User.current)
-    render :nothing=>true
+    error_messages = {}
+    error_messages[:project] = SaveWeekLogs.save(JSON(params[:project]), User.current)
+    error_messages[:non_project] = SaveWeekLogs.save(JSON(params[:non_project]), User.current)
+    render :json => error_messages.to_json
   end
 
   def add_task

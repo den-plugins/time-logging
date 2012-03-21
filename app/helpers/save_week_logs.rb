@@ -1,7 +1,9 @@
 module SaveWeekLogs
 
   def self.save(hash, user)
+    error_messages = {}
     hash.each_key do |issue|
+      error_messages[issue] = ""
       proj_issue = Issue.find(issue)
       project = proj_issue.project
       flag = false
@@ -13,15 +15,25 @@ module SaveWeekLogs
       elsif(!issue_is_billable && 
             member.first)#user is member + issue is not billable
         flag = true
-      elsif(project.name =~ /admin/i)
-        flag = true
       end
+      
       if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
         budget_computation(project.id)
         if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
           flag = false
+          error_messages[issue] += "#{project.name}'s budget has already been consumed."
         end      
       end
+      
+      if(!member.first)
+        error_messages[issue] += "User is not a member of #{project.name}."
+      else
+        if(issue_is_billable && !member.first.billable)
+          error_messages[issue] += "User is not billable in #{project.name}."
+        end
+      end
+      
+      error_messages.delete(issue) if error_messages[issue]==""
       
       if flag
         hash[issue].each_key do |date|
@@ -48,6 +60,7 @@ module SaveWeekLogs
         end
       end
     end
+    error_messages
   end
   
   def self.budget_computation(project_id)

@@ -89,7 +89,10 @@ function initializers() {
       $.post("/week_logs/update", {
                   project: JSON.stringify(createJsonObject("#proj_table")),
                   non_project: JSON.stringify(createJsonObject("#non_proj_table"))
-      }, function() { Week.repopulateTable() })
+      }, function(data) { 
+                          Week.repopulateTable();
+                          alert(JSON.stringify(data["project"])); 
+                        })
       .complete(function() { button.attr('disabled', false) })
     });
   }
