@@ -413,18 +413,33 @@ function initializers() {
     modal: true,
     buttons: {
       "Yes": function() {
+      var dialogWin = $("#dialog-error-messages");
       var bValid = true;
+      var flag = true;
       var row = $("tr.selected"),
         table = row.parents('table'),
         taskId = row.attr('id').replace(/\D+/g, '');
-      row.remove();
-      Week.refreshTableRowColors(table);
-      Week.refreshTotalHours();
-      Week.refreshTabIndices();
-      $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
-        $('#success_message').text('Successfully removed #' + taskId + '.').removeClass('hidden');
+      
+      $.map(row.find("td input"), function(n,i) {
+        if($(n).val()>0)
+          flag = false;
       });
 
+      if(flag) {
+        row.remove();
+        Week.refreshTableRowColors(table);
+        Week.refreshTotalHours();
+        Week.refreshTabIndices();
+        $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
+          $('#success_message').text('Successfully removed #' + taskId + '.').removeClass('hidden');
+        });
+      }
+      else {
+        dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
+        dialogWin.dialog('option', 'title', 'Error');
+        dialogWin.dialog('open');
+      }
+      
       if (bValid) {
         //If valid execute script and close the dialog.
         $(this).dialog("close");
@@ -461,7 +476,7 @@ function initializers() {
 
   $("#dialog-error-messages").dialog({
     autoOpen: false,
-    width: 500,
+    width: 'auto',
     modal: true,
     resizable: false,
     title: 'Error Messages',
