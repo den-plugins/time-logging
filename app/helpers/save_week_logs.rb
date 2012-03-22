@@ -7,7 +7,11 @@ module SaveWeekLogs
       proj_issue = Issue.find(issue)
       project = proj_issue.project
       flag = false
-      proj_issue.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+      if proj_issue.accounting
+        proj_issue.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+      else
+        issue_is_billable = false
+      end
       member = project.members.select {|member| member.user_id == user.id} 
       if(issue_is_billable && 
          member.first && member.first.billable)#user is member and billable + issue is billable
