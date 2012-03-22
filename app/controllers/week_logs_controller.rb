@@ -28,6 +28,7 @@ class WeekLogsController < ApplicationController
   end
 
   def add_task
+    @user = User.current
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
@@ -40,17 +41,27 @@ class WeekLogsController < ApplicationController
                      'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
           @issue = issues[issue_type].find {|param| param.id == issue_id} 
           @total = 0 #placeholder
+         
           if @issue
-            case issue_type
-              when 'project'
-                session[:project_issue_ids] ||= []
-                session[:project_issue_ids] << issue_id
-              when 'admin'
-                session[:non_project_issue_ids] ||= []
-                session[:non_project_issue_ids] << issue_id
+            project = @issue.project
+            @issue.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+            member = project.members.select {|member| member.user_id == @user.id}
+            if(issue_is_billable && member.first && !member.first.billable)
+              render :text => "You are not billable in #{@issue.project.name}.", :status => 400
+            elsif(!member.first)
+              render :text => "You are not a member of #{@issue.project.name}.", :status => 400
+            else
+              case issue_type
+                when 'project'
+                  session[:project_issue_ids] ||= []
+                  session[:project_issue_ids] << issue_id
+                when 'admin'
+                  session[:non_project_issue_ids] ||= []
+                  session[:non_project_issue_ids] << issue_id
+              end
+              head :created
             end
             # render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
-            head :created
           else
             other_issues = case issue_type
                            when 'admin'
