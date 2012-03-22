@@ -65,6 +65,7 @@ function initializers() {
           return [true, cssClass];
       },
     });
+
     function createJsonObject(id) {
       var row = {};
       var rStart = new Date(start);
@@ -80,7 +81,7 @@ function initializers() {
         });
       });
       return row;
-    }
+    };
 
     $("#submit_button").live("click", function(){
       var button = $(this);
@@ -95,7 +96,7 @@ function initializers() {
                         })
       .complete(function() { button.attr('disabled', false) })
     });
-  }
+  };
 
   $(".hide-button").live("click", function(){
     var title = 'Remove Task';
@@ -108,9 +109,9 @@ function initializers() {
     $("#dialog-remove-task").dialog("open");
     var row = $(this).parents('tr');
     row.addClass("selected");
- });
+  });
 
- Week.addTask = {
+  Week.addTask = {
     openDialog: function(button) {
       var button = $(button),
         form = $('#add-task-form'),
@@ -204,6 +205,7 @@ function initializers() {
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
   });
+  
   $('#add-task-form')
   .attr('action', '')
   .live('submit', function(e) {
@@ -274,7 +276,7 @@ function initializers() {
         }
       }
     });
-  }
+  };
 
   Week.refreshTableRowColors = function(table) {
     var rows = table.find('tbody').find('tr.issue').not('.hidden'), i;
@@ -387,6 +389,7 @@ function initializers() {
       dialogWin.dialog("open");
     }
   };
+
   Week.parseHours = function(hours) {
     // ported from Rails Redmine Core
     hours = hours.trim();
