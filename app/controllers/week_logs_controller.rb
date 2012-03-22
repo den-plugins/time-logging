@@ -44,7 +44,7 @@ class WeekLogsController < ApplicationController
          
           if @issue
             project = @issue.project
-            @issue.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+            @issue.project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
             member = project.members.select {|member| member.user_id == @user.id}
             if(issue_is_billable && member.first && !member.first.billable)
               render :text => "You are not billable in #{@issue.project.name}.", :status => 400

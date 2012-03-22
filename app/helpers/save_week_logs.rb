@@ -7,8 +7,8 @@ module SaveWeekLogs
       proj_issue = Issue.find(issue)
       project = proj_issue.project
       flag = false
-      if proj_issue.accounting
-        proj_issue.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+      if project.accounting
+        project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
       else
         issue_is_billable = false
       end
