@@ -170,9 +170,7 @@ function initializers() {
     }
   };
 
-  $('.date input').live('focus', function() {
-    this.select();
-  }).live('keydown', function(e) {
+  $('.date input').live('change', function(e) {
     // mimic html5 number field behavior
     var hours = Week.parseHours(this.value), min = 0, max = 24, step = 0.5;
     switch(e.which) {
@@ -193,9 +191,6 @@ function initializers() {
         this.select();
         break;
     }
-  }).live('change keyup', function() {
-    Week.refreshIssueTotal(this);
-  }).live('blur', function() {
     var hours = this.value.trim();
     if(!Week.isHours(hours)) {
       this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0).toFixed(1);
@@ -205,6 +200,7 @@ function initializers() {
     }
     Week.refreshIssueTotal(this);
   });
+
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
   });
@@ -316,6 +312,7 @@ function initializers() {
       dialogWin = $('#dialog-error-messages'),
       dailyTotals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       projDailyTotals, nonProjDailyTotals;
+    var flag = false;
     projDailyTotals = $('#proj_table').find("input.daily");
     projDailyTotals.each(function(h, e) {
       var total = 0.0,
@@ -345,19 +342,28 @@ function initializers() {
 
     for(var d = 0; d < dailyTotals.length; d++) {
       if(dailyTotals[d] > 24) {
+        $("#proj_table thead tr").children(':eq('+(d+3)+')').css({color:"red"});
+        $("#non_proj_table thead tr").children(':eq('+(d+3)+')').css({color:"red"});
         var row = $(field).parents('.issue'),
           issueTotal = row.find('input.total');
         if(field) {
           issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)).toFixed(1));
           field.value = '0.0';
           Week.refreshTotalHours();
+          field.focus();
         }
-        dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
-        dialogWin.dialog('option', 'title', 'Error');
-        dialogWin.dialog('open');
-        field.focus();
-        break;
+        flag = true;
       }
+      else {
+        $("#proj_table thead tr").children(':eq('+(d+3)+')').css({color:"black"});
+        $("#non_proj_table thead tr").children(':eq('+(d+3)+')').css({color:"black"});
+      }
+    }
+
+    if(flag) {
+      dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
+      dialogWin.dialog('option', 'title', 'Error');
+      dialogWin.dialog('open');
     }
   };
   Week.createErrorDialog = function(data) {
