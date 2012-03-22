@@ -23,4 +23,3 @@ module TimeEntryExtn
   end
 end
 
-TimeEntry.send(:include,TimeEntryExtn)

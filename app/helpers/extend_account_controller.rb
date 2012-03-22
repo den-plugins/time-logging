@@ -11,4 +11,3 @@ module ExtendAccountController
     end
   end
 end
-AccountController.send(:include,ExtendAccountController)

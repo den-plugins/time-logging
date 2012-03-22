@@ -44,7 +44,11 @@ class WeekLogsController < ApplicationController
          
           if @issue
             project = @issue.project
-            @issue.project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+            if project.accounting
+              project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+            else
+              issue_is_billable = false
+            end
             member = project.members.select {|member| member.user_id == @user.id}
             if(issue_is_billable && member.first && !member.first.billable)
               render :text => "You are not billable in #{@issue.project.name}.", :status => 400
@@ -61,7 +65,6 @@ class WeekLogsController < ApplicationController
               end
               head :created
             end
-            # render :partial => '/week_logs/partials/week', :locals => { :issue => @issue }
           else
             other_issues = case issue_type
                            when 'admin'
