@@ -6,7 +6,7 @@ class WeekLogsController < ApplicationController
 
   def index
     @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
+                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
@@ -108,17 +108,18 @@ class WeekLogsController < ApplicationController
     def find_user_projects
       @user = User.current
       project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name !~ /admin/i && project.project_type.to_s !~ /admin/i }
-      non_project_related = project_related.map { |project| project.root.descendants.active.select { |p| p.project_type &&  p.project_type.to_s.downcase.include?("admin") && @user.member_of?(p) }}.flatten.uniq
-      non_project_related = non_project_related.first || Project.find_by_name('Exist Engineering Admin')
+      non_project_related = @user.projects.select{ |p| @user.role_for_project(p).allowed_to?(:log_time) && p.project_type &&  p.project_type.to_s.downcase.include?("admin") && @user.member_of?(p)}.flatten.uniq
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
 
     def find_time_entries
       @user ||= User.current
+      non_proj_default = Project.find_by_name('Exist Engineering Admin')
       time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
       issues = time_entry.map(&:issue)
       proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
       non_proj = issues.select { |i| i.project.project_type && i.project.project_type["Admin"]}
+      non_proj += Issue.in_projects(non_proj_default)
       @time_issues = {:non_admin => proj, :admin => non_proj }
     end
 end
