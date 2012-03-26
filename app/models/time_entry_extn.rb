@@ -7,7 +7,7 @@ module TimeEntryExtn
     def get_hours_by_date(current_date, issue)
       arr = []
       (current_date.beginning_of_week..current_date.end_of_week).each do |date| 
-        ret = TimeEntry.find(:all, :conditions=>["spent_on = ? AND issue_id = ?", date, issue.id])
+        ret = TimeEntry.find(:all, :conditions=>["user_id=?, spent_on = ? AND issue_id = ?", User.current.id, date, issue.id])
         arr << (ret.empty? ? 0.0 : ret.first.hours)
       end
       arr
