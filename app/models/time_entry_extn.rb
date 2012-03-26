@@ -8,17 +8,17 @@ module TimeEntryExtn
       arr = []
       (current_date.beginning_of_week..current_date.end_of_week).each do |date| 
         ret = TimeEntry.find(:all, :conditions=>["user_id=? AND spent_on = ? AND issue_id = ?", User.current.id, date, issue.id])
-        arr << (ret.empty? ? 0.0 : ret.map {|h| h.hours}.inject(:+))
+        arr << (ret.empty? ? 0.0 : ret.map {|h| h.hours}.inject(:+).round(2))
       end
       arr
     end
 
     def get_total(week_start, issue)
-      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND issue_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, issue.id, week_start.beginning_of_week, week_start.end_of_week]).to_f
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND issue_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, issue.id, week_start.beginning_of_week, week_start.end_of_week]).to_f.round(2)
     end
 
     def weekly_total(week_start)
-      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, week_start.beginning_of_week, week_start.end_of_week]).to_f
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, week_start.beginning_of_week, week_start.end_of_week]).to_f.round(2)
     end
   end
 end

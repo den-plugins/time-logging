@@ -31,7 +31,7 @@
           <%= text_field_tag 'total', nil, :size=>2, :maxlength=>1, :readonly=>"readonly", :class=>"daily", :summary=>"#{day.downcase}" %>
           <% end %>
         <% end -%>
-        <td class = "border-cell total_column"><%= text_field_tag 'total_proj', @total, :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
+        <td class = "border-cell total_column"><%= text_field_tag 'total_proj', @total.round(2), :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>
       </tr>
     </tfoot>
   </table>
