@@ -66,7 +66,6 @@ module SaveWeekLogs
   end
   
   def self.budget_computation(project_id, eval_dates, week_start)
-    puts week_start
     project = Project.find(project_id)
     bac_amount = project.project_contracts.all.sum(&:amount)
     contingency_amount = 0
@@ -89,8 +88,6 @@ module SaveWeekLogs
         end
       end
       @project_budget = bac_amount + contingency_amount
-      puts Project.find(project_id).name
-      puts "act: #{@actuals_to_date} budg: #{@project_budget}"
     end
   end
 end
