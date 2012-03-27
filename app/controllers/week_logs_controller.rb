@@ -22,8 +22,8 @@ class WeekLogsController < ApplicationController
 
   def update
     error_messages = {}
-    error_messages[:project] = SaveWeekLogs.save(JSON(params[:project]), User.current)
-    error_messages[:non_project] = SaveWeekLogs.save(JSON(params[:non_project]), User.current)
+    error_messages[:project] = SaveWeekLogs.save(JSON(params[:project]), User.current, Date.parse(params[:week_start]))
+    error_messages[:non_project] = SaveWeekLogs.save(JSON(params[:non_project]), User.current, Date.parse(params[:week_start]))
     render :json => error_messages.to_json
   end
 
