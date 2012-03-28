@@ -68,17 +68,14 @@ function initializers() {
 
     function createJsonObject(id) {
       var row = {};
-      var rStart = new Date(start);
-      rStart.setDate(rStart.getDate()+1);
-      $(id).find('tr.issue').each(function() {
-        issue = this.id.match(/\d+/);
-        row[issue] = {}
-        $(this).find('td.date').each(function(y){
-          var inspec = new Date(rStart);
-          inspec.setDate(inspec.getDate()+y);
-          var row_date = (inspec.getMonth()+1)+'/'+(inspec.getDate())+'/'+inspec.getFullYear();
-          row[issue][row_date] = {hours:$(this).find('input').val()};
-        });
+      $(id).find('td.date.changed').find('input').each(function(i, el) {
+        el = $(el);
+        var issue = el.data('issue'),
+          date = el.data('date');
+        if(!row.hasOwnProperty(issue)) {
+          row[issue] = {};
+        }
+        row[issue][date] = el.val();
       });
       return row;
     };
@@ -89,8 +86,8 @@ function initializers() {
           $('#ajax-indicator').show();
           button.attr('disabled', true);
           $.post("/week_logs/update", {
-                      project: JSON.stringify(createJsonObject("#proj_table")),
-                      non_project: JSON.stringify(createJsonObject("#non_proj_table"))
+                  project: createJsonObject("#proj_table"),
+                  non_project: createJsonObject("#non_proj_table")
           }, function(data) {
                               Week.repopulateTable();
                               Week.createErrorDialog(data);
@@ -179,7 +176,7 @@ function initializers() {
     }
   };
 
-  $('.date input').live('change', function(e) {
+  $('.date').find('input').live('change', function(e) {
     // mimic html5 number field behavior
     var hours = Week.parseHours(this.value), min = 0, max = 24, step = 0.5;
     switch(e.which) {
@@ -207,6 +204,7 @@ function initializers() {
     if(/^\d+(\.\d+)?$/.test(hours)) {
       this.value = parseFloat(hours).toFixed(1);
     }
+    $(this).parents('td').addClass('changed');
     Week.refreshIssueTotal(this);
   });
 

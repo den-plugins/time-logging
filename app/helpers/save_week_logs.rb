@@ -39,7 +39,7 @@ module SaveWeekLogs
       
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
-        hours = hash[issue][date]['hours'].to_hours
+        hours = hash[issue][date].to_hours
         total_time_entry = TimeEntry.sum(:hours, :conditions => ["user_id=? AND spent_on=?", user.id, Date.parse(date)])
         total_time_entry += hours
         if time_entry.empty?
