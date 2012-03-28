@@ -1,6 +1,6 @@
 module SaveWeekLogs
 
-  def self.save(hash, user, week_start)
+  def self.save(hash, user)
     error_messages = {}
     hash.each_key do |issue|
       error_messages[issue] = ""
@@ -22,7 +22,7 @@ module SaveWeekLogs
       end
       
       if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
-        budget_computation(project.id, hash[issue], week_start)
+        budget_computation(project.id, hash[issue])
         if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
           flag = false
           error_messages[issue] += "#{project.name}'s budget has already been consumed."
@@ -65,7 +65,7 @@ module SaveWeekLogs
     error_messages
   end
   
-  def self.budget_computation(project_id, eval_dates, week_start)
+  def self.budget_computation(project_id, eval_dates)
     project = Project.find(project_id)
     bac_amount = project.project_contracts.all.sum(&:amount)
     contingency_amount = 0
@@ -77,7 +77,7 @@ module SaveWeekLogs
 
     if pfrom && to
       team = project.members.project_team.all
-      reporting_period = week_start.end_of_week
+      reporting_period = Date.current.end_of_week
       forecast_range = get_weeks_range(pfrom, to)
       actual_range = get_weeks_range((afrom || pfrom), reporting_period)
       cost = project.monitored_cost(forecast_range, actual_range, team, eval_dates, project_id)
