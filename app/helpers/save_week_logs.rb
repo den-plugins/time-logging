@@ -3,6 +3,8 @@ module SaveWeekLogs
   def self.save(hash, user)
     error_messages = {}
     hash.each_key do |issue|
+      new_te = []
+      old_te = {}
       error_messages[issue] = ""
       proj_issue = Issue.find(issue)
       project = proj_issue.project
@@ -21,14 +23,6 @@ module SaveWeekLogs
         flag = true
       end
       
-      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
-        budget_computation(project.id, hash[issue])
-        if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
-          flag = false
-          error_messages[issue] += "#{project.name}'s budget has already been consumed."
-        end      
-      end
-      
       if(!member.first)
         error_messages[issue] += "User is not a member of #{project.name}."
       else
@@ -36,8 +30,6 @@ module SaveWeekLogs
           error_messages[issue] += "User is not billable in #{project.name}."
         end
       end
-      
-      error_messages.delete(issue) if error_messages[issue]==""
       
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
@@ -51,9 +43,11 @@ module SaveWeekLogs
             new_time.spent_on = Date.parse(date)
             new_time.activity_id = 9
             new_time.save!
+            new_te << TimeEntry.last
           end
         else
           if(hours > 0 && flag)
+            old_te[time_entry.first.id] = time_entry.first.hours
             time_entry.first.hours = hours
             time_entry.first.save!
           elsif(hours<=0)
@@ -61,11 +55,28 @@ module SaveWeekLogs
           end
         end
       end
+
+      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
+        budget_computation(project.id)
+        if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
+          puts new_te.inspect
+          puts "---"
+          puts old_te.inspect
+          error_messages[issue] += "#{project.name}'s budget has already been consumed."
+          new_te.each {|te| te.destroy}
+          old_te.each_key do |key|
+            te = TimeEntry.find(key)
+            te.hours = old_te[key]
+            te.save!
+          end
+        end      
+      end
+      error_messages.delete(issue) if error_messages[issue]==""
     end
     error_messages
   end
   
-  def self.budget_computation(project_id, eval_dates)
+  def self.budget_computation(project_id)
     project = Project.find(project_id)
     bac_amount = project.project_contracts.all.sum(&:amount)
     contingency_amount = 0
@@ -77,10 +88,10 @@ module SaveWeekLogs
 
     if pfrom && to
       team = project.members.project_team.all
-      reporting_period = Date.current.end_of_week
+      reporting_period = Date.today.end_of_week
       forecast_range = get_weeks_range(pfrom, to)
       actual_range = get_weeks_range((afrom || pfrom), reporting_period)
-      cost = project.monitored_cost(forecast_range, actual_range, team, eval_dates, project_id)
+      cost = project.monitored_cost(forecast_range, actual_range, team, project_id)
       actual_list = actual_range.collect {|r| r.first }
       cost.each do |k, v|
         if actual_list.include?(k.to_date)
@@ -88,6 +99,9 @@ module SaveWeekLogs
         end
       end
       @project_budget = bac_amount + contingency_amount
+      puts project.name
+      puts @project_budget
+      puts @actuals_to_date
     end
   end
 end
