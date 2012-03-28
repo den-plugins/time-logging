@@ -24,11 +24,21 @@ module SaveWeekLogs
       end
       
       if(!member.first)
-        error_messages[issue] += "User is not a member of #{project.name}."
+ gt       error_messages[issue] += "User is not a member of #{project.name}."
       else
         if(issue_is_billable && !member.first.billable)
           error_messages[issue] += "User is not billable in #{project.name}."
         end
+      end
+
+      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
+        budget_computation(project.id, hash[issue], issue)
+        if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
+          error_messages[issue] += "#{project.name}'s budget has already been consumed."
+          flag = false
+          puts project.name
+          puts "#{@project_budget} #{@actuals_to_date}"
+        end      
       end
       
       hash[issue].each_key do |date|
@@ -56,27 +66,12 @@ module SaveWeekLogs
         end
       end
 
-      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
-        budget_computation(project.id)
-        if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
-          puts new_te.inspect
-          puts "---"
-          puts old_te.inspect
-          error_messages[issue] += "#{project.name}'s budget has already been consumed."
-          new_te.each {|te| te.destroy}
-          old_te.each_key do |key|
-            te = TimeEntry.find(key)
-            te.hours = old_te[key]
-            te.save!
-          end
-        end      
-      end
       error_messages.delete(issue) if error_messages[issue]==""
     end
     error_messages
   end
   
-  def self.budget_computation(project_id)
+  def self.budget_computation(project_id, hash, issue)
     project = Project.find(project_id)
     bac_amount = project.project_contracts.all.sum(&:amount)
     contingency_amount = 0
@@ -91,7 +86,7 @@ module SaveWeekLogs
       reporting_period = Date.today.end_of_week
       forecast_range = get_weeks_range(pfrom, to)
       actual_range = get_weeks_range((afrom || pfrom), reporting_period)
-      cost = project.monitored_cost(forecast_range, actual_range, team, project_id)
+      cost = project.monitored_cost(forecast_range, actual_range, team, project_id, hash, issue)
       actual_list = actual_range.collect {|r| r.first }
       cost.each do |k, v|
         if actual_list.include?(k.to_date)
