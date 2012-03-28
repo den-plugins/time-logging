@@ -344,22 +344,21 @@ function initializers() {
     $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
 
     for(var d = 0; d < dailyTotals.length; d++) {
+      var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class");
       if(dailyTotals[d] > 24) {
-        $("#proj_table thead tr").children(':eq('+(d+3)+')').css({color:"red"});
-        $("#non_proj_table thead tr").children(':eq('+(d+3)+')').css({color:"red"});
-        var row = $(field).parents('.issue'),
-          issueTotal = row.find('input.total');
-        if(field) {
-          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)).toFixed(1));
-          field.value = '0.0';
-          Week.refreshTotalHours();
-          field.focus();
-        }
+        $("."+day).css({color:"red"});
+//        var row = $(field).parents('.issue'),
+//          issueTotal = row.find('input.total');
+//        if(field) {
+//          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)).toFixed(1));
+//          field.value = '0.0';
+//          Week.refreshTotalHours();
+//          field.focus();
+//        }
         flag = true;
       }
       else {
-        $("#proj_table thead tr").children(':eq('+(d+3)+')').css({color:"black"});
-        $("#non_proj_table thead tr").children(':eq('+(d+3)+')').css({color:"black"});
+        $("."+day).css({color:"black"});
       }
     }
 
