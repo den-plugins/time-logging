@@ -84,17 +84,25 @@ function initializers() {
     };
 
     $("#submit_button").live("click", function(){
-      var button = $(this);
-      $('#ajax-indicator').show();
-      button.attr('disabled', true);
-      $.post("/week_logs/update", {
-                  project: JSON.stringify(createJsonObject("#proj_table")),
-                  non_project: JSON.stringify(createJsonObject("#non_proj_table"))
-      }, function(data) {
-                          Week.repopulateTable();
-                          Week.createErrorDialog(data);
-                        })
-      .complete(function() { button.attr('disabled', false) })
+      if($(".day_error").length==0) {
+          var button = $(this);
+          $('#ajax-indicator').show();
+          button.attr('disabled', true);
+          $.post("/week_logs/update", {
+                      project: JSON.stringify(createJsonObject("#proj_table")),
+                      non_project: JSON.stringify(createJsonObject("#non_proj_table"))
+          }, function(data) {
+                              Week.repopulateTable();
+                              Week.createErrorDialog(data);
+                            })
+          .complete(function() { button.attr('disabled', false) })
+      }
+      else {
+          dialogWin = $('#dialog-error-messages');
+          dialogWin.html($('<p />').html('Please check your timesheet')); 
+          dialogWin.dialog('option', 'title', 'Error'); 
+          dialogWin.dialog('open');
+      }
     });
   };
 
@@ -343,9 +351,10 @@ function initializers() {
     $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
 
     for(var d = 0; d < dailyTotals.length; d++) {
-      var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class");
+      var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class").split(' ')[0];
       if(dailyTotals[d] > 24) {
         $("."+day).css({color:"red"});
+        $("."+day).addClass("day_error");
 //        var row = $(field).parents('.issue'),
 //          issueTotal = row.find('input.total');
 //        if(field) {
@@ -358,6 +367,7 @@ function initializers() {
       }
       else {
         $("."+day).css({color:"black"});
+        $("."+day).removeClass("day_error");
       }
     }
 

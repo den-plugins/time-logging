@@ -3,8 +3,6 @@ module SaveWeekLogs
   def self.save(hash, user)
     error_messages = {}
     hash.each_key do |issue|
-      new_te = []
-      old_te = {}
       error_messages[issue] = ""
       proj_issue = Issue.find(issue)
       project = proj_issue.project
@@ -24,7 +22,7 @@ module SaveWeekLogs
       end
       
       if(!member.first)
- gt       error_messages[issue] += "User is not a member of #{project.name}."
+          error_messages[issue] += "User is not a member of #{project.name}."
       else
         if(issue_is_billable && !member.first.billable)
           error_messages[issue] += "User is not billable in #{project.name}."
@@ -36,8 +34,6 @@ module SaveWeekLogs
         if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
           error_messages[issue] += "#{project.name}'s budget has already been consumed."
           flag = false
-          puts project.name
-          puts "#{@project_budget} #{@actuals_to_date}"
         end      
       end
       
@@ -53,11 +49,9 @@ module SaveWeekLogs
             new_time.spent_on = Date.parse(date)
             new_time.activity_id = 9
             new_time.save!
-            new_te << TimeEntry.last
           end
         else
           if(hours > 0 && flag)
-            old_te[time_entry.first.id] = time_entry.first.hours
             time_entry.first.hours = hours
             time_entry.first.save!
           elsif(hours<=0)
