@@ -66,11 +66,7 @@ module SaveWeekLogs
     member ? rate = member.internal_rate.to_f : rate = 0.0
     hash.keys.each do |date|
       time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", User.current.id, issue, date])  
-      if time_entry.empty?
-        total += hash[date].to_f * rate
-      else
-        total += -time_entry.map(&:hours).sum * rate + hash[date].to_f * rate             
-      end
+      total += hash[date].to_f * rate
     end
     total
   end
@@ -102,12 +98,16 @@ module SaveWeekLogs
             end
           end
           @project_budget = bac_amount + contingency_amount
+          puts project.name
+          puts @project_budget
+          puts @actuals_to_date
           keys.each do |key|
             if project.accounting
               project.accounting.name=="Billable" ? billable = true : billable = false
             else
               billable = false
             end
+            puts @actuals_to_date + future_dates(hash[key], project, key)
             if((@project_budget - (@actuals_to_date + future_dates(hash[key], project, key))) < 0 && billable)
               error_messages[key] = "#{project.name}'s budget has already been consumed."
               hash.delete key
