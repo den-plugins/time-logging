@@ -1,7 +1,8 @@
 module SaveWeekLogs
 
   def self.save(hash, user)
-    error_messages = {}
+    hash, msg = budget_computation(hash)
+    error_messages =  msg
     hash.each_key do |issue|
       error_messages[issue] = ""
       proj_issue = Issue.find(issue)
@@ -28,14 +29,6 @@ module SaveWeekLogs
           error_messages[issue] += "User is not billable in #{project.name}."
         end
       end
-
-      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
-        budget_computation(project.id, hash[issue], issue)
-        if (@project_budget - @actuals_to_date) < 0 && issue_is_billable#budget is consumed
-          error_messages[issue] += "#{project.name}'s budget has already been consumed."
-          flag = false
-        end      
-      end
       
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
@@ -57,32 +50,70 @@ module SaveWeekLogs
     error_messages
   end
   
-  def self.budget_computation(project_id, hash, issue)
-    project = Project.find(project_id)
-    bac_amount = project.project_contracts.all.sum(&:amount)
-    contingency_amount = 0
-    @actuals_to_date = 0
-    @project_budget = 0
+  def self.cleaner(hash, project_id)
+    hash.each do |id|
+      issue = Issue.find id
+      hash.delete(id) if issue.project.id == project_id
+    end
+    hash
+  end
+  
+  def self.future_dates(hash, project, issue)
+    total = 0
+    member = project.members.find(:all, :conditions=>["members.user_id=?", User.current.id]).first
+    member ? rate = member.internal_rate.to_f : rate = 0.0
+    hash.keys.each do |date|
+      time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", User.current.id, issue, date])  
+      if time_entry.empty?
+        total += hash[date].to_f * rate
+      else
+        total += -time_entry.map(&:hours).sum * rate + hash[date].to_f * rate             
+      end
+    end
+    total
+  end
+  
+  def self.budget_computation(hash)
+    error_messages = {}
+    proj = hash.keys.map {|issue| Issue.find(issue).project}.uniq
+    proj.each do |project|
+      if(project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present?)
+        keys = hash.keys.map {|issue| issue if Issue.find(issue).project.id == project.id}.compact
+        bac_amount = project.project_contracts.all.sum(&:amount)
+        contingency_amount = 0
+        @actuals_to_date = 0
+        @project_budget = 0
 
-    pfrom, afrom, pto, ato = project.planned_start_date, project.actual_start_date, project.planned_end_date, project.actual_end_date
-    to = (ato || pto)
+        pfrom, afrom, pto, ato = project.planned_start_date, project.actual_start_date, project.planned_end_date, project.actual_end_date
+        to = (ato || pto)
 
-    if pfrom && to
-      team = project.members.project_team.all
-      reporting_period = Date.today.end_of_week
-      forecast_range = get_weeks_range(pfrom, to)
-      actual_range = get_weeks_range((afrom || pfrom), reporting_period)
-      cost = project.monitored_cost(forecast_range, actual_range, team, project_id, hash, issue)
-      actual_list = actual_range.collect {|r| r.first }
-      cost.each do |k, v|
-        if actual_list.include?(k.to_date)
-          @actuals_to_date += v[:actual_cost]
+        if pfrom && to
+          team = project.members.project_team.all
+          reporting_period = Date.today.end_of_week
+          forecast_range = get_weeks_range(pfrom, to)
+          actual_range = get_weeks_range((afrom || pfrom), reporting_period)
+          cost = project.monitored_cost(forecast_range, actual_range, team)
+          actual_list = actual_range.collect {|r| r.first }
+          cost.each do |k, v|
+            if actual_list.include?(k.to_date)
+              @actuals_to_date += v[:actual_cost]
+            end
+          end
+          @project_budget = bac_amount + contingency_amount
+          keys.each do |key|
+            if project.accounting
+              project.accounting.name=="Billable" ? billable = true : billable = false
+            else
+              billable = false
+            end
+            if((@project_budget - (@actuals_to_date + future_dates(hash[key], project, key))) < 0 && billable)
+              error_messages[key] = "#{project.name}'s budget has already been consumed."
+              hash.delete key
+            end
+          end
         end
       end
-      @project_budget = bac_amount + contingency_amount
-      puts project.name
-      puts @project_budget
-      puts @actuals_to_date
     end
+    [hash, error_messages]
   end
 end
