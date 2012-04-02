@@ -9,34 +9,35 @@ module SaveWeekLogs
       error_messages[issue] = ""
       proj_issue = Issue.find(issue)
       project = proj_issue.project
+      member = project.members.select {|member| member.user_id == user.id} 
       flag = false
       if project.accounting
         project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
       else
         issue_is_billable = false
       end
-      member = project.members.select {|member| member.user_id == user.id} 
-      if(issue_is_billable && 
-         member.first && 
-         member.first.billable?(start_d, end_d, false))#user is member and billable + issue is billable
-        flag = true
-      elsif(!issue_is_billable && 
+      if(!issue_is_billable && 
             member.first)#user is member + issue is not billable
         flag = true
       end
-      
       if(!member.first)
           error_messages[issue] += "User is not a member of #{project.name}."
-      else
-        if(issue_is_billable && !member.first.billable?(start_d, end_d, false))
-          error_messages[issue] += "User is not billable in #{project.name} for selected week."
-        end
       end
+
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
         hours = hash[issue][date].to_hours
         total_time_entry = TimeEntry.sum(:hours, :conditions => ["user_id=? AND spent_on=?", user.id, Date.parse(date)])
         total_time_entry += hours
+        if(issue_is_billable && member.first)
+          if(member.first.billable?(Date.parse(date)))#user is member and billable + issue is billable
+            flag = true
+          else
+            error_messages[issue] += "User is not billable in #{project.name} on #{date}."
+            flag = false
+          end
+        end
+        
         if(hours > 0 && flag)
           time_entry.each {|te| te.destroy} if !time_entry.empty?
           new_time = TimeEntry.new(:project => proj_issue.project, :issue => proj_issue, :user => User.current)
