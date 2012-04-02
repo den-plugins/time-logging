@@ -96,8 +96,8 @@ function initializers() {
       }
       else {
           dialogWin = $('#dialog-error-messages');
-          dialogWin.html($('<p />').html('Please check your timesheet')); 
-          dialogWin.dialog('option', 'title', 'Error'); 
+          dialogWin.html($('<p />').html('Please check your timesheet'));
+          dialogWin.dialog('option', 'title', 'Error');
           dialogWin.dialog('open');
       }
     });
@@ -185,7 +185,7 @@ function initializers() {
           this.value = parseFloat(hours + step);
         else
           this.value = max;
-        this.value = parseFloat(this.value).toFixed(1);
+        this.value = parseFloat(this.value);
         this.select();
         break;
       case 40: // down
@@ -193,16 +193,16 @@ function initializers() {
           this.value = parseFloat(hours - step);
         else
           this.value = min;
-        this.value = parseFloat(this.value).toFixed(1);
+        this.value = parseFloat(this.value);
         this.select();
         break;
     }
     var hours = this.value.trim();
     if(!Week.isHours(hours)) {
-      this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0).toFixed(1);
+      this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0);
     }
     if(/^\d+(\.\d+)?$/.test(hours)) {
-      this.value = parseFloat(hours).toFixed(1);
+      this.value = parseFloat(hours);
     }
     $(this).parents('td').addClass('changed');
     Week.refreshIssueTotal(this);
@@ -211,7 +211,7 @@ function initializers() {
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
   });
-  
+
   $('#add-task-form')
   .attr('action', '')
   .live('submit', function(e) {
@@ -311,7 +311,7 @@ function initializers() {
       hours = dateFields[i].value;
       total += Week.parseHours(hours);
     }
-    totalField.val(total.toFixed(1));
+    totalField.val(total);
     Week.refreshTotalHours(field);
   };
 
@@ -328,7 +328,7 @@ function initializers() {
       hoursDay.each(function(i, el) {
         total += Week.parseHours(el.value);
       });
-      e.value = total.toFixed(1);
+      e.value = total;
       dailyTotals[h] += total;
       projTotal += total;
     });
@@ -339,14 +339,14 @@ function initializers() {
       hoursDay.each(function(i, el) {
         total += Week.parseHours(el.value);
       });
-      e.value = total.toFixed(1);
+      e.value = total;
       dailyTotals[h] += total;
       nonProjTotal += total;
     });
 
-    $('#total_proj').val(parseFloat(projTotal).toFixed(1));
-    $('#total_non_proj').val(parseFloat(nonProjTotal).toFixed(1));
-    $('#total_hours').val(parseFloat(projTotal + nonProjTotal).toFixed(1));
+    $('#total_proj').val(parseFloat(projTotal));
+    $('#total_non_proj').val(parseFloat(nonProjTotal));
+    $('#total_hours').val(parseFloat(projTotal + nonProjTotal));
 
     for(var d = 0; d < dailyTotals.length; d++) {
       var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class").split(' ')[0];
@@ -356,7 +356,7 @@ function initializers() {
 //        var row = $(field).parents('.issue'),
 //          issueTotal = row.find('input.total');
 //        if(field) {
-//          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)).toFixed(1));
+//          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)));
 //          field.value = '0.0';
 //          Week.refreshTotalHours();
 //          field.focus();
@@ -429,7 +429,7 @@ function initializers() {
       var row = $("tr.selected"),
         table = row.parents('table'),
         taskId = row.attr('id').replace(/\D+/g, '');
-      
+
       $.map(row.find("td input"), function(n,i) {
         if($(n).val()>0)
           flag = false;
@@ -449,7 +449,7 @@ function initializers() {
         dialogWin.dialog('option', 'title', 'Error');
         dialogWin.dialog('open');
       }
-      
+
       if (bValid) {
         //If valid execute script and close the dialog.
         $(this).dialog("close");

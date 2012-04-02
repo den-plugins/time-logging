@@ -2,24 +2,27 @@ module TimeEntryExtn
   def self.included(base)
     base.extend(ClassMethods)
   end
-  
+
   module ClassMethods
-    def get_hours_by_date(current_date, issue)
+    def get_hours_by_date(current_date, issue=nil)
       arr = []
-      (current_date.beginning_of_week..current_date.end_of_week).each do |date| 
-        ret = TimeEntry.find(:all, :conditions=>["user_id=? AND spent_on = ? AND issue_id = ?", User.current.id, date, issue.id])
-        arr << (ret.empty? ? 0.0 : ret.map {|h| h.hours}.inject(:+).round(2))
+      (current_date.beginning_of_week..current_date.end_of_week).each do |date|
+        ret = if issue
+                TimeEntry.sum(:hours, :conditions=>["user_id=? AND spent_on = ? AND issue_id = ?", User.current.id, date, issue.id])
+              else
+                TimeEntry.sum(:hours, :conditions=>["user_id=? AND spent_on = ?", User.current.id, date])
+              end
+        arr << ret.to_f
       end
       arr
     end
 
     def get_total(week_start, issue)
-      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND issue_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, issue.id, week_start.beginning_of_week, week_start.end_of_week]).to_f.round(2)
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND issue_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, issue.id, week_start.beginning_of_week, week_start.end_of_week]).to_f
     end
 
     def weekly_total(week_start)
-      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, week_start.beginning_of_week, week_start.end_of_week]).to_f.round(2)
+      TimeEntry.sum(:hours, :conditions=>["user_id = ? AND spent_on BETWEEN ? AND ?", User.current.id, week_start.beginning_of_week, week_start.end_of_week]).to_f
     end
   end
 end
-
