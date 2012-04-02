@@ -5,10 +5,10 @@
     <%= link_to "#{issue.id} - #{h(truncate(issue.subject,80))}", :controller => :issues, :action => :show, :id => issue %>
   </td>
   <% hours = TimeEntry.get_hours_by_date(@week_start, issue) %>
-  <% week_dates.each_with_index do |date, offset| -%>
+  <% week_dates(@week_start).each_with_index do |date, offset| -%>
     <% day = date.strftime('%a').downcase %>
     <% content_tag :td, :class => "#{day} border-cell date" do %>
-      <%= text_field_tag day, hours[offset], :class => day, :maxlength => 5, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
+      <%= text_field_tag day, hours[offset], :class => day, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
             :'data-issue' => issue.id, :'data-date' => "#{date.month}/#{date.day}/#{date.year}" %>
     <% end -%>
   <% end -%>

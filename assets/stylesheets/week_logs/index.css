@@ -17,3 +17,4 @@ table.list td.right-aligned {text-align:right;}
 table.list th {border:1px solid #ccc }
 table.list th.project.subject {width: 330px;}
 table.list td.subject {padding-left:10px;}
+.day_error { color: red; }

@@ -4,65 +4,58 @@ $(document).ready(function(){
 });
 
 function initializers() {
-  var date = new Date();
-  var currentMonth = date.getMonth();
-  var currentDate = date.getDate();
-  var currentYear = date.getFullYear();
   if (typeof Week === 'undefined') {
     Week = {};
   }
 
-  Week.init = function() {
-    var current_date = new Date();
-    var start = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate() - current_date.getDay());
-    var end = current_date;
-    var rStart = new Date(start);
-    var rEnd = new Date(start);
-    rStart.setDate(rStart.getDate()+1);
-    rEnd.setDate(rEnd.getDate()+7);
-    var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
-    var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
-    var maxDate = new Date(currentYear, currentMonth, currentDate);
-    $('#week_start').val(start_output);
-    $('#week_end').val(end_output);
-    $('#week_selector').val(start_output+" to "+end_output);
+  Week.start = null;
+  Week.end = null;
+
+  Week.updateDateFields = function() {
+    var origin = Week.start,
+      rStart = new Date(origin.getFullYear(), origin.getMonth(), origin.getDate() + 1),
+      rEnd = new Date(origin.getFullYear(), origin.getMonth(), origin.getDate() + 7),
+      startOutput = $.datepicker.formatDate('m/d/yy', rStart),
+      endOutput = $.datepicker.formatDate('m/d/yy', rEnd);
+    $('#week_start').val(startOutput);
+    $('#week_end').val(endOutput);
+    $('#week_selector').val(startOutput + " to " + endOutput);
     $('#js_week_start').val(rStart);
     $('#js_week_end').val(rEnd);
+  };
+
+  Week.init = function() {
+    var today = new Date();
+    Week.start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+    Week.end = new Date();
+    Week.updateDateFields();
     Week.refreshTableDates();
     Week.refreshTotalHours();
     Week.refreshTabIndices();
+
     $('#week_selector').datepicker({
-      maxDate: maxDate,
+      maxDate: today,
       gotoCurrent: true,
       showOn: "button",
       buttonImage: "",
       firstDay: 7,
-      onSelect: function(select_date) {
-        var sd = $(this).datepicker('getDate');
-        start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - (sd.getDay()));
-        end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
-        if(end > maxDate)
-          end = maxDate;
-        var rStart = new Date(start);
-        var rEnd = new Date(start);
-        rStart.setDate(rStart.getDate()+1);
-        rEnd.setDate(rEnd.getDate()+7)
-        var start_output = (rStart.getMonth()+1)+"/"+rStart.getDate()+"/"+rStart.getFullYear();
-        var end_output = (rEnd.getMonth()+1)+"/"+rEnd.getDate()+"/"+rEnd.getFullYear();
-        $('#week_start').val(start_output);
-        $('#week_end').val(end_output);
-        $('#week_selector').val(start_output+" to "+end_output);
-        $('#js_week_start').val(rStart);
-        $('#js_week_end').val(rEnd);
-        Week.repopulateTable();
-        Week.refreshTotalHours();
-        Week.refreshTabIndices();
+      onSelect: function(selectDate) {
+        var sd = new Date(selectDate);
+        if(sd < Week.start || sd > Week.end) {
+          Week.start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay());
+          Week.end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
+          if(Week.end > today) Week.end = today;
+          Week.updateDateFields();
+          Week.repopulateTable();
+        } else {
+          Week.updateDateFields();
+        }
       },
       beforeShowDay: function(dates) {
-          var cssClass = '';
-          if(dates >= start && dates <= end)
-              cssClass = 'ui-state-highlight ui-state-active';
-          return [true, cssClass];
+        var cssClass = '';
+        if(dates >= Week.start && dates <= Week.end)
+          cssClass = 'ui-state-highlight ui-state-active';
+        return [true, cssClass];
       },
     });
 
@@ -202,7 +195,7 @@ function initializers() {
       this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0);
     }
     if(/^\d+(\.\d+)?$/.test(hours)) {
-      this.value = parseFloat(hours);
+      this.value = Week.formatHours(hours);
     }
     $(this).parents('td').addClass('changed');
     Week.refreshIssueTotal(this);
@@ -311,7 +304,7 @@ function initializers() {
       hours = dateFields[i].value;
       total += Week.parseHours(hours);
     }
-    totalField.val(total);
+    totalField.val(Week.formatHours(total));
     Week.refreshTotalHours(field);
   };
 
@@ -328,7 +321,7 @@ function initializers() {
       hoursDay.each(function(i, el) {
         total += Week.parseHours(el.value);
       });
-      e.value = total;
+      e.value = Week.formatHours(total);
       dailyTotals[h] += total;
       projTotal += total;
     });
@@ -339,32 +332,22 @@ function initializers() {
       hoursDay.each(function(i, el) {
         total += Week.parseHours(el.value);
       });
-      e.value = total;
+      e.value = Week.formatHours(total);
       dailyTotals[h] += total;
       nonProjTotal += total;
     });
 
-    $('#total_proj').val(parseFloat(projTotal));
-    $('#total_non_proj').val(parseFloat(nonProjTotal));
-    $('#total_hours').val(parseFloat(projTotal + nonProjTotal));
+    $('#total_proj').val(Week.formatHours(projTotal));
+    $('#total_non_proj').val(Week.formatHours(nonProjTotal));
+    $('#total_hours').val(Week.formatHours(projTotal + nonProjTotal));
 
     for(var d = 0; d < dailyTotals.length; d++) {
       var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class").split(' ')[0];
       if(dailyTotals[d] > 24) {
-        $("."+day).css({color:"red"});
         $("."+day).addClass("day_error");
-//        var row = $(field).parents('.issue'),
-//          issueTotal = row.find('input.total');
-//        if(field) {
-//          issueTotal.val((parseFloat(issueTotal.val()) - parseFloat(field.value)));
-//          field.value = '0.0';
-//          Week.refreshTotalHours();
-//          field.focus();
-//        }
         flag = true;
       }
       else {
-        $("."+day).css({color:"black"});
         $("."+day).removeClass("day_error");
       }
     }
@@ -396,6 +379,12 @@ function initializers() {
       dialogWin.dialog("open");
     }
   };
+
+  Week.formatHours = function(hours) {
+    var value = parseFloat(parseFloat(hours).toPrecision(12)).toString();
+    if(/^\d+$/.test(value)) value += '.0';
+    return value;
+  }
 
   Week.parseHours = function(hours) {
     // ported from Rails Redmine Core
