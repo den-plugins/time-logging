@@ -68,7 +68,7 @@ function initializers() {
         if(!row.hasOwnProperty(issue)) {
           row[issue] = {};
         }
-        row[issue][date] = el.val();
+        row[issue][date] = el.attr('data-rvalue');
       });
       return row;
     };
@@ -195,6 +195,8 @@ function initializers() {
     if(!Week.isHours(hours)) {
       this.value = parseFloat(/\d+/.test(this.value) ? this.value.match(/\d+/)[0] : 0);
     }
+    $(this).attr({ 'data-rvalue': Week.parseHours(this.value),
+                   title: Week.parseHours(this.value) });
     if(/^\d+(\.\d+)?$/.test(hours)) {
       this.value = Week.formatHours(hours);
     }
@@ -300,12 +302,11 @@ function initializers() {
     var row = $(field).parents('.issue'),
       dateFields = row.find('.date').find('input'),
       totalField = row.find('.total'),
-      total = 0, i, hours;
-    for(i = 0; length = dateFields.length, i < length; i++) {
-      hours = dateFields[i].value;
-      total += Week.parseHours(hours);
-    }
-    totalField.val(Week.formatHours(total));
+      total = 0, hours;
+    dateFields.each(function(i, el) {
+      total += parseFloat($(el).attr('data-rvalue'));
+    });
+    totalField.attr({ 'data-rvalue': total, title: total, value: Week.formatHours(total) });
     Week.refreshTotalHours(field);
   };
 
@@ -320,9 +321,9 @@ function initializers() {
       var total = 0.0,
         hoursDay = $("#proj_table").find("input." + $(e).attr("summary"));
       hoursDay.each(function(i, el) {
-        total += Week.parseHours(el.value);
+        total += Week.parseHours($(el).attr('data-rvalue'));
       });
-      e.value = Week.formatHours(total);
+      $(e).attr({ 'data-rvalue': total, title: total, value: Week.formatHours(total) });
       dailyTotals[h] += total;
       projTotal += total;
     });
@@ -331,16 +332,16 @@ function initializers() {
       var total = 0.0,
         hoursDay = $("#non_proj_table").find("input." + $(e).attr("summary"));
       hoursDay.each(function(i, el) {
-        total += Week.parseHours(el.value);
+        total += Week.parseHours($(el).attr('data-rvalue'));
       });
-      e.value = Week.formatHours(total);
+      $(e).attr({ 'data-rvalue': total, title: total, value: Week.formatHours(total) });
       dailyTotals[h] += total;
       nonProjTotal += total;
     });
 
-    $('#total_proj').val(Week.formatHours(projTotal));
-    $('#total_non_proj').val(Week.formatHours(nonProjTotal));
-    $('#total_hours').val(Week.formatHours(projTotal + nonProjTotal));
+    $('#total_proj').attr({ 'data-rvalue': projTotal, title: projTotal, value: Week.formatHours(projTotal) });
+    $('#total_non_proj').attr({ 'data-rvalue': nonProjTotal, title: nonProjTotal, value: Week.formatHours(nonProjTotal) });
+    $('#total_hours').attr({ 'data-rvalue': (projTotal + nonProjTotal), title: (projTotal + nonProjTotal), value: Week.formatHours(projTotal + nonProjTotal) });
 
     for(var d = 0; d < dailyTotals.length; d++) {
       var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class").split(' ')[0];
@@ -382,14 +383,12 @@ function initializers() {
   };
 
   Week.formatHours = function(hours) {
-    var value = parseFloat(parseFloat(hours).toPrecision(12)).toString();
-    if(/^\d+$/.test(value)) value += '.0';
-    return value;
-  }
+    return parseFloat(parseFloat(hours).toPrecision(12)).toFixed(2);
+  };
 
   Week.parseHours = function(hours) {
     // ported from Rails Redmine Core
-    hours = hours.trim();
+    hours = hours.toString().trim();
     if(hours.length > 0) {
       if(/^(\d+([.,]\d+)?)h?$/.test(hours)) {
         hours = hours.match(/\d+([.,]\d+)?/)[0];
@@ -403,7 +402,7 @@ function initializers() {
   };
 
   Week.isHours = function(hours) {
-    return /^(\d+([.,]\d+)?h?|\d+:\d+|\d+\s*(h|hours)\s*(\d+\s*(m|min)?)?|\d+\s*(m|min)?)$/.test(hours);
+    return /^(\d+([.,]\d+)?h?|\d+:\d+|\d+\s*(h|hours)\s*(\d+\s*(m|min)?)?|\d+\s*(m|min)?)$/.test(hours.toString());
   };
 
   $("#dialog-remove-task").dialog({
