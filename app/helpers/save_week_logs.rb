@@ -1,6 +1,6 @@
 module SaveWeekLogs
 
-  def self.save(hash, user)
+  def self.save(hash, user, startdate)
     hash, msg = budget_computation(hash)
     error_messages =  msg
     hash.each_key do |issue|
@@ -15,7 +15,8 @@ module SaveWeekLogs
       end
       member = project.members.select {|member| member.user_id == user.id} 
       if(issue_is_billable && 
-         member.first && member.first.billable)#user is member and billable + issue is billable
+         member.first && 
+         member.first.billable?(startdate.beginning_of_week, startdate.end_of_week))#user is member and billable + issue is billable
         flag = true
       elsif(!issue_is_billable && 
             member.first)#user is member + issue is not billable
@@ -25,11 +26,10 @@ module SaveWeekLogs
       if(!member.first)
           error_messages[issue] += "User is not a member of #{project.name}."
       else
-        if(issue_is_billable && !member.first.billable)
-          error_messages[issue] += "User is not billable in #{project.name}."
+        if(issue_is_billable && !member.first.billable?(startdate.beginning_of_week, startdate.end_of_week))
+          error_messages[issue] += "User is not billable in #{project.name} for selected week."
         end
       end
-      
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
         hours = hash[issue][date].to_hours
@@ -98,16 +98,12 @@ module SaveWeekLogs
             end
           end
           @project_budget = bac_amount + contingency_amount
-          puts project.name
-          puts @project_budget
-          puts @actuals_to_date
           keys.each do |key|
             if project.accounting
               project.accounting.name=="Billable" ? billable = true : billable = false
             else
               billable = false
             end
-            puts @actuals_to_date + future_dates(hash[key], project, key)
             if((@project_budget - (@actuals_to_date + future_dates(hash[key], project, key))) < 0 && billable)
               error_messages[key] = "#{project.name}'s budget has already been consumed."
               hash.delete key

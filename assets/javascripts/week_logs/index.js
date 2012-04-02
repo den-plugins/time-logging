@@ -79,6 +79,7 @@ function initializers() {
           $('#ajax-indicator').show();
           button.attr('disabled', true);
           $.post("/week_logs/update", {
+                  startdate: $("#week_start").val(),
                   project: createJsonObject("#proj_table"),
                   non_project: createJsonObject("#non_proj_table")
           }, function(data) {
