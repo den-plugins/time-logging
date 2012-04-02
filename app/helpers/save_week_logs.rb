@@ -1,6 +1,8 @@
 module SaveWeekLogs
 
   def self.save(hash, user, startdate)
+    start_d = startdate.beginning_of_week
+    startdate.end_of_week > Date.current ? end_d = Date.current : end_d = startdate.end_of_week
     hash, msg = budget_computation(hash)
     error_messages =  msg
     hash.each_key do |issue|
@@ -16,7 +18,7 @@ module SaveWeekLogs
       member = project.members.select {|member| member.user_id == user.id} 
       if(issue_is_billable && 
          member.first && 
-         member.first.billable?(startdate.beginning_of_week, startdate.end_of_week))#user is member and billable + issue is billable
+         member.first.billable?(start_d, end_d, false))#user is member and billable + issue is billable
         flag = true
       elsif(!issue_is_billable && 
             member.first)#user is member + issue is not billable
@@ -26,7 +28,7 @@ module SaveWeekLogs
       if(!member.first)
           error_messages[issue] += "User is not a member of #{project.name}."
       else
-        if(issue_is_billable && !member.first.billable?(startdate.beginning_of_week, startdate.end_of_week))
+        if(issue_is_billable && !member.first.billable?(start_d, end_d, false))
           error_messages[issue] += "User is not billable in #{project.name} for selected week."
         end
       end
