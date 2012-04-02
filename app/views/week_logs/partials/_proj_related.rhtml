@@ -29,7 +29,7 @@
         <% hours = TimeEntry.get_hours_by_date(@week_start) %>
         <% week_days.each_with_index do |day, offset| -%>
           <% content_tag :td, nil, :class => day.downcase+" total_column date" do -%>
-          <%= text_field_tag 'total', hours[offset], :size=>2, :maxlength=>1, :readonly=>"readonly", :class=>"daily", :summary=>"#{day.downcase}" %>
+          <%= text_field_tag 'total', number_with_precision(hours[offset], :precision => 2), :size=>2, :maxlength=>1, :readonly=>"readonly", :class=>"daily", :summary=>"#{day.downcase}", :title => hours[offset], :'data-rvalue' => hours[offset] %>
           <% end %>
         <% end -%>
         <td class = "border-cell total_column"><%= text_field_tag 'total_proj', @total.round(2), :size=>2, :maxlength=>5, :readonly=>"readonly", :class=>"total_input" %></td>

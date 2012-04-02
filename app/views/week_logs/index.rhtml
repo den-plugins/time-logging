@@ -5,7 +5,7 @@
   <%= text_field_tag 'week_selector', "",  :disabled => "true" %>
   <span class="right">
     <%= label_tag 'total_hours' %>
-    <%= text_field_tag 'total_hours', 0, :maxlength=>5, :readonly=>"readonly" %>
+    <%= text_field_tag 'total_hours', number_with_precision(0, :precision => 2), :maxlength=>5, :readonly=>"readonly" %>
   </span>
 
   <div class = "hidden">
