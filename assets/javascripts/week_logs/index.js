@@ -368,16 +368,22 @@ function initializers() {
       if(JSON.stringify(project)!="{}") {
         dialogWin.append("<h3>Project</h3>");
         for(var i in project){
-          var error = project[i].replace(/\$/g, '<br />');
-          dialogWin.append("<p>"+i+":"+error+"</p>");
+          var errorMsg = project[i].split(/\./);
+          $.each(errorMsg, function(index, val) {
+            if(val != "")
+            dialogWin.append("<p>"+i+":"+val+"</p>");
+          });
         }
       }
 
       if(JSON.stringify(nonProj)!="{}") {
         dialogWin.append("<h3>Non-project</h3>");
         for(var v in nonProj) {
-          var error = nonProj[v].replace(/\$/g, '<br />');
-          dialogWin.append("<p>"+v+":"+error+"</p>");
+          var errorMsg = nonProj[v].split(/\./);
+          $.each(errorMsg, function(index, val) {
+            if(val != "")
+            dialogWin.append("<p>"+i+":"+val+"</p>");
+          });
         }
       }
       dialogWin.dialog("open");

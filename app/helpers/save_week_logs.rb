@@ -21,7 +21,7 @@ module SaveWeekLogs
         flag = true
       end
       if(!member.first)
-          error_messages[issue] += "User is not a member of #{project.name}$"
+          error_messages[issue] += "User is not a member of #{project.name}."
       end
 
       hash[issue].each_key do |date|
@@ -33,8 +33,7 @@ module SaveWeekLogs
           if(member.first.allocated?(Date.parse(date)))#user is member and billable + issue is billable
             flag = true
           else
-            error_messages[issue] += "User is not allocated in #{project.name} on #{date}$"
-            error_messages[issue] += "User is not allocated in #{project.name} on #{date}$"
+            error_messages[issue] += "User is not allocated in #{project.name} on #{date}."
             flag = false
           end
         end
@@ -109,7 +108,7 @@ module SaveWeekLogs
               billable = false
             end
             if((@project_budget - (@actuals_to_date + future_dates(hash[key], project, key))) < 0 && billable)
-              error_messages[key] = "#{project.name}'s budget has already been consumed$"
+              error_messages[key] = "#{project.name}'s budget has already been consumed."
               hash.delete key
             end
           end
