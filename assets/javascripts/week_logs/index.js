@@ -368,14 +368,16 @@ function initializers() {
       if(JSON.stringify(project)!="{}") {
         dialogWin.append("<h3>Project</h3>");
         for(var i in project){
-          dialogWin.append("<p>"+i+":"+project[i]+"</p>");
+          var error = project[i].replace(/\$/g, '<br />');
+          dialogWin.append("<p>"+i+":"+error+"</p>");
         }
       }
 
       if(JSON.stringify(nonProj)!="{}") {
         dialogWin.append("<h3>Non-project</h3>");
         for(var v in nonProj) {
-          dialogWin.append("<p>"+v+":"+nonProj[v]+"</p>");
+          var error = nonProj[v].replace(/\$/g, '<br />');
+          dialogWin.append("<p>"+v+":"+error+"</p>");
         }
       }
       dialogWin.dialog("open");
