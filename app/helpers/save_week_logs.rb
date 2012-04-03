@@ -33,7 +33,7 @@ module SaveWeekLogs
           if(member.first.allocated?(Date.parse(date)))#user is member and billable + issue is billable
             flag = true
           else
-            error_messages[issue] += "User is not allocated in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
+            error_messages[issue] += "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
             flag = false
           end
         end
