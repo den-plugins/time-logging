@@ -11,14 +11,10 @@ module SaveWeekLogs
       project = proj_issue.project
       member = project.members.select {|member| member.user_id == user.id} 
       flag = false
-      if project.accounting
-        project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+      if proj_issue.acctg_type
+        issue_is_billable = (proj_issue.acctg_type == Enumeration.find_by_name('Billable').id) ? true : false
       else
         issue_is_billable = false
-      end
-      if(!issue_is_billable && 
-            member.first)#user is member + issue is not billable
-        flag = true
       end
       if(!member.first)
           error_messages[issue] += "User is not a member of #{project.name}."
@@ -36,8 +32,14 @@ module SaveWeekLogs
             error_messages[issue] += "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
             flag = false
           end
+        elsif(!issue_is_billable && member.first)#user is member but not billable
+          if(!member.first.resource_allocations.empty?)
+            flag=true
+          else
+            error_messages[issue] += "User has not been allocated in #{project.name}."
+            flag=false
+          end
         end
-        
         if(hours > 0 && flag)
           time_entry.each {|te| te.destroy} if !time_entry.empty?
           new_time = TimeEntry.new(:project => proj_issue.project, :issue => proj_issue, :user => User.current)
