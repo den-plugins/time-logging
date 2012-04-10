@@ -382,7 +382,7 @@ function initializers() {
           var errorMsg = nonProj[v].split(/\./);
           $.each(errorMsg, function(index, val) {
             if(val != "")
-            dialogWin.append("<p>"+i+":"+val+"</p>");
+            dialogWin.append("<p>"+v+":"+val+"</p>");
           });
         }
       }

@@ -112,6 +112,7 @@ class WeekLogsController < ApplicationController
       if non_project_related.empty?
         non_project_related = @user.projects.select{ |p| @user.role_for_project(p).allowed_to?(:log_time) && p.project_type &&  p.project_type.to_s.downcase.include?("admin") && @user.member_of?(p)}.flatten.uniq
       end
+      puts non_project_related.inspect
       non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
