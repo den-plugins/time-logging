@@ -106,6 +106,7 @@ module SaveWeekLogs
           keys.each do |key|
             if project.accounting
               project.accounting.name=="Billable" ? billable = true : billable = false
+              Issue.find(key).accounting.name=="Billable" ? billable = true : billable = false
             else
               billable = false
             end

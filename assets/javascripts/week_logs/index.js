@@ -91,8 +91,8 @@ function initializers() {
       else {
           dialogWin = $('#dialog-error-messages');
           dialogWin.html($('<p />').html('Please check your timesheet'));
-          dialogWin.dialog('option', 'title', 'Error');
           dialogWin.dialog('open');
+          formatErrorDialog(dialogWin);
       }
     });
   };
@@ -356,8 +356,8 @@ function initializers() {
 
     if(flag) {
       dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
-      dialogWin.dialog('option', 'title', 'Error');
       dialogWin.dialog('open');
+      formatErrorDialog(dialogWin);
     }
   };
   Week.createErrorDialog = function(data) {
@@ -387,6 +387,7 @@ function initializers() {
         }
       }
       dialogWin.dialog("open");
+      formatErrorDialog(dialogWin);
     }
   };
 
@@ -411,6 +412,11 @@ function initializers() {
 
   Week.isHours = function(hours) {
     return /^(\d+([.,]\d+)?h?|\d+:\d+|\d+\s*(h|hours)\s*(\d+\s*(m|min)?)?|\d+\s*(m|min)?)$/.test(hours.toString());
+  };
+  
+  function formatErrorDialog(dialog) {
+    dialog.parent().find(".ui-dialog-titlebar").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_33_810405_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
+    dialog.parent().find(".ui-dialog-buttonset button").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_60_810405_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
   };
 
   $("#dialog-remove-task").dialog({
@@ -443,8 +449,8 @@ function initializers() {
       }
       else {
         dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
-        dialogWin.dialog('option', 'title', 'Error');
         dialogWin.dialog('open');
+        formatErrorDialog(dialogWin);
       }
 
       if (bValid) {
@@ -486,7 +492,7 @@ function initializers() {
     width: 'auto',
     modal: true,
     resizable: false,
-    title: 'Error Messages',
+    title: 'Error Message',
     buttons: {
       "Ok": function() {
         $(this).dialog("close");
