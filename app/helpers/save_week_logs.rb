@@ -33,12 +33,8 @@ module SaveWeekLogs
             flag = false
           end
         elsif(!issue_is_billable && member.first)#user is member but not billable
-          if(!member.first.resource_allocations.empty?)
-            flag=true
-          else
-            error_messages[issue] += "User has not been allocated in #{project.name}."
-            flag=false
-          end
+          error_messages[issue] += "User has not been allocated in #{project.name}."
+          flag=false
         end
         if(hours > 0 && flag)
           time_entry.each {|te| te.destroy} if !time_entry.empty?
