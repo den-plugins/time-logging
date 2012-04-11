@@ -6,7 +6,7 @@ module SaveWeekLogs
     hash, msg = budget_computation(hash)
     error_messages =  msg
     hash.each_key do |issue|
-      error_messages[issue] = ""
+      error_messages[issue] = []
       proj_issue = Issue.find(issue)
       project = proj_issue.project
       member = project.members.select {|member| member.user_id == user.id} 
@@ -17,7 +17,7 @@ module SaveWeekLogs
         issue_is_billable = false
       end
       if(!member.first)
-          error_messages[issue] += "User is not a member of #{project.name}."
+          error_messages[issue] << "User is not a member of #{project.name}."
       end
 
       hash[issue].each_key do |date|
@@ -29,11 +29,11 @@ module SaveWeekLogs
           if(member.first.allocated?(Date.parse(date)))#user is member and billable + issue is billable
             flag = true
           else
-            error_messages[issue] += "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
+            error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
             flag = false
           end
         elsif(!issue_is_billable && member.first)#user is member but not billable
-          error_messages[issue] += "User has not been allocated in #{project.name}."
+          error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
           flag=false
         end
         if(hours > 0 && flag)
@@ -47,8 +47,11 @@ module SaveWeekLogs
           time_entry.each {|te| te.destroy}
         end
       end
-
-      error_messages.delete(issue) if error_messages[issue]==""
+      if error_messages[issue].empty?
+        error_messages.delete(issue)
+      else
+        error_messages[issue] = error_messages[issue].uniq.join
+      end
     end
     error_messages
   end

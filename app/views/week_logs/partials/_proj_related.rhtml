@@ -6,8 +6,8 @@
     <thead>
       <tr>
         <th class="remove"></th>
-        <th class="subject project">Project</th>
-        <th class="subject">Task/Activity</th>
+        <th class="subject project"><%= sortable("name", "proj", "Project") %></th>
+        <th class="subject"><%= sortable("task", "proj", "Task/Activity") %></th>
         <% week_dates.each do |date| -%>
           <% content_tag :th, :class => date.strftime('%a').downcase do -%>
             <%= date.strftime('%a') %><br/>
