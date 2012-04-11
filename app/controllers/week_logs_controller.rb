@@ -11,6 +11,9 @@ class WeekLogsController < ApplicationController
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
+
+    @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir]) if params[:proj]
+    @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir]) if params[:non_proj]
     respond_to do |format|
       format.html
       format.json do
@@ -125,5 +128,13 @@ class WeekLogsController < ApplicationController
       non_proj = issues.select { |i| i.project.project_type && i.project.project_type["Admin"]}
       non_proj += Issue.in_projects(non_proj_default) if @projects[:admin].empty?
       @time_issues = {:non_admin => proj, :admin => non_proj }
+    end
+
+    def sort(array, column, direction)
+      case column
+        when 'name' then array = array.sort_by {|i| i.project.name.downcase}
+        when 'subject' then array = array.sort_by {|i| i.id}
+      end
+      direction == 'desc' ? array.reverse : array
     end
 end

@@ -499,4 +499,20 @@ function initializers() {
       }
     },
   });
+  $("a.proj").live("click", function(){
+    var addtl_params="";
+    if($("#non_proj").val()!="")
+      addtl_params += "&non_proj="+$("#non_proj").val()+""; 
+    if($("#non_proj_dir").val()!="")
+      addtl_params += "&non_proj_dir="+$("#non_proj_dir").val()+"";
+    this.href+= addtl_params;
+  });
+  $("a.non_proj").live("click", function(){
+    var addtl_params="";
+    if($("#proj").val()!="")
+      addtl_params += "&proj="+$("#proj").val()+""; 
+    if($("#proj_dir").val()!="")
+      addtl_params += "&proj_dir="+$("#proj_dir").val()+"";
+    this.href+= addtl_params;
+  });
 }
