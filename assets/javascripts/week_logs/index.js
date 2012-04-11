@@ -415,8 +415,8 @@ function initializers() {
   };
   
   function formatErrorDialog(dialog) {
-    dialog.parent().find(".ui-dialog-titlebar").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_33_810405_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
-    dialog.parent().find(".ui-dialog-buttonset button").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_60_810405_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
+    dialog.parent().find(".ui-dialog-titlebar").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_33_e3675c_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
+    dialog.parent().find(".ui-dialog-buttonset button").css({'background' : 'url(/plugin_assets/time_logging/stylesheets/images/ui-bg_highlight-soft_60_e3675c_1x100.png) 50% 50% repeat-x', 'border' : '1px solid #810405'});
   };
 
   $("#dialog-remove-task").dialog({
