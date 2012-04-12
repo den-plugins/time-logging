@@ -1,11 +1,12 @@
 #total_hours { width: 50px; text-align:center }
 #control_panel, #proj_related, #non_proj_related {padding: 10px 0 20px 0;}
 #control_panel .right {float: right}
+
 h2 {display:inline;}
 
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
-.head-button {vertical-align: top}
+.hide-button, .head-button {vertical-align: top}
 table.list td.remove { width: 20px; padding: 0 10px 0 5px; text-align: center;}
 .hidden { display: none }
 table.list input[type=text] {border:1px solid #ddd; background: #FFF; text-align:center; margin: 1px; height: 100%; width: 50px;}

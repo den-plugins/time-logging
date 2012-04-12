@@ -103,9 +103,12 @@ class WeekLogsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
-        issue_id = params[:id].to_i
-        session[:project_issue_ids].delete(issue_id)
-        session[:non_project_issue_ids].delete(issue_id)
+        issue_id = params[:id].map {|x| x.to_i}
+        issue_id.each do |id|
+          session[:project_issue_ids].delete(id)
+          session[:non_project_issue_ids].delete(id)
+        end
+        puts session[:project_issue_ids].inspect
         head :ok
       end
     end

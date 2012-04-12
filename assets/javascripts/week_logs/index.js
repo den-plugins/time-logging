@@ -98,16 +98,26 @@ function initializers() {
   };
 
   $(".hide-button").live("click", function(){
-    var title = 'Remove Task';
+    var title = 'Remove Task',
+        tbody;
     if($(this).hasClass('proj'))
-      title = 'Remove Project Related Task';
+      title = 'Remove Project Related Tasks';
     else if($(this).hasClass('non_proj'))
-      title = 'Remove Non-Project (Admin) Related Task';
+      title = 'Remove Non-Project (Admin) Related Tasks';
+    
+    if($(this).attr("rel")=="project")
+      tbody = $("#proj_table tbody");  
+    else if($(this).attr("rel")=="admin")
+      tbody = $("#non_proj_table tbody");
+    
+    $(tbody.children()).each(function(index, tr){
+      var row = $("#"+tr.id);
+      if(row.find('.hide-box').is(':checked'))
+        row.addClass("selected");
+    });
 
     $("#dialog-remove-task").dialog('option', 'title', title);
     $("#dialog-remove-task").dialog("open");
-    var row = $(this).parents('tr');
-    row.addClass("selected");
   });
 
   Week.addTask = {
@@ -429,30 +439,39 @@ function initializers() {
       var dialogWin = $("#dialog-error-messages");
       var bValid = true;
       var flag = true;
+      var arrDel = [], tr;
       var row = $("tr.selected"),
-        table = row.parents('table'),
-        taskId = row.attr('id').replace(/\D+/g, '');
-
-      $.map(row.find("td input"), function(n,i) {
-        if($(n).val()>0)
-          flag = false;
+        table;
+      
+      $(row).each(function(index, val){
+        tr = $("#"+val.id);
+        table = tr.parents('table');
+        flag = true;
+        $.map(tr.find("td input"), function(n,i) {
+          if($(n).val()>0) {
+            flag = false;
+            row.removeClass("selected");
+          }
+        });
+        if(flag) {
+          arrDel.push(val.id.replace(/\D+/g, ''));
+          tr.remove(); 
+        }
       });
 
-      if(flag) {
-        row.remove();
+      if(arrDel.length > 0) {
         Week.refreshTableRowColors(table);
         Week.refreshTotalHours();
         Week.refreshTabIndices();
-        $.post('/week_logs/remove_task.js', {id: taskId}).success(function() {
-          $('#success_message').text('Successfully removed #' + taskId + '.').removeClass('hidden');
-        });
+        $.post('/week_logs/remove_task.js', {id: arrDel});
       }
-      else {
+      if(row.length > 0 && arrDel.length < row.length) {
+        console.log(row.length);
+        console.log(arrDel.length);
         dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
         dialogWin.dialog('open');
         formatErrorDialog(dialogWin);
       }
-
       if (bValid) {
         //If valid execute script and close the dialog.
         $(this).dialog("close");
@@ -499,6 +518,7 @@ function initializers() {
       }
     },
   });
+
   $("a.proj").live("click", function(){
     var addtl_params="";
     var href = this.href;
@@ -511,6 +531,7 @@ function initializers() {
     event.preventDefault();
     $.getScript(href);
   });
+  
   $("a.non_proj").live("click", function(){
     var addtl_params="";
     var href = this.href;
@@ -523,6 +544,7 @@ function initializers() {
     event.preventDefault();
     $.getScript(href);
   });
+  
   $("select.project, select.tracker").live("change", function(){
     $('#ajax-indicator').show();
     var href = "/week_logs/?";
