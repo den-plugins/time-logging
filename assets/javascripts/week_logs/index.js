@@ -501,18 +501,38 @@ function initializers() {
   });
   $("a.proj").live("click", function(){
     var addtl_params="";
+    var href = this.href;
     if($("#non_proj").val()!="")
       addtl_params += "&non_proj="+$("#non_proj").val()+""; 
     if($("#non_proj_dir").val()!="")
       addtl_params += "&non_proj_dir="+$("#non_proj_dir").val()+"";
-    this.href+= addtl_params;
+    href+= addtl_params;
+    addtl_params += "&f_proj_name="+$("select.project").val()+"f_tracker="+$("select.tracker").val()+"";
+    event.preventDefault();
+    $.getScript(href);
   });
   $("a.non_proj").live("click", function(){
     var addtl_params="";
+    var href = this.href;
     if($("#proj").val()!="")
       addtl_params += "&proj="+$("#proj").val()+""; 
     if($("#proj_dir").val()!="")
       addtl_params += "&proj_dir="+$("#proj_dir").val()+"";
-    this.href+= addtl_params;
+    addtl_params += "&f_proj_name="+$("select.project").val()+"f_tracker="+$("select.tracker").val()+"";
+    href+= addtl_params;
+    event.preventDefault();
+    $.getScript(href);
+  });
+  $("select.project, select.tracker").live("change", function(){
+    $('#ajax-indicator').show();
+    var href = "/week_logs/?";
+    href+="proj="+$("#proj").val();
+    href+="&proj_dir="+$("#proj_dir").val();
+    href+="&non_proj="+$("#non_proj").val();
+    href+="&non_proj_dir="+$("#non_proj_dir").val();
+    href+="&f_proj_name="+$("select.project").val();
+    href+="&f_tracker="+$("select.tracker").val();
+    $.getScript(href)
+    .success(function() { $('#ajax-indicator').hide();}) 
   });
 }

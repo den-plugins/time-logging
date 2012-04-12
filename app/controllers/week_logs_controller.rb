@@ -14,6 +14,15 @@ class WeekLogsController < ApplicationController
 
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir])
     @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir])
+    
+    if params[:f_tracker] && params[:f_tracker].downcase != 'all'
+      @issues[:project_related].reject! {|i| i.tracker.name.downcase != params[:f_tracker].downcase}
+      @issues[:non_project_related].reject! {|i| i.tracker.name.downcase != params[:f_tracker].downcase}
+    end 
+    if params[:f_proj_name] && params[:f_proj_name].downcase != 'all'
+      @issues[:project_related].reject! {|i| i.project.name.downcase != params[:f_proj_name].downcase}
+      @issues[:non_project_related].reject! {|i| i.project.name.downcase != params[:f_proj_name].downcase}
+    end
     @project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq
     respond_to do |format|
       format.html
