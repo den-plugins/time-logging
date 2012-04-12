@@ -132,13 +132,11 @@ class WeekLogsController < ApplicationController
     end
 
     def sort(array, column, direction)
+      array.sort_by {|i| i.project.name.downcase}
       if column
         case column
-          when 'name' then array = array.sort_by {|i| i.project.name.downcase}
           when 'subject' then array = array.sort_by {|i| i.id}
         end
-      else
-        array.sort_by {|i| i.project.name.downcase}
       end
       direction == 'desc' ? array.reverse : array
     end

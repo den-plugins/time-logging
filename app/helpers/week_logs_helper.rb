@@ -11,6 +11,6 @@ module WeekLogsHelper
   def sortable(column, type, title=nil)
     title ||= column.titleize
     direction = column == params[type] && params["#{type}_dir"] == "asc" ? "desc" : "asc"
-    link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{direction}"}
+    link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{params["#{type}_dir"]}"}
   end
 end
