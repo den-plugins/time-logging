@@ -25,15 +25,19 @@ module SaveWeekLogs
         hours = hash[issue][date].to_hours
         total_time_entry = TimeEntry.sum(:hours, :conditions => ["user_id=? AND spent_on=?", user.id, Date.parse(date)])
         total_time_entry += hours
-        if project.project_type.scan(/^(Admin)/).flatten.present?
+        if(hours == 0)
           flag = true
         else
-          if((issue_is_billable && member.first) || (!issue_is_billable && member.first))
-            if(member.first.allocated?(Date.parse(date)))
-              flag = true
-            else
-              error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
-              flag = false
+          if project.project_type.scan(/^(Admin)/).flatten.present?
+            flag = true
+          else
+            if((issue_is_billable && member.first) || (!issue_is_billable && member.first))
+              if(member.first.allocated?(Date.parse(date)))
+                flag = true
+              else
+                error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
+                flag = false
+              end
             end
           end
         end
