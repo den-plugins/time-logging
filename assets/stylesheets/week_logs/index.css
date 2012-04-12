@@ -18,3 +18,6 @@ table.list th {border:1px solid #ccc }
 table.list th.project.subject {width: 330px;}
 table.list td.subject {padding-left:10px;}
 .day_error { color: red; }
+
+.asc {background-repeat:no-repeat; background-position:100% 50%; background-image:url('/images/sort_asc.png'); padding-right:16px;}
+.desc {background-repeat:no-repeat; background-position:100% 50%; background-image:url('/images/sort_desc.png'); padding-right:16px;}

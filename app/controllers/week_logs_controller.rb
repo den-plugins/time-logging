@@ -12,8 +12,9 @@ class WeekLogsController < ApplicationController
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
 
-    @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir]) if params[:proj]
-    @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir]) if params[:non_proj]
+    @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir])
+    @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir])
+    @project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq
     respond_to do |format|
       format.html
       format.json do
@@ -54,7 +55,7 @@ class WeekLogsController < ApplicationController
             end
             member = project.members.select {|member| member.user_id == @user.id}
             if(issue_is_billable && member.first && !member.first.billable)
-              render :text => "You are not billable in #{@issue.project.name}.", :status => 400
+              render :text => "You are not billable/allocated in #{@issue.project.name}.", :status => 400
             elsif(!member.first)
               render :text => "You are not a member of #{@issue.project.name}.", :status => 400
             else
@@ -131,9 +132,13 @@ class WeekLogsController < ApplicationController
     end
 
     def sort(array, column, direction)
-      case column
-        when 'name' then array = array.sort_by {|i| i.project.name.downcase}
-        when 'subject' then array = array.sort_by {|i| i.id}
+      if column
+        case column
+          when 'name' then array = array.sort_by {|i| i.project.name.downcase}
+          when 'subject' then array = array.sort_by {|i| i.id}
+        end
+      else
+        array.sort_by {|i| i.project.name.downcase}
       end
       direction == 'desc' ? array.reverse : array
     end

@@ -28,16 +28,13 @@ module SaveWeekLogs
         if project.project_type.scan(/^(Admin)/).flatten.present?
           flag = true
         else
-          if(issue_is_billable && member.first)
-            if(member.first.allocated?(Date.parse(date)))#user is member and billable + issue is billable
+          if((issue_is_billable && member.first) || (!issue_is_billable && member.first))
+            if(member.first.allocated?(Date.parse(date)))
               flag = true
             else
               error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
               flag = false
             end
-          elsif(!issue_is_billable && member.first)#user is member but not billable
-            error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
-            flag = false
           end
         end
         if(hours > 0 && flag)
