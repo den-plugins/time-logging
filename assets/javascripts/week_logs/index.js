@@ -527,7 +527,7 @@ function initializers() {
     if($("#non_proj_dir").val()!="")
       addtl_params += "&non_proj_dir="+$("#non_proj_dir").val()+"";
     href+= addtl_params;
-    addtl_params += "&f_proj_name="+$("select.project").val()+"f_tracker="+$("select.tracker").val()+"";
+    addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
     event.preventDefault();
     $.getScript(href);
   });
@@ -539,12 +539,33 @@ function initializers() {
       addtl_params += "&proj="+$("#proj").val()+""; 
     if($("#proj_dir").val()!="")
       addtl_params += "&proj_dir="+$("#proj_dir").val()+"";
-    addtl_params += "&f_proj_name="+$("select.project").val()+"f_tracker="+$("select.tracker").val()+"";
+    addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
     href+= addtl_params;
     event.preventDefault();
     $.getScript(href);
   });
   
+  $("a.project, a.task_activity").live({
+    mouseenter:
+      function(e) {
+        var tooltip = $(".tooltip");
+        tooltip.html("");
+        if($(this).hasClass("project"))
+          tooltip.append("<p>Sort by Project Name</p>");
+        else
+          tooltip.append("<p>Sort by Task/Activity</p>");
+        tooltip.css({
+          left:e.pageX,
+          top:e.pageY
+        });
+        tooltip.show();
+      },
+    mouseleave:
+      function() {
+        $(".tooltip").hide();
+      }
+  });
+
   $("select.project, select.tracker").live("change", function(){
     $('#ajax-indicator').show();
     var href = "/week_logs/?";

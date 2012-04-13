@@ -6,7 +6,7 @@
   <%= label_tag 'Project Name' %>
   <%= select_tag :project, options_for_select(["All"]+@project_names), :class=>'project' %>
   <%= label_tag 'Tracker' %>
-  <%= select_tag :tracker, options_for_select(["All"]+Tracker.all.map(&:name)), :class=>'tracker' %>
+  <%= select_tag :tracker, options_for_select(["All"]+@tracker_names), :class=>'tracker' %>
   <span class="right">
     <%= label_tag 'total_hours' %>
     <%= text_field_tag 'total_hours', number_with_precision(0, :precision => 2), :maxlength=>5, :readonly=>"readonly" %>
@@ -28,6 +28,10 @@
 </div>
 
 <input type="button" id="submit_button" class="submit_button" value="Submit"/>
+
+<div id="tooltip" class="tooltip">
+  <h4>asdasdasdasdasdasdasd</h4>
+</div>
 
 <div id="dialog-remove-task" class="dialog hidden">
   <p>Are you sure you want to remove this/these task/s?</p>
