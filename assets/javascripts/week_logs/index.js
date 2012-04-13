@@ -40,7 +40,9 @@ function initializers() {
       buttonImage: "",
       firstDay: 7,
       onSelect: function(selectDate) {
+        console.log(new Date(selectDate));
         var sd = new Date(selectDate);
+        if(sd.getDay()==0) sd = new Date(sd-7);
         if(sd < Week.start || sd > Week.end) {
           Week.start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay());
           Week.end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
