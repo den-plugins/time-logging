@@ -568,7 +568,7 @@ function initializers() {
       }
   });
 
-  $("select.project, select.tracker").live("change", function(){
+  $("a.apply_button").live("click", function(){
     $('#ajax-indicator').show();
     var href = "/week_logs/?";
     href+="proj="+$("#proj").val();

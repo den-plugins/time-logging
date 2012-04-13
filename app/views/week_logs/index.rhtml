@@ -7,6 +7,7 @@
   <%= select_tag :project, options_for_select(["All"]+@project_names), :class=>'project' %>
   <%= label_tag 'Tracker' %>
   <%= select_tag :tracker, options_for_select(["All"]+@tracker_names), :class=>'tracker' %>
+  <a class="apply_button">Apply</a>
   <span class="right">
     <%= label_tag 'total_hours' %>
     <%= text_field_tag 'total_hours', number_with_precision(0, :precision => 2), :maxlength=>5, :readonly=>"readonly" %>

@@ -4,6 +4,7 @@
 .tooltip{position:absolute; background-repeat:repeat-x; 
          background-image:url('/plugin_assets/time_logging/stylesheets/images/ui-bg_diagonals-thick_15_444444_40x40.png');
          -moz-border-radius: 10px; border-radius: 10px; font-size:14px; color:white; padding-left:10px; padding-right:10px;}
+.apply_button {cursor:pointer; background-repeat:no-repeat; background-image:url('/images/true.png'); padding-left:16px;}
 h2 {display:inline;}
 
 div.header { margin-bottom: 1em }
