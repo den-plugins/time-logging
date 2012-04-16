@@ -76,8 +76,10 @@ function initializers() {
     };
 
     $("#submit_button").live("click", function(){
+      $('#success_message').text('').addClass('hidden');
       if($(".day_error").length==0) {
           var button = $(this);
+          var on_submission_errors = false;
           $('#ajax-indicator').show();
           button.attr('disabled', true);
           $.post("/week_logs/update", {
@@ -85,10 +87,15 @@ function initializers() {
                   project: createJsonObject("#proj_table"),
                   non_project: createJsonObject("#non_proj_table")
           }, function(data) {
-                              Week.repopulateTable();
-                              Week.createErrorDialog(data);
-                            })
-          .complete(function() { button.attr('disabled', false) })
+                  Week.repopulateTable();
+                  on_submission_errors = Week.createErrorDialog(data);
+          }).complete(function(data) {
+                  if (on_submission_errors == false) {
+                    $('#ajax-indicator').hide();
+                    $('#success_message').text('Successful update.').removeClass('hidden');
+                  }
+                  button.attr('disabled', false);
+          })
       }
       else {
           dialogWin = $('#dialog-error-messages');
@@ -400,7 +407,7 @@ function initializers() {
       }
       dialogWin.dialog("open");
       formatErrorDialog(dialogWin);
-    }
+    } else { return false; } // if no errors, return false
   };
 
   Week.formatHours = function(hours) {
@@ -569,6 +576,7 @@ function initializers() {
   });
 
   $("a.apply_button").live("click", function(){
+    $('#success_message').text('').addClass('hidden');
     $('#ajax-indicator').show();
     var href = "/week_logs/?";
     href+="proj="+$("#proj").val();
