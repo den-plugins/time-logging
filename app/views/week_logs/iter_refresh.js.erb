@@ -1,0 +1,6 @@
+<% if params[:iter] %>
+  $("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml')%>");
+<% else %>
+  $("#proj-iter").html("<%= escape_javascript(render :partial => '/week_logs/partials/iter_proj.rhtml')%>");
+  $("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml')%>");
+<% end %>

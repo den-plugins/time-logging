@@ -1,0 +1,6 @@
+<table id="issue-board">
+  <% @proj_issues.each do |i| %>
+    <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
+  <% end %>
+</table>
+

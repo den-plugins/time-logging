@@ -4,7 +4,7 @@
   <%= label_tag 'week_selector' %>
   <%= text_field_tag 'week_selector', "",  :disabled => "true" %>
   <%= label_tag 'Project Name' %>
-  <%= select_tag :project, options_for_select(["All"]+@project_names), :class=>'project' %>
+  <%= select_tag :project, options_for_select(["All"]+@all_project_names), :class=>'project' %>
   <%= label_tag 'Tracker' %>
   <%= select_tag :tracker, options_for_select(["All"]+@tracker_names), :class=>'tracker' %>
   <a class="apply_button">Apply</a>
@@ -31,21 +31,28 @@
 <input type="button" id="submit_button" class="submit_button" value="Submit"/>
 
 <div id="tooltip" class="tooltip hidden">
-  <h4>asdasdasdasdasdasdasd</h4>
 </div>
 
 <div id="dialog-remove-task" class="dialog hidden">
   <p>Are you sure you want to remove this/these task/s?</p>
 </div>
-<div id="dialog-add-task" class="dialog hidden">
-  <% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-form' }) do -%>
+
+<div id="dialog-add-proj-task" class="dialog hidden">
+  <!--<#% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-form' }) do -%>
+    
     <div class="flash error hidden"></div>
     <p>
-      <%= label_tag :'task-id', 'Issue #' %>
-      <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
+      <#%= label_tag :'task-id', 'Issue #' %>
+      <#%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
     </p>
-  <% end -%>
+    
+  <#% end -%>-->
+  <%= render :partial => "/week_logs/partials/add_task_proj.rhtml" %>
 </div>
+
+<div id="dialog-add-non-proj-task" class="dialog hidden">
+</div>
+
 <div id="dialog-error-messages" class="dialog hidden">
 </div>
 

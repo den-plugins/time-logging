@@ -10,13 +10,21 @@ class WeekLogsController < ApplicationController
     session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
     session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
-    @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
-
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
+
+    @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
     @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
     
-    @project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
+    @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
+    
+    @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
+    @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:id)
+    @iter_proj.empty? ? @proj_issues = nil : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
+    
+    @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
+    @non_project_names.empty? ? @non_proj_issues = nil : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.select {|x| x.loggable? User.current}.sort_by(&:id)
+    
     respond_to do |format|
       format.html
       format.json do
@@ -46,6 +54,7 @@ class WeekLogsController < ApplicationController
           issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                      'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
           @issue = issues[issue_type].find {|param| param.id == issue_id}
+          issue_type == 'admin' ? @issue = Issue.find(issue_id) :  @issue = issues[issue_type].find {|param| param.id == issue_id}
           @total = 0 #placeholder
 
           if @issue
@@ -104,6 +113,26 @@ class WeekLogsController < ApplicationController
         puts session[:project_issue_ids].inspect
         head :ok
       end
+    end
+  end
+  
+  def task_search
+    respond_to do |format|
+      format.js
+    end
+  end
+
+  def iter_refresh
+    project = Project.find_by_name params[:project]
+    @iter_proj = project.versions.sort_by(&:id)
+    if(params[:iter])
+      iter = params[:iter].gsub(/\D+/, "").to_i - 1
+      @proj_issues = @iter_proj[iter].fixed_issues.select {|x| x.loggable? User.current || x.assigned_to == User.current}
+    else
+      @iter_proj.empty? ? @proj_issues = nil : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}
+    end
+    respond_to do |format|
+      format.js { render :layout => false}
     end
   end
 

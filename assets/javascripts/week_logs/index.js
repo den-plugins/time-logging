@@ -124,22 +124,22 @@ function initializers() {
 
   Week.addTask = {
     openDialog: function(button) {
-      var button = $(button),
+/*      var button = $(button),
         form = $('#add-task-form'),
         title = 'Add Task',
-        taskType;
-      taskType = button.attr('rel');
-      form.attr('rel', taskType);
-
+        taskType;*/
+        var taskType = $(button).attr('rel');
+//      form.attr('rel', taskType);
+        alert(taskType);
       if(taskType == 'project')
-        title = 'Add Project Related Task';
+        $('#dialog-add-proj-task').dialog('open');
       else if(taskType == 'admin')
-        title = 'Add Non-Project (Admin) Related Task';
+        $('#dialog-add-non-proj-task').dialog('open');
 
-      $('#dialog-add-task').dialog('option', 'title', title);
-      $('#dialog-add-task').dialog('open');
-      form.find('#task-id').focus();
-      Week.addTask.resetForm();
+//      $('#dialog-add-task').dialog('option', 'title', title);
+//      $('#dialog-add-task').dialog('open');
+//      form.find('#task-id').focus();
+//      Week.addTask.resetForm();
     },
 
     resetForm: function() {
@@ -148,12 +148,10 @@ function initializers() {
       form.find('.error').addClass('hidden').text('');
     },
 
-    validate: function(form) {
-      var taskIdField = form.find('#task-id'),
-        taskId = taskIdField.val();
-      if(taskId.length === 0) {
+    validate: function(value) {
+      if(value.length === 0) {
         return 'Issue ID is required.';
-      } else if(!/^\s*\d+\s*$/.test(taskId)) {
+      } else if(!/^\s*\d+\s*$/.test(value)) {
         return 'Issue ID should be a number.';
       } else {
         return true;
@@ -489,12 +487,39 @@ function initializers() {
     }
   });
 
-  $("#dialog-add-task").dialog({
+  $("#dialog-add-proj-task").dialog({
     autoOpen: false,
-    width: 300,
+    width: 540,
     modal: true,
     resizable: false,
-    title: 'Add Task',
+    title: 'Add Project Related Task',
+    buttons: {
+      "Add": function() {
+        var tbody = $(this).find("#issue-board tbody");
+        var issues = [], manual_issue = $(this).find("#task-id").val();
+        tbody.children().each(function(){
+          if($(this).find('.add-issue').is(':checked')) {
+            issues.push($(this).attr('class'))
+          }
+        });
+        if(Week.addTask.validate(manual_issue))
+          issues.push(manual_issue)
+      },
+      "Cancel": function() {
+        $(this).dialog("close");
+      }
+    }//,
+//    close: function(ev, ui) {
+//      Week.addTask.resetForm($('#add-task-form'));
+//    }
+  });
+
+  $("#dialog-add-non-proj-task").dialog({
+    autoOpen: false,
+    width: 540,
+    modal: true,
+    resizable: false,
+    title: 'Add Non-Project Related Task',
     buttons: {
       "Add": function() {
         $('#add-task-form').submit();
@@ -502,10 +527,25 @@ function initializers() {
       "Cancel": function() {
         $(this).dialog("close");
       }
-    },
-    close: function(ev, ui) {
-      Week.addTask.resetForm($('#add-task-form'));
-    }
+    }//,
+    //close: function(ev, ui) {
+    //  Week.addTask.resetForm($('#add-task-form'));
+    //}
+  });
+
+$(".add-task-proj").live("change", function(){
+    $.post("/week_logs/iter_refresh",
+          {
+            project: $(this).val(),
+          });
+  });
+  
+  $(".project_iter").live("change", function(){
+     $.post("/week_logs/iter_refresh",
+          {
+            project: $(this).parent().parent().find(".add-task-proj").val(),
+            iter: $(this).val()
+          });
   });
 
   $("#dialog-error-messages").dialog({
