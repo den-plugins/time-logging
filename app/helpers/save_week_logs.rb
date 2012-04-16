@@ -47,7 +47,9 @@ module SaveWeekLogs
           new_time.hours = hours
           new_time.spent_on = Date.parse(date)
           new_time.activity_id = 9
-          new_time.save!
+          unless new_time.save
+            error_messages[issue] << new_time.errors.full_messages
+          end
         elsif(hours == 0 && flag)
           time_entry.each {|te| te.destroy}
         end
