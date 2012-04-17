@@ -38,15 +38,6 @@
 </div>
 
 <div id="dialog-add-proj-task" class="dialog hidden">
-  <!--<#% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-form' }) do -%>
-    
-    <div class="flash error hidden"></div>
-    <p>
-      <#%= label_tag :'task-id', 'Issue #' %>
-      <#%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
-    </p>
-    
-  <#% end -%>-->
   <%= render :partial => "/week_logs/partials/add_task_proj.rhtml" %>
 </div>
 

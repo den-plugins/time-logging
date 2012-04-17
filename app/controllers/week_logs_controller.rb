@@ -43,12 +43,12 @@ class WeekLogsController < ApplicationController
 
   def add_task
     @user = User.current
+    error_messages = []
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
-        return render(:text => "Issue ID is required.", :status => 400) if params[:id].blank?
-        begin
-          issue_id = params[:id].to_i
+        params[:id].each do |id|
+          issue_id = id.to_i
           issue_type = params[:type].to_s
           issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
           issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
@@ -64,11 +64,14 @@ class WeekLogsController < ApplicationController
             else
               issue_is_billable = false
             end
-            member = project.members.select {|member| member.user_id == @user.id}
-            if(issue_is_billable && member.first && !member.first.billable)
-              render :text => "You are not billable/allocated in #{@issue.project.name}.", :status => 400
-            elsif(!member.first)
-              render :text => "You are not a member of #{@issue.project.name}.", :status => 400
+            member = project.members.select {|member| member.user_id == @user.id}.first
+            puts member
+            puts issue_is_billable
+            puts member.billable
+            if(issue_is_billable && member && !member.billable)
+              error_messages << "You are not billable/allocated in #{@issue.project.name}."
+            elsif(!member)
+              error_messages << "You are not a member of #{@issue.project.name}." 
             else
               case issue_type
                 when 'project'
@@ -89,14 +92,18 @@ class WeekLogsController < ApplicationController
                            end
             if other_issues.map(&:id).include? issue_id
               phrase = (issue_type == 'admin' ? 'an admin' : 'a project')
-              render :text => "Issue ##{issue_id} is not #{phrase} task.", :status => 400
+              error_messages << "Issue ##{issue_id} is not #{phrase} task."
             elsif Issue.exists? issue_id
-              render :text => "You are not allowed to log time to issue ##{issue_id}.", :status => 400
+              error_messages << "You are not allowed to log time to issue ##{issue_id}."
             else
-              render :text => "Issue ##{issue_id} does not exist.", :status => 404
+              error_messages << "Issue ##{issue_id} does not exist."
             end
           end
         end
+          puts error_messages.inspect
+          if !error_messages.empty?
+            render :text => error_messages.uniq.join, :status => 400
+          end
       end
     end
   end

@@ -135,14 +135,12 @@ function initializers() {
         form = $('#add-task-form'),
         title = 'Add Task',
         taskType;*/
-        var taskType = $(button).attr('rel');
+      var taskType = $(button).attr('rel');
 //      form.attr('rel', taskType);
-        alert(taskType);
       if(taskType == 'project')
         $('#dialog-add-proj-task').dialog('open');
       else if(taskType == 'admin')
         $('#dialog-add-non-proj-task').dialog('open');
-
 //      $('#dialog-add-task').dialog('option', 'title', title);
 //      $('#dialog-add-task').dialog('open');
 //      form.find('#task-id').focus();
@@ -160,6 +158,8 @@ function initializers() {
         return 'Issue ID is required.';
       } else if(!/^\s*\d+\s*$/.test(value)) {
         return 'Issue ID should be a number.';
+      } else if($('#issue-' + value).length > 0) {
+        return 'You have already added this issue.'
       } else {
         return true;
       }
@@ -225,7 +225,7 @@ function initializers() {
     Week.addTask.openDialog(this);
   });
 
-  $('#add-task-form')
+  $('#add-task-proj-form')
   .attr('action', '')
   .live('submit', function(e) {
     var form = $(this),
@@ -503,14 +503,48 @@ function initializers() {
     buttons: {
       "Add": function() {
         var tbody = $(this).find("#issue-board tbody");
-        var issues = [], manual_issue = $(this).find("#task-id").val();
+        var issues = [], manual_issue = $(this).find(".task-proj-id").val();
+        var validOrError, existing = []
+
         tbody.children().each(function(){
           if($(this).find('.add-issue').is(':checked')) {
-            issues.push($(this).attr('class'))
+            validOrError = Week.addTask.validate($(this).attr('class'));
+            if(validOrError === true) 
+              issues.push($(this).attr('class'));
+            else if(validOrError == "You have already added this issue.") {
+              existing.push($(this).attr('class'));
+            }
           }
         });
-        if(Week.addTask.validate(manual_issue))
+        
+        validOrError = Week.addTask.validate(manual_issue);
+        if(validOrError === true)
           issues.push(manual_issue)
+        else if(validOrError == "You have already added this issue.") {
+          existing.push(manual_issue);
+        }
+        else
+          $(this).find('.error').text("").addClass('hidden');
+        
+        if(issues.length>0) {
+            $.ajax({
+              type: 'post',
+              url: '/week_logs/add_task.js',
+              data: { 'id': issues, 'type': 'project', 'week_start': $('#week_start').val() },
+              success: function() {
+                $("#dialog-add-proj-task").dialog('close');
+                Week.repopulateTable(issues);
+                Week.refreshTableDates();
+              },
+              error: function(data) {
+                $("#dialog-add-proj-task").find('.error').text(data.responseText).removeClass('hidden');
+              }
+            });
+        }
+        else if(existing.length>0)
+          $(this).find('.error').text("You have already added these issues: "+existing.join(',')+"").removeClass('hidden');
+        else
+          $(this).find('.error').text("Please select an issue").removeClass('hidden');
       },
       "Cancel": function() {
         $(this).dialog("close");
