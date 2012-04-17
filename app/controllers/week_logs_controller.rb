@@ -20,10 +20,10 @@ class WeekLogsController < ApplicationController
     
     @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:id)
-    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
+    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.open.visible.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
     
     @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.select {|x| x.loggable? User.current}.sort_by(&:id)
+    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select {|x| x.loggable? User.current}.sort_by(&:id)
     
     respond_to do |format|
       format.html
@@ -49,6 +49,8 @@ class WeekLogsController < ApplicationController
       format.html { redirect_to '/week_logs' }
       format.js do
         params[:id].each do |id|
+          alloc_flag = false
+          b_alloc_flag = false
           issue_id = id.to_i
           issue_type = params[:type].to_s
           issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
@@ -66,12 +68,17 @@ class WeekLogsController < ApplicationController
               issue_is_billable = false
             end
             member = project.members.select {|member| member.user_id == @user.id}.first
-            alloc_flag = false
-            b_alloc_flag = false
-            (date..date.end_of_week)
-            if !issue_is_billable && member.first && member.first.allocated?(Date.parse(date))
+            
+            if member
+              (date..date.end_of_week).each do |d|
+                alloc_flag=true if member.allocated? d
+                b_alloc_flag=true if member.b_alloc? d
+              end
+            end
+
+            if !issue_is_billable && member && !alloc_flag
               error_messages << "You are not billable/allocated in #{@issue.project.name}."
-            elsif issue_is_billable && member.first && member.first.b_alloc?(Date.parse(date))
+            elsif issue_is_billable && member && !b_alloc_flag
               error_messages << "You are not billable/allocated in #{@issue.project.name}."
             elsif(!member)
               error_messages << "You are not a member of #{@issue.project.name}." 
@@ -84,7 +91,6 @@ class WeekLogsController < ApplicationController
                   session[:non_project_issue_ids] ||= []
                   session[:non_project_issue_ids] << issue_id
               end
-              head :created
             end
           else
             other_issues = case issue_type
@@ -103,10 +109,11 @@ class WeekLogsController < ApplicationController
             end
           end
         end
-          puts error_messages.inspect
-          if !error_messages.empty?
-            render :text => error_messages.uniq.join, :status => 400
-          end
+        if !error_messages.empty?
+          render :text => "#{error_messages.uniq.join}", :status => 400
+        else
+          head :created
+        end
       end
     end
   end
@@ -137,9 +144,9 @@ class WeekLogsController < ApplicationController
     @iter_proj = project.versions.sort_by(&:id)
     if(params[:iter])
       iter = params[:iter].gsub(/\D+/, "").to_i - 1
-      @proj_issues = @iter_proj[iter].fixed_issues.select {|x| x.loggable? User.current || x.assigned_to == User.current}
+      @proj_issues = @iter_proj[iter].fixed_issues.select {|x| x.loggable? User.current || x.assigned_to == User.current}.sort_by(&:id)
     else
-      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}
+      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}.sort_by(&:id)
     end
     respond_to do |format|
       format.js { render :layout => false}
