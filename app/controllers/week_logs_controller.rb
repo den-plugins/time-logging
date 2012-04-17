@@ -20,10 +20,10 @@ class WeekLogsController < ApplicationController
     
     @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:id)
-    @iter_proj.empty? ? @proj_issues = nil : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
+    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
     
     @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @non_project_names.empty? ? @non_proj_issues = nil : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.select {|x| x.loggable? User.current}.sort_by(&:id)
+    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.select {|x| x.loggable? User.current}.sort_by(&:id)
     
     respond_to do |format|
       format.html
@@ -44,6 +44,7 @@ class WeekLogsController < ApplicationController
   def add_task
     @user = User.current
     error_messages = []
+    date = Date.parse(params[:week_start])
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
@@ -65,10 +66,12 @@ class WeekLogsController < ApplicationController
               issue_is_billable = false
             end
             member = project.members.select {|member| member.user_id == @user.id}.first
-            puts member
-            puts issue_is_billable
-            puts member.billable
-            if(issue_is_billable && member && !member.billable)
+            alloc_flag = false
+            b_alloc_flag = false
+            (date..date.end_of_week)
+            if !issue_is_billable && member.first && member.first.allocated?(Date.parse(date))
+              error_messages << "You are not billable/allocated in #{@issue.project.name}."
+            elsif issue_is_billable && member.first && member.first.b_alloc?(Date.parse(date))
               error_messages << "You are not billable/allocated in #{@issue.project.name}."
             elsif(!member)
               error_messages << "You are not a member of #{@issue.project.name}." 
@@ -136,7 +139,7 @@ class WeekLogsController < ApplicationController
       iter = params[:iter].gsub(/\D+/, "").to_i - 1
       @proj_issues = @iter_proj[iter].fixed_issues.select {|x| x.loggable? User.current || x.assigned_to == User.current}
     else
-      @iter_proj.empty? ? @proj_issues = nil : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}
+      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}
     end
     respond_to do |format|
       format.js { render :layout => false}
