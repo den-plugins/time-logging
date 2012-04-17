@@ -19,11 +19,11 @@ class WeekLogsController < ApplicationController
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
     @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:id)
-    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.open.visible.select {|x| x.loggable?(User.current) || x.assigned_to == User.current}.sort_by(&:id)
+    @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse
+    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.open.visible.sort_by(&:id)
     
     @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select {|x| x.loggable? User.current}.sort_by(&:id)
+    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.sort_by(&:id)
     
     respond_to do |format|
       format.html
@@ -44,6 +44,10 @@ class WeekLogsController < ApplicationController
   def add_task
     @user = User.current
     error_messages = []
+    issue_type = params[:type].to_s
+    issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
+    issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
+               'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
     date = Date.parse(params[:week_start])
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
@@ -52,16 +56,13 @@ class WeekLogsController < ApplicationController
           alloc_flag = false
           b_alloc_flag = false
           issue_id = id.to_i
-          issue_type = params[:type].to_s
-          issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
-          issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
-                     'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
           @issue = issues[issue_type].find {|param| param.id == issue_id}
           issue_type == 'admin' ? @issue = Issue.find(issue_id) :  @issue = issues[issue_type].find {|param| param.id == issue_id}
           @total = 0 #placeholder
 
           if @issue
             project = @issue.project
+            admin_flag = project.project_type.scan(/^(Admin)/).flatten.present?
             if project.accounting
               project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
             else
@@ -75,12 +76,12 @@ class WeekLogsController < ApplicationController
                 b_alloc_flag=true if member.b_alloc? d
               end
             end
-
-            if !issue_is_billable && member && !alloc_flag
-              error_messages << "You are not billable/allocated in #{@issue.project.name}."
-            elsif issue_is_billable && member && !b_alloc_flag
-              error_messages << "You are not billable/allocated in #{@issue.project.name}."
-            elsif(!member)
+            
+            if !issue_is_billable && member && !alloc_flag && !admin_flag 
+              error_messages << "You are not billable/allocated in #{@issue.project.name} this week."
+            elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
+              error_messages << "You are not billable/allocated in #{@issue.project.name} this week."
+            elsif !member
               error_messages << "You are not a member of #{@issue.project.name}." 
             else
               case issue_type
@@ -127,7 +128,6 @@ class WeekLogsController < ApplicationController
           session[:project_issue_ids].delete(id)
           session[:non_project_issue_ids].delete(id)
         end
-        puts session[:project_issue_ids].inspect
         head :ok
       end
     end
@@ -138,15 +138,23 @@ class WeekLogsController < ApplicationController
       format.js
     end
   end
+  
+  def gen_refresh
+    project = Project.find_by_name params[:project]
+    @non_proj_issues = project.issues.sort_by(&:id)
+    respond_to do |format|
+      format.js { render :layout => false}
+    end
+  end
 
   def iter_refresh
     project = Project.find_by_name params[:project]
-    @iter_proj = project.versions.sort_by(&:id)
+    @iter_proj = project.versions.sort_by(&:created_on).reverse
     if(params[:iter])
-      iter = params[:iter].gsub(/\D+/, "").to_i - 1
-      @proj_issues = @iter_proj[iter].fixed_issues.select {|x| x.loggable? User.current || x.assigned_to == User.current}.sort_by(&:id)
+      iter = project.versions.find(:all, :conditions => ["name = ?", params[:iter]]).first
+      @proj_issues = iter.fixed_issues.sort_by(&:id)
     else
-      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.select {|x| x.loggable? User.current}.sort_by(&:id)
+      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.sort_by(&:id)
     end
     respond_to do |format|
       format.js { render :layout => false}

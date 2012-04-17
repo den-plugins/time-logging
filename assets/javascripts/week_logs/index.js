@@ -137,10 +137,14 @@ function initializers() {
         taskType;*/
       var taskType = $(button).attr('rel');
 //      form.attr('rel', taskType);
-      if(taskType == 'project')
+      if(taskType == 'project') {
+        $('#dialog-add-proj-task').dialog('option', 'title', 'Add Project Related Task');
         $('#dialog-add-proj-task').dialog('open');
-      else if(taskType == 'admin')
+      }
+      else if(taskType == 'admin') {
+        $('#dialog-add-non-proj-task').dialog('option', 'title', 'Add Non-Project (Admin) Related Task');
         $('#dialog-add-non-proj-task').dialog('open');
+      }
 //      $('#dialog-add-task').dialog('option', 'title', title);
 //      $('#dialog-add-task').dialog('open');
 //      form.find('#task-id').focus();
@@ -494,17 +498,23 @@ function initializers() {
     }
   });
 
-  $("#dialog-add-proj-task").dialog({
+  $("#dialog-add-proj-task, #dialog-add-non-proj-task").dialog({
     autoOpen: false,
-    width: 540,
+    width: 600,
     modal: true,
     resizable: false,
-    title: 'Add Project Related Task',
     buttons: {
       "Add": function() {
         var tbody = $(this).find("#issue-board tbody");
-        var issues = [], manual_issue = $(this).find(".task-proj-id").val();
+        var issues = [], manual_issue = $(this).find("#task-id").val();
         var validOrError, existing = []
+        var id = $(this).attr('id');
+        var type;
+
+        if(id == "dialog-add-proj-task")
+          type = "project";
+        else
+          type = "admin";
 
         tbody.children().each(function(){
           if($(this).find('.add-issue').is(':checked')) {
@@ -530,14 +540,14 @@ function initializers() {
             $.ajax({
               type: 'post',
               url: '/week_logs/add_task.js',
-              data: { 'id': issues, 'type': 'project', 'week_start': $('#week_start').val() },
+              data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
               success: function() {
-                $("#dialog-add-proj-task").dialog('close');
+                $("#"+id).dialog('close');
                 Week.repopulateTable(issues);
                 Week.refreshTableDates();
               },
               error: function(data) {
-                $("#dialog-add-proj-task").find('.error').text(data.responseText).removeClass('hidden');
+                $("#"+id).find('.error').text(data.responseText).removeClass('hidden');
               }
             });
         }
@@ -548,6 +558,8 @@ function initializers() {
       },
       "Cancel": function() {
         $(this).dialog("close");
+        $(this).find("#task-id").val("");
+        $(this).find('.error').text("").addClass('hidden');
       }
     }//,
 //    close: function(ev, ui) {
@@ -555,26 +567,8 @@ function initializers() {
 //    }
   });
 
-  $("#dialog-add-non-proj-task").dialog({
-    autoOpen: false,
-    width: 540,
-    modal: true,
-    resizable: false,
-    title: 'Add Non-Project Related Task',
-    buttons: {
-      "Add": function() {
-        $('#add-task-form').submit();
-      },
-      "Cancel": function() {
-        $(this).dialog("close");
-      }
-    }//,
-    //close: function(ev, ui) {
-    //  Week.addTask.resetForm($('#add-task-form'));
-    //}
-  });
-
-$(".add-task-proj").live("change", function(){
+  $(".add-task-proj").live("change", function(){
+    $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
     $.post("/week_logs/iter_refresh",
           {
             project: $(this).val(),
@@ -582,10 +576,20 @@ $(".add-task-proj").live("change", function(){
   });
   
   $(".project_iter").live("change", function(){
+     $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
      $.post("/week_logs/iter_refresh",
           {
             project: $(this).parent().parent().find(".add-task-proj").val(),
-            iter: $(this).val()
+            iter: $(".project_iter option:selected").text()
+          });
+  });
+
+
+  $(".add-task-non-proj").live("change", function(){
+    $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
+    $.post("/week_logs/gen_refresh",
+          {
+            project: $(this).val(),
           });
   });
 

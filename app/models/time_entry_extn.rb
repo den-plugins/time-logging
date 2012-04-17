@@ -3,6 +3,16 @@ module TimeEntryExtn
     base.extend(ClassMethods)
   end
 
+  def update_session_params
+   if User.current == assigned_to
+     if project.project_type.to_s !~ /admin/i && project.name !~ /admin/i
+       session[:project_issue_ids].push(id).uniq!
+     else
+       session[:non_project_issue_ids].push(id).uniq!
+     end
+   end
+  end
+
   module ClassMethods
     def get_hours_by_date(current_date, issue=nil)
       arr = []

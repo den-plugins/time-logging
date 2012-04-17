@@ -12,7 +12,7 @@ module WeekLogsHelper
     title ||= column.titleize
     direction = (column == params[type] && params["#{type}_dir"] == "asc") ? "desc" : "asc"
     if column == params[type]
-      link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{params["#{type}_dir"]} #{title.downcase}"}
+      link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{params["#{type}_dir"]} #{title.downcase.gsub('/', '_')}"}
     else
       link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{title.downcase.gsub('/', '_')}"}
     end

@@ -1,2 +1,2 @@
 <%= label_tag 'Iteration' %>
-<%= select_tag :project_iter, options_for_select(@iter_proj.enum_with_index.map {|z,i| "Iteration #{i+1}"}), :class=>'project_iter'%>
+<%= select_tag :project_iter, options_for_select(@iter_proj.map {|z,i| [z.name, i]}, 0), :class=>'project_iter'%>

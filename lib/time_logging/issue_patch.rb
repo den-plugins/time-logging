@@ -16,26 +16,21 @@ module TimeLogging
       end
     end
 
+
     module InstanceMethods
       def admin?
         project.name.downcase.include? 'admin'
       end
 
-      def loggable?(user)
-        member = project.members.select {|m| m.user.id == user.id}.first
-        return false if !member
-        if project.accounting
-          project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
-        else
-          issue_is_billable = false
-        end
-        if(project.project_type.scan(/^(Admin)/).flatten.present?)
-          true
-        elsif(issue_is_billable && member.billable)
-          false
-        else
-          true
-        end
+      def update_session_params(proj, non_proj)
+       if User.current == assigned_to
+         if project.project_type.to_s !~ /admin/i && project.name !~ /admin/i
+           proj.push(id).uniq!
+         else
+           non_proj.push(id).uniq!
+         end
+       end
+       [proj, non_proj]
       end
     end
   end

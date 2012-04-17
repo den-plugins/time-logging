@@ -1,13 +1,8 @@
 <div class="add-task-wrapper">
   <div class="flash error hidden"></div>
   <div class="row-one">
-    <div class="align">
     <%= label_tag 'Project' %>
-    <%= select_tag :add_task_project, options_for_select(@project_names), :class=>'add-task-proj' %>
-    </div>
-    <div id="proj-iter">
-      <%= render :partial => '/week_logs/partials/iter_proj.rhtml' %>
-    </div>
+    <%= select_tag :add_task_non_project, options_for_select(@non_project_names), :class=>'add-task-non-proj' %>
   </div>
   
   <div class="row-two">
@@ -24,7 +19,7 @@
     </div>
   </div>
   
-  <div id="add-task-proj-issue-board">
-    <%= render :partial => "/week_logs/partials/add_task_table.rhtml", :locals => {:issues => @proj_issues} %>
+  <div id="add-task-non-proj-issue-board">
+    <%= render :partial => "/week_logs/partials/add_task_table.rhtml", :locals => {:issues => @non_proj_issues} %>
   </div>
 </div>
