@@ -7,9 +7,7 @@
 .apply_button {cursor:pointer; background-repeat:no-repeat; background-image:url('/images/true.png'); padding-left:16px;}
 h2 {display:inline;}
 
-.row-one, .row-two {padding-bottom:10px;}
-
-#add-task-proj-issue-board, #add-task-non-proj-issue-board {background:#B0B0B0; border:1px solid #606060}
+#add-task-proj-issue-board, #add-task-non-proj-issue-board {border:2px solid #606060}
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
 .hide-button, .head-button {vertical-align: top}
