@@ -1,0 +1,5 @@
+<% if params[:type] == "project" %>
+  $("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml', :locals => {:issues => @proj_issues})%>");
+<% else %> 
+  $("#add-task-non-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml', :locals => {:issues => @non_proj_issues})%>");
+<% end %>

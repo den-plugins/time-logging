@@ -23,8 +23,8 @@ class WeekLogsController < ApplicationController
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
     @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @iter_proj = Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse
-    @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.open.visible.sort_by(&:id)
+    @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.sort_by(&:id)
     
     @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.sort_by(&:id)
@@ -148,8 +148,44 @@ class WeekLogsController < ApplicationController
   end
   
   def task_search
+    result = []
+    project = Project.find_by_name params[:project]
+    iter = params[:iter]
+    input = params[:search]
+    
+    if iter
+      iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter])
+    end
+    
+    if input && input !~ /all/i
+      id = input.match /(\d+)/
+      subject = input.scan(/[a-zA-Z]+/).join " "
+      if subject != "" # search for issue subject
+        if !iter || iter == "all"
+          result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+        elsif iter && iter != "all"
+          result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+        end
+      end
+      if id # search for issue id
+        id = project.issues.find_by_id id[0].to_i
+        result << id if id
+      end
+      params[:type] == "project" ? @proj_issues = result.sort_by(&:id) : @non_proj_issues = result.sort_by(&:id)
+    elsif input && input =~ /all/i
+      if params[:type] == "project" 
+        if !iter || iter == "all"
+          @proj_issues = project.issues.sort_by(&:id)
+        elsif iter && iter != "all"
+          @proj_issues = iter.fixed_issues.sort_by(&:id)
+        end
+      else
+        @non_proj_issues = project.issues.sort_by(&:id)
+      end  
+    end
+    
     respond_to do |format|
-      format.js
+      format.js { render :layout => false}
     end
   end
   
@@ -163,12 +199,16 @@ class WeekLogsController < ApplicationController
 
   def iter_refresh
     project = Project.find_by_name params[:project]
-    @iter_proj = project.versions.sort_by(&:created_on).reverse
-    if(params[:iter])
-      iter = project.versions.find(:all, :conditions => ["name = ?", params[:iter]]).first
-      @proj_issues = iter.fixed_issues.sort_by(&:id)
+    @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    if params[:iter]
+      if params[:iter] =~ /All Issues/
+        @proj_issues = project.issues.sort_by(&:id)
+      else
+        iter = project.versions.find(:all, :conditions => ["name = ?", params[:iter]]).first
+        @proj_issues = iter.fixed_issues.sort_by(&:id)
+      end
     else
-      @iter_proj.empty? ? @proj_issues = [] : @proj_issues = @iter_proj.first.fixed_issues.sort_by(&:id)
+      @proj_issues = project.issues.sort_by(&:id)
     end
     respond_to do |format|
       format.js { render :layout => false}

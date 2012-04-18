@@ -19,8 +19,9 @@
     </div>
     <div class="search align">
       <%= label_tag 'Search For' %>
-      <%= text_field_tag :id, nil, :id=>'search-id', :maxlength => Issue.last(:order=>'id').id.to_s.length %>
+      <%= text_field_tag :id, nil, :id=>'search-id'%>
       <input type="button" id="add-task-proj-search" value="Search"/>
+      <input type="button" id="clear-proj" value="Clear"/>
     </div>
   </div>
   

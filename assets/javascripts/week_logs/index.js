@@ -592,6 +592,49 @@ function initializers() {
             project: $(this).val(),
           });
   });
+  
+  $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
+    error =$(this).parent().parent().parent().find(".error");
+    error.text("").addClass("hidden");
+    search = $(this).parent().find("#search-id");
+    
+    if($(this).attr('id') == "add-task-proj-search") {
+      type = "project";
+      project = $(".add-task-proj").val();
+      iter = $(".project_iter option:selected").text();
+    } else {
+      type = "admin";
+      project = $(".add-task-non-proj").val();
+      iter = "";
+    }
+
+    if(/(\w+|\d+)/.exec(search.val()) != null) {
+     $.post("/week_logs/task_search",
+           {
+             type: type,
+             project: project,
+             iter: iter,
+             search: search.val()
+           }); 
+    } else {
+      error.text("Please input a search value.").removeClass("hidden");
+    }
+  });
+  
+  $("#clear-proj").live("click", function(){
+    search = $("#dialog-add-proj-task").find("#search-id");
+    search.val("all");
+    $("#add-task-proj-search").click();
+    search.val("");
+  });
+  
+
+  $("#clear-non-proj").live("click", function(){
+    search = $("#dialog-add-non-proj-task").find("#search-id");
+    search.val("all");
+    $("#add-task-non-proj-search").click();
+    search.val("");
+  });
 
   $("#dialog-error-messages").dialog({
     autoOpen: false,
