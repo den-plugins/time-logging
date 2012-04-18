@@ -500,7 +500,7 @@ function initializers() {
 
   $("#dialog-add-proj-task, #dialog-add-non-proj-task").dialog({
     autoOpen: false,
-    width: 600,
+    width: 650,
     modal: true,
     resizable: false,
     buttons: {
@@ -568,7 +568,8 @@ function initializers() {
   });
 
   $(".add-task-proj").live("change", function(){
-    $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
+    var parent = $("#dialog-add-proj-task");
+    parent.find(".error").text("").addClass("hidden");
     $.post("/week_logs/iter_refresh",
           {
             project: $(this).val(),
@@ -576,17 +577,19 @@ function initializers() {
   });
   
   $(".project_iter").live("change", function(){
-     $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
+     var parent = $("#dialog-add-proj-task");
+     parent.find(".error").text("").addClass("hidden");
      $.post("/week_logs/iter_refresh",
           {
-            project: $(this).parent().parent().find(".add-task-proj").val(),
+            project: parent.find(".add-task-proj").val(),
             iter: $(".project_iter option:selected").text()
           });
   });
 
 
   $(".add-task-non-proj").live("change", function(){
-    $(this).parent().parent().parent().find(".error").text("").addClass("hidden");
+    var parent = $("#dialog-add-non-proj-task");
+    parent.find(".error").text("").addClass("hidden");
     $.post("/week_logs/gen_refresh",
           {
             project: $(this).val(),
@@ -594,18 +597,24 @@ function initializers() {
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
-    error =$(this).parent().parent().parent().find(".error");
-    error.text("").addClass("hidden");
-    search = $(this).parent().find("#search-id");
-    
+    var type, project, iter, parent, error, search;
+
     if($(this).attr('id') == "add-task-proj-search") {
+      parent = $("#dialog-add-proj-task"); 
+      error = parent.find(".error");
+      error.text("").addClass("hidden");
       type = "project";
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
+      search = parent.find("#search-id");
     } else {
+      parent = $("#dialog-add-non-proj-task"); 
+      error = parent.find(".error");
+      error.text("").addClass("hidden");
       type = "admin";
       project = $(".add-task-non-proj").val();
       iter = "";
+      search = parent.find("#search-id");
     }
 
     if(/(\w+|\d+)/.exec(search.val()) != null) {
@@ -630,7 +639,7 @@ function initializers() {
   
 
   $("#clear-non-proj").live("click", function(){
-    search = $("#dialog-add-non-proj-task").find("#search-id");
+    search = $("#dialog-add-non-proj-task").find("#searc-id");
     search.val("all");
     $("#add-task-non-proj-search").click();
     search.val("");

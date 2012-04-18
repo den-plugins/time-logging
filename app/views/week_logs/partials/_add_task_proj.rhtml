@@ -1,29 +1,38 @@
 <div class="add-task-wrapper">
   <div class="flash error hidden"></div>
-  <div class="row-one">
-    <div class="align">
-    <%= label_tag 'Project' %>
-    <%= select_tag :add_task_project, options_for_select(@project_names), :class=>'add-task-proj' %>
-    </div>
-    <div id="proj-iter">
-      <%= render :partial => '/week_logs/partials/iter_proj.rhtml' %>
-    </div>
-  </div>
-  
-  <div class="row-two">
-    <div class="align">
-      <% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-proj-form' }) do -%>
-          <%= label_tag :'task-id', 'Issue #' %>
-          <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
-      <% end -%>
-    </div>
-    <div class="search align">
-      <%= label_tag 'Search For' %>
-      <%= text_field_tag :id, nil, :id=>'search-id'%>
-      <input type="button" id="add-task-proj-search" value="Search"/>
-      <input type="button" id="clear-proj" value="Clear"/>
-    </div>
-  </div>
+  <table>
+      <tr>
+          <td>
+              <div class="align">
+              <%= label_tag 'Project' %>
+              <%= select_tag :add_task_project, options_for_select(@project_names), :class=>'add-task-proj' %>
+              </div>
+          </td>
+          <td>
+              <div id="proj-iter">
+                <%= render :partial => '/week_logs/partials/iter_proj.rhtml' %>
+              </div>
+          </td>
+      </tr>
+      <tr>
+          <td>
+              <div class="align">
+                <% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-proj-form' }) do -%>
+                    <%= label_tag :'task-id', 'Issue #' %>
+                    <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
+                <% end -%>
+              </div>
+          </td>
+          <td>
+              <div class="search align">
+                <%= label_tag 'Search For' %>
+                <%= text_field_tag :id, nil, :id=>'search-id'%>
+                <input type="button" id="add-task-proj-search" value="Search"/>
+                <input type="button" id="clear-proj" value="Clear"/>
+              </div>
+          </td>
+      </tr>
+  </table>
   
   <div id="add-task-proj-issue-board">
     <%= render :partial => "/week_logs/partials/add_task_table.rhtml", :locals => {:issues => @proj_issues} %>

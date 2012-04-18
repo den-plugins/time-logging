@@ -23,7 +23,11 @@ class WeekLogsController < ApplicationController
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
     @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    if !@project_names.empty?
+      @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    else
+      @iter_proj = ["All Issues"]
+    end
     @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.sort_by(&:id)
     
     @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
@@ -94,9 +98,9 @@ class WeekLogsController < ApplicationController
             else
               case issue_type
                 when 'project'
-                  proj_cache ? [] << issue_id : proj_cache << issue_id
+                  proj_cache << issue_id
                 when 'admin'
-                  non_proj_cache ? [] << issue_id : non_proj_cache << issue_id
+                  non_proj_cache << issue_id
               end
             end
           else
@@ -171,7 +175,7 @@ class WeekLogsController < ApplicationController
         id = project.issues.find_by_id id[0].to_i
         result << id if id
       end
-      params[:type] == "project" ? @proj_issues = result.sort_by(&:id) : @non_proj_issues = result.sort_by(&:id)
+      params[:type] == "project" ? @proj_issues = result.sort_by(&:id).uniq : @non_proj_issues = result.sort_by(&:id).uniq
     elsif input && input =~ /all/i
       if params[:type] == "project" 
         if !iter || iter == "all"
