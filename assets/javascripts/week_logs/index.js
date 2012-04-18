@@ -547,7 +547,11 @@ function initializers() {
                 Week.refreshTableDates();
               },
               error: function(data) {
-                $("#"+id).find('.error').text(data.responseText).removeClass('hidden');
+                $("#"+id).find('.error').removeClass('hidden');
+                $(data.responseText.split('.')).each(function(i,val){
+                  if(val!="")
+                    $("#"+id).find('.error').append(val+"<br/>");
+                });
               }
             });
         }

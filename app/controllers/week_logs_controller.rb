@@ -90,9 +90,9 @@ class WeekLogsController < ApplicationController
             end
             
             if !issue_is_billable && member && !alloc_flag && !admin_flag 
-              error_messages << "You are not billable/allocated in #{@issue.project.name} this week."
+              error_messages << "You are not allocated in issue ##{@issue.id} this week."
             elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
-              error_messages << "You are not billable/allocated in #{@issue.project.name} this week."
+              error_messages << "You are not billable in issue ##{@issue.id} this week."
             elsif !member
               error_messages << "You are not a member of #{@issue.project.name}." 
             else
@@ -114,7 +114,7 @@ class WeekLogsController < ApplicationController
               phrase = (issue_type == 'admin' ? 'an admin' : 'a project')
               error_messages << "Issue ##{issue_id} is not #{phrase} task."
             elsif Issue.exists? issue_id
-              error_messages << "You are not allowed to log time to issue ##{issue_id}."
+              error_messages << "You are not allowed to log time in issue ##{issue_id}."
             else
               error_messages << "Issue ##{issue_id} does not exist."
             end
