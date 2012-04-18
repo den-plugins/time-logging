@@ -5,10 +5,14 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    @issues = { :project_related => session[:project_issue_ids] ? Issue.find(session[:project_issue_ids]) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
-                :non_project_related => session[:non_project_issue_ids] ? Issue.find(session[:non_project_issue_ids]) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
-    session[:project_issue_ids] = @issues[:project_related].map(&:id).uniq
-    session[:non_project_issue_ids] = @issues[:non_project_related].map(&:id).uniq
+    proj_cache = Rails.cache.read :project_issue_ids
+    proj_cache ? proj_cache = proj_cache.dup : [] 
+    non_proj_cache = Rails.cache.read :non_project_issue_ids
+    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+    @issues = { :project_related => proj_cache ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
+                :non_project_related => non_proj_cache ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
+    Rails.cache.write :project_issue_ids, @issues[:project_related].map(&:id).uniq
+    Rails.cache.write :non_project_issue_ids,  @issues[:non_project_related].map(&:id).uniq
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
 
@@ -44,6 +48,10 @@ class WeekLogsController < ApplicationController
   def add_task
     @user = User.current
     error_messages = []
+    proj_cache = Rails.cache.read :project_issue_ids
+    proj_cache ? proj_cache = proj_cache.dup : [] 
+    non_proj_cache = Rails.cache.read :non_project_issue_ids
+    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
     issue_type = params[:type].to_s
     issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
     issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
@@ -86,11 +94,9 @@ class WeekLogsController < ApplicationController
             else
               case issue_type
                 when 'project'
-                  session[:project_issue_ids] ||= []
-                  session[:project_issue_ids] << issue_id
+                  proj_cache ? [] << issue_id : proj_cache << issue_id
                 when 'admin'
-                  session[:non_project_issue_ids] ||= []
-                  session[:non_project_issue_ids] << issue_id
+                  non_proj_cache ? [] << issue_id : non_proj_cache << issue_id
               end
             end
           else
@@ -110,6 +116,8 @@ class WeekLogsController < ApplicationController
             end
           end
         end
+        Rails.cache.write(:project_issue_ids, proj_cache)
+        Rails.cache.write(:non_project_issue_ids, non_proj_cache)
         if !error_messages.empty?
           render :text => "#{error_messages.uniq.join}", :status => 400
         else
@@ -120,14 +128,20 @@ class WeekLogsController < ApplicationController
   end
 
   def remove_task
+    proj_cache = Rails.cache.read :project_issue_ids
+    proj_cache ? proj_cache = proj_cache.dup : []
+    non_proj_cache = Rails.cache.read :non_project_issue_ids
+    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
         issue_id = params[:id].map {|x| x.to_i}
         issue_id.each do |id|
-          session[:project_issue_ids].delete(id)
-          session[:non_project_issue_ids].delete(id)
+        proj_cache.delete id
+        non_proj_cache.delete id
         end
+        Rails.cache.write :project_issue_ids, proj_cache
+        Rails.cache.write :non_project_issue_ids, non_proj_cache
         head :ok
       end
     end
