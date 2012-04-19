@@ -5,14 +5,10 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    proj_cache = Rails.cache.read :project_issue_ids
-    proj_cache ? proj_cache = proj_cache.dup : [] 
-    non_proj_cache = Rails.cache.read :non_project_issue_ids
-    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+    proj_cache, non_proj_cache = read_cache
     @issues = { :project_related => proj_cache ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
                 :non_project_related => non_proj_cache ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
-    Rails.cache.write :project_issue_ids, @issues[:project_related].map(&:id).uniq
-    Rails.cache.write :non_project_issue_ids,  @issues[:non_project_related].map(&:id).uniq
+    write_to_cache(@issues[:project_related].map(&:id).uniq,@issues[:non_project_related].map(&:id).uniq) 
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
 
@@ -52,10 +48,7 @@ class WeekLogsController < ApplicationController
   def add_task
     @user = User.current
     error_messages = []
-    proj_cache = Rails.cache.read :project_issue_ids
-    proj_cache ? proj_cache = proj_cache.dup : [] 
-    non_proj_cache = Rails.cache.read :non_project_issue_ids
-    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+    proj_cache, non_proj_cache = read_cache
     issue_type = params[:type].to_s
     issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
     issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
@@ -120,8 +113,7 @@ class WeekLogsController < ApplicationController
             end
           end
         end
-        Rails.cache.write(:project_issue_ids, proj_cache)
-        Rails.cache.write(:non_project_issue_ids, non_proj_cache)
+        write_to_cache(proj_cache, non_proj_cache)
         if !error_messages.empty?
           render :text => "#{JSON error_messages.uniq}", :status => 400
         else
@@ -132,10 +124,7 @@ class WeekLogsController < ApplicationController
   end
 
   def remove_task
-    proj_cache = Rails.cache.read :project_issue_ids
-    proj_cache ? proj_cache = proj_cache.dup : []
-    non_proj_cache = Rails.cache.read :non_project_issue_ids
-    non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+    proj_cache, non_proj_cache = read_cache
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
@@ -144,8 +133,7 @@ class WeekLogsController < ApplicationController
         proj_cache.delete id
         non_proj_cache.delete id
         end
-        Rails.cache.write :project_issue_ids, proj_cache
-        Rails.cache.write :non_project_issue_ids, non_proj_cache
+        write_to_cache(proj_cache, non_proj_cache)
         head :ok
       end
     end
@@ -220,6 +208,19 @@ class WeekLogsController < ApplicationController
   end
 
   private
+
+    def write_to_cache(proj_cache, non_proj_cache)
+      Rails.cache.write :project_issue_ids, proj_cache
+      Rails.cache.write :non_project_issue_ids, non_proj_cache
+    end
+
+    def read_cache
+      proj_cache = Rails.cache.read(:project_issue_ids)
+      proj_cache ? proj_cache = proj_cache.dup : []
+      non_proj_cache = Rails.cache.read :non_project_issue_ids
+      non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+      [proj_cache, non_proj_cache]
+    end
 
     def get_week_start
       params[:week_start] == nil ? @week_start = Date.current : @week_start = Date.parse(params[:week_start])
