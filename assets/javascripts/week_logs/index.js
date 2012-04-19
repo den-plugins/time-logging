@@ -562,11 +562,13 @@ function initializers() {
     $("#non_proj_table .issue").each(function(){
       existing.push($(this).attr("id").replace(/issue\-/, ""))
     });
+    $('#ajax-indicator').show();
     $.post("/week_logs/gen_refresh",
           {
             project: $(this).val(),
             exst: existing
-          });
+          })
+    .complete(function() { $('#ajax-indicator').hide();}) 
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
@@ -597,6 +599,7 @@ function initializers() {
     }
 
     if(/(\w+|\d+)/.exec(search.val()) != null) {
+     $('#ajax-indicator').show();
      $.post("/week_logs/task_search",
            {
              type: type,
@@ -604,7 +607,8 @@ function initializers() {
              iter: iter,
              search: search.val(),
              exst: existing
-           }); 
+           }) 
+    .complete(function() { $('#ajax-indicator').hide();}) 
     } else {
       error.text("Please input a search value.").removeClass("hidden");
     }

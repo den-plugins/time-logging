@@ -18,15 +18,15 @@ class WeekLogsController < ApplicationController
     @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
-    @project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name !~ /admin/i && z.project_type.to_s !~ /admin/i}.map(&:name).sort_by{|i| i.downcase}
+    @project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| !z.name.downcase['admin'] && !z.project_type.to_s.downcase['admin'] && !z.issues.empty?}.map(&:name).sort_by{|i| i.downcase}
     if !@project_names.empty?
       @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
     else
       @iter_proj = ["All Issues"]
     end
-    @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
+    @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
     
-    @non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name.downcase['admin'] && z.project_type.to_s.downcase['admin']}.map(&:name).sort_by{|i| i.downcase}
+    @non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name.downcase['admin'] && z.project_type.to_s.downcase['admin'] && !z.issues.empty?}.map(&:name).sort_by{|i| i.downcase}
     @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select{|z| !@issues[:non_project_related].include?(z)}.sort_by(&:id)
     
     respond_to do |format|
