@@ -162,17 +162,18 @@ function initializers() {
               data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
               success: function() {
                 $("#"+id).dialog('close');
-                Week.repopulateTable(issues);
-                Week.refreshTableDates();
               },
               error: function(data) {
                 $("#"+id).find('.error').removeClass('hidden');
                 var errors = JSON.parse(data.responseText);
                 $(errors).each(function(i,val){
+                    issues.splice(issues.indexOf(val.replace(/\D+/g, "")),1);
                     $("#"+id).find('.error').append(val+"<br/>");
                 });
               }
             });
+          Week.repopulateTable(issues);
+          Week.refreshTableDates();
         }
         else if(existing.length>0)
           $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
@@ -218,6 +219,18 @@ function initializers() {
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
   });
+  
+  Week.resetDialog = function(dialog, type) {
+    if(type=="project") {
+      $('.add-task-proj>option:eq(0)').attr('selected', true);
+      $('.project_iter>option:eq(0)').attr('selected', true);
+    } 
+    else 
+      $('.add-task-non-proj>option:eq(0)').attr('selected', true);
+    dialog.find("#search-id").val("");
+    dialog.find("#task-id").val("");
+    dialog.find("#clear-proj").click();
+  };
 
   Week.refreshTableDates = function() {
     var start = new Date($("#js_week_start").val());
@@ -500,43 +513,64 @@ function initializers() {
       },
       "Cancel": function() {
         $(this).dialog("close");
-        $(this).find("#task-id").val("");
-        $(this).find('.error').html("").addClass('hidden');
       }
+    },
+    close: function(ev, ui) {
+      var type;
+      if($(this).attr("id") == "dialog-add-proj-task")
+        type = "project";
+      else
+        type = "admin";
+      Week.resetDialog($(this), type);
     }
   });
 
   $(".add-task-proj").live("change", function(){
     var parent = $("#dialog-add-proj-task");
+    var existing = [];
     parent.find(".error").html("").addClass("hidden");
+    $("#proj_table .issue").each(function(){
+      existing.push($(this).attr("id").replace(/issue\-/, ""))
+    });
     $.post("/week_logs/iter_refresh",
           {
             project: $(this).val(),
+            exst: existing
           });
   });
   
   $(".project_iter").live("change", function(){
      var parent = $("#dialog-add-proj-task");
+     existing = [];
      parent.find(".error").html("").addClass("hidden");
+     $("#proj_table .issue").each(function(){
+       existing.push($(this).attr("id").replace(/issue\-/, ""))
+     });
      $.post("/week_logs/iter_refresh",
           {
             project: parent.find(".add-task-proj").val(),
-            iter: $(".project_iter option:selected").text()
+            iter: $(".project_iter option:selected").text(),
+            exst: existing
           });
   });
 
 
   $(".add-task-non-proj").live("change", function(){
     var parent = $("#dialog-add-non-proj-task");
+    var existing = [];
     parent.find(".error").html("").addClass("hidden");
+    $("#non_proj_table .issue").each(function(){
+      existing.push($(this).attr("id").replace(/issue\-/, ""))
+    });
     $.post("/week_logs/gen_refresh",
           {
             project: $(this).val(),
+            exst: existing
           });
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
-    var type, project, iter, parent, error, search;
+    var type, project, iter, parent, error, search, existing = [] ;
 
     if($(this).attr('id') == "add-task-proj-search") {
       parent = $("#dialog-add-proj-task"); 
@@ -546,6 +580,9 @@ function initializers() {
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
       search = parent.find("#search-id");
+      $("#proj_table .issue").each(function(){
+        existing.push($(this).attr("id").replace(/issue\-/, ""))
+      });
     } else {
       parent = $("#dialog-add-non-proj-task"); 
       error = parent.find(".error");
@@ -554,6 +591,9 @@ function initializers() {
       project = $(".add-task-non-proj").val();
       iter = "";
       search = parent.find("#search-id");
+      $("#non_proj_table .issue").each(function(){
+        existing.push($(this).attr("id").replace(/issue\-/, ""))
+      });
     }
 
     if(/(\w+|\d+)/.exec(search.val()) != null) {
@@ -562,7 +602,8 @@ function initializers() {
              type: type,
              project: project,
              iter: iter,
-             search: search.val()
+             search: search.val(),
+             exst: existing
            }); 
     } else {
       error.text("Please input a search value.").removeClass("hidden");
@@ -578,7 +619,7 @@ function initializers() {
   
 
   $("#clear-non-proj").live("click", function(){
-    search = $("#dialog-add-non-proj-task").find("#searc-id");
+    search = $("#dialog-add-non-proj-task").find("#search-id");
     search.val("all");
     $("#add-task-non-proj-search").click();
     search.val("");

@@ -6,8 +6,6 @@
               <%= label_tag 'Project' %>
               <%= select_tag :add_task_non_project, options_for_select(@non_project_names), :class=>'add-task-non-proj' %>
           </td>
-          <td>
-          </td>
       </tr>
       <tr>
           <td>
@@ -16,6 +14,8 @@
                   <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
               <% end -%>
           </td>
+      </tr>
+      <tr>
           <td>
               <div class = "search">
                 <%= label_tag 'Search For' %>

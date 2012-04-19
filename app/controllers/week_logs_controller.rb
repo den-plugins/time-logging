@@ -24,10 +24,10 @@ class WeekLogsController < ApplicationController
     else
       @iter_proj = ["All Issues"]
     end
-    @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.sort_by(&:id)
+    @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
     
     @non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name.downcase['admin'] && z.project_type.to_s.downcase['admin']}.map(&:name).sort_by{|i| i.downcase}
-    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.sort_by(&:id)
+    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select{|z| !@issues[:non_project_related].include?(z)}.sort_by(&:id)
     
     respond_to do |format|
       format.html
@@ -62,9 +62,13 @@ class WeekLogsController < ApplicationController
           b_alloc_flag = false
           issue_id = id.to_i
           @issue = issues[issue_type].find {|param| param.id == issue_id}
-          issue_type == 'admin' ? @issue = Issue.find(issue_id) :  @issue = issues[issue_type].find {|param| param.id == issue_id}
           @total = 0 #placeholder
-
+          if issue_type == 'admin'
+            if @issue = Issue.find(issue_id)
+              project = @issue.project
+              @issue = nil if !(issue_type == 'admin' && project.name.downcase['admin'] && project.project_type.downcase['admin'])
+            end
+          end
           if @issue
             project = @issue.project
             admin_flag = project.project_type.scan(/^(Admin)/).flatten.present?
@@ -141,13 +145,12 @@ class WeekLogsController < ApplicationController
   
   def task_search
     result = []
+    existing = params[:exst]
     project = Project.find_by_name params[:project]
     iter = params[:iter]
     input = params[:search]
-    
-    if iter
-      iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter])
-    end
+    iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter]) if iter
+    existing ? existing.map!{|z| Issue.find_by_id z.to_i} : []
     
     if input && input !~ /all/i
       id = input.match /(\d+)/
@@ -163,16 +166,17 @@ class WeekLogsController < ApplicationController
         id = project.issues.find_by_id id[0].to_i
         result << id if id
       end
-      params[:type] == "project" ? @proj_issues = result.sort_by(&:id).uniq : @non_proj_issues = result.sort_by(&:id).uniq
+      result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
+      params[:type] == "project" ? @proj_issues = result : @non_proj_issues = result
     elsif input && input =~ /all/i
       if params[:type] == "project" 
         if !iter || iter == "all"
-          @proj_issues = project.issues.sort_by(&:id)
+          @proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
         elsif iter && iter != "all"
-          @proj_issues = iter.fixed_issues.sort_by(&:id)
+          @proj_issues = iter.fixed_issues.select{|y| !existing.include?(y)}.sort_by(&:id)
         end
       else
-        @non_proj_issues = project.issues.sort_by(&:id)
+        @non_proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
       end  
     end
     
@@ -184,6 +188,11 @@ class WeekLogsController < ApplicationController
   def gen_refresh
     project = Project.find_by_name params[:project]
     @non_proj_issues = project.issues.sort_by(&:id)
+    existing = params[:exst]
+    if existing
+      existing.map!{|z| Issue.find_by_id z.to_i}
+      @non_proj_issues = @non_proj_issues.select{|y| !existing.include?(y)}
+    end
     respond_to do |format|
       format.js { render :layout => false}
     end
@@ -201,6 +210,11 @@ class WeekLogsController < ApplicationController
       end
     else
       @proj_issues = project.issues.sort_by(&:id)
+    end
+    existing = params[:exst]
+    if existing
+      existing.map!{|z| Issue.find_by_id z.to_i}
+      @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
     end
     respond_to do |format|
       format.js { render :layout => false}
