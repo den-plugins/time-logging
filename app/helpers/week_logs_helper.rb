@@ -52,9 +52,9 @@ module WeekLogsHelper
         end
         
         if !issue_is_billable && member && !alloc_flag && !admin_flag 
-          error_messages << "You are not allocated in issue ##{issue.id} this week."
+          error_messages << "You are not allocated in issue ##{issue.id} for this week."
         elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
-          error_messages << "You are not billable in issue ##{issue.id} this week."
+          error_messages << "You are not billable in issue ##{issue.id} for this week."
         elsif !member
           error_messages << "You are not a member of #{issue.project.name}." 
         else
