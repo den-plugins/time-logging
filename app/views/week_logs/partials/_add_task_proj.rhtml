@@ -17,10 +17,8 @@
       <tr>
           <td>
               <div class="align">
-                <% form_tag({ :controller => 'week_logs', :action => 'add_task', :format => 'js' }, { :method => :post, :id => 'add-task-proj-form' }) do -%>
-                    <%= label_tag :'task-id', 'Issue #' %>
-                    <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
-                <% end -%>
+                  <%= label_tag :'task-id', 'Issue #' %>
+                  <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
               </div>
           </td>
           <td>
