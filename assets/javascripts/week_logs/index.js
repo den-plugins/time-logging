@@ -532,11 +532,13 @@ function initializers() {
     $("#proj_table .issue").each(function(){
       existing.push($(this).attr("id").replace(/issue\-/, ""))
     });
+    $('#ajax-indicator').show();
     $.post("/week_logs/iter_refresh",
           {
             project: $(this).val(),
             exst: existing
-          });
+          })
+    .complete(function() { $('#ajax-indicator').hide();}) 
   });
   
   $(".project_iter").live("change", function(){
