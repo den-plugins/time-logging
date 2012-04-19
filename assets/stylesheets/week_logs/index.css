@@ -1,6 +1,8 @@
 #total_hours { width: 50px; text-align:center }
-#control_panel, #proj_related, #non_proj_related {padding: 10px 0 20px 0;}
+#control_panel, #proj_related, #non_proj_related {padding: 10px 0 0px 0;}
 #control_panel .right {float: right}
+#filter_panel {border-bottom:1px dotted silver; padding:5px 10px;}
+h4.filter {margin-top:0px;}
 .tooltip{position:absolute; background-repeat:repeat-x; 
          background-image:url('/plugin_assets/time_logging/stylesheets/images/ui-bg_diagonals-thick_15_444444_40x40.png');
          -moz-border-radius: 10px; border-radius: 10px; font-size:14px; color:white; padding-left:10px; padding-right:10px;}

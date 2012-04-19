@@ -131,12 +131,7 @@ function initializers() {
 
   Week.addTask = {
     openDialog: function(button) {
-/*      var button = $(button),
-        form = $('#add-task-form'),
-        title = 'Add Task',
-        taskType;*/
       var taskType = $(button).attr('rel');
-//      form.attr('rel', taskType);
       if(taskType == 'project') {
         $('#dialog-add-proj-task').dialog('option', 'title', 'Add Project Related Task');
         $('#dialog-add-proj-task').dialog('open');
@@ -145,16 +140,6 @@ function initializers() {
         $('#dialog-add-non-proj-task').dialog('option', 'title', 'Add Non-Project (Admin) Related Task');
         $('#dialog-add-non-proj-task').dialog('open');
       }
-//      $('#dialog-add-task').dialog('option', 'title', title);
-//      $('#dialog-add-task').dialog('open');
-//      form.find('#task-id').focus();
-//      Week.addTask.resetForm();
-    },
-
-    resetForm: function() {
-      var form = $('#add-task-form');
-      form.find('#task-id').val('');
-      form.find('.error').addClass('hidden').text('');
     },
 
     validate: function(value) {
@@ -169,25 +154,30 @@ function initializers() {
       }
     },
 
-    submit: function() {
-      var form = $('#add-task-form'),
-        taskIdField = form.find('#task-id'),
-        taskId = taskIdField.val().trim(),
-        taskType = form.attr('rel');
-      $.ajax({
-        type: 'post',
-        url: '/week_logs/add_task.js',
-        data: { 'id': taskId, 'type': taskType, 'week_start': $('#week_start').val() },
-        success: function() {
-          $('#dialog-add-task').dialog('close');
-          Week.repopulateTable(taskId);
-          Week.refreshTableDates();
-        },
-        error: function(data) {
-          form.find('.error').text(data.responseText).removeClass('hidden');
-          taskIdField.focus().select();
+    submit: function(issues, existing, type, id) {
+        if(issues.length>0) {
+          $.ajax({
+              type: 'post',
+              url: '/week_logs/add_task.js',
+              data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
+              success: function() {
+                $("#"+id).dialog('close');
+                Week.repopulateTable(issues);
+                Week.refreshTableDates();
+              },
+              error: function(data) {
+                $("#"+id).find('.error').removeClass('hidden');
+                var errors = JSON.parse(data.responseText);
+                $(errors).each(function(i,val){
+                    $("#"+id).find('.error').append(val+"<br/>");
+                });
+              }
+            });
         }
-      });
+        else if(existing.length>0)
+          $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
+        else
+          $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
     }
   };
 
@@ -227,36 +217,6 @@ function initializers() {
 
   $('.head-button').live('click', function() {
     Week.addTask.openDialog(this);
-  });
-
-  $('#add-task-proj-form')
-  .attr('action', '')
-  .live('submit', function(e) {
-    var form = $(this),
-      validOrError = Week.addTask.validate(form),
-      table = $('#' + form.attr('data-table'));
-    e.preventDefault();
-    if(validOrError === true) {
-      var existingTaskId = form.find('#task-id').val(),
-        existingTask = $('#issue-' + existingTaskId);
-      form.find('.error').addClass('hidden').text('');
-      if(existingTask.length > 0) {
-        $('#success_message').text('You have already added this issue.').removeClass('hidden');
-        $('#dialog-add-task').dialog('close');
-        existingTask.removeClass('hidden');
-        $('html, body').animate({scrollTop: existingTask.offset().top}, 1000, function() {
-          if(existingTask.effect) {
-            existingTask.effect('highlight');
-          }
-        });
-      } else {
-        Week.addTask.submit();
-      }
-      Week.addTask.resetForm();
-    } else {
-      form.find('.error').text(validOrError).removeClass('hidden');
-    }
-    return false;
   });
 
   Week.refreshTableDates = function() {
@@ -511,6 +471,7 @@ function initializers() {
         var id = $(this).attr('id');
         var type;
 
+        $(this).find('.error').html("").addClass('hidden');
         if(id == "dialog-add-proj-task")
           type = "project";
         else
@@ -533,47 +494,21 @@ function initializers() {
         else if(validOrError == "You have already added this issue.") {
           existing.push(manual_issue);
         }
-        else
-          $(this).find('.error').text("").addClass('hidden');
-        
-        if(issues.length>0) {
-            $.ajax({
-              type: 'post',
-              url: '/week_logs/add_task.js',
-              data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
-              success: function() {
-                $("#"+id).dialog('close');
-                Week.repopulateTable(issues);
-                Week.refreshTableDates();
-              },
-              error: function(data) {
-                $("#"+id).find('.error').removeClass('hidden');
-                $(data.responseText.split('.')).each(function(i,val){
-                  if(val!="")
-                    $("#"+id).find('.error').append(val+"<br/>");
-                });
-              }
-            });
-        }
-        else if(existing.length>0)
-          $(this).find('.error').text("You have already added these issues: "+existing.join(',')+"").removeClass('hidden');
-        else
-          $(this).find('.error').text("Please select an issue").removeClass('hidden');
+        else if(validOrError == "Issue ID should be a number.")
+          $(this).find('.error').removeClass('hidden').append("Issue ID should be a number.<br/>");
+        Week.addTask.submit(issues, existing, type, id);
       },
       "Cancel": function() {
         $(this).dialog("close");
         $(this).find("#task-id").val("");
-        $(this).find('.error').text("").addClass('hidden');
+        $(this).find('.error').html("").addClass('hidden');
       }
-    }//,
-//    close: function(ev, ui) {
-//      Week.addTask.resetForm($('#add-task-form'));
-//    }
+    }
   });
 
   $(".add-task-proj").live("change", function(){
     var parent = $("#dialog-add-proj-task");
-    parent.find(".error").text("").addClass("hidden");
+    parent.find(".error").html("").addClass("hidden");
     $.post("/week_logs/iter_refresh",
           {
             project: $(this).val(),
@@ -582,7 +517,7 @@ function initializers() {
   
   $(".project_iter").live("change", function(){
      var parent = $("#dialog-add-proj-task");
-     parent.find(".error").text("").addClass("hidden");
+     parent.find(".error").html("").addClass("hidden");
      $.post("/week_logs/iter_refresh",
           {
             project: parent.find(".add-task-proj").val(),
@@ -593,7 +528,7 @@ function initializers() {
 
   $(".add-task-non-proj").live("change", function(){
     var parent = $("#dialog-add-non-proj-task");
-    parent.find(".error").text("").addClass("hidden");
+    parent.find(".error").html("").addClass("hidden");
     $.post("/week_logs/gen_refresh",
           {
             project: $(this).val(),
@@ -606,7 +541,7 @@ function initializers() {
     if($(this).attr('id') == "add-task-proj-search") {
       parent = $("#dialog-add-proj-task"); 
       error = parent.find(".error");
-      error.text("").addClass("hidden");
+      error.html("").addClass("hidden");
       type = "project";
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
@@ -614,7 +549,7 @@ function initializers() {
     } else {
       parent = $("#dialog-add-non-proj-task"); 
       error = parent.find(".error");
-      error.text("").addClass("hidden");
+      error.html("").addClass("hidden");
       type = "admin";
       project = $(".add-task-non-proj").val();
       iter = "";

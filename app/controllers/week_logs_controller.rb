@@ -123,7 +123,7 @@ class WeekLogsController < ApplicationController
         Rails.cache.write(:project_issue_ids, proj_cache)
         Rails.cache.write(:non_project_issue_ids, non_proj_cache)
         if !error_messages.empty?
-          render :text => "#{error_messages.uniq.join}", :status => 400
+          render :text => "#{JSON error_messages.uniq}", :status => 400
         else
           head :created
         end
