@@ -84,4 +84,44 @@ module WeekLogsHelper
     end
     [error_messages, proj_cache, non_proj_cache]
   end
+
+  def self.task_search(params)
+    proj_issues, non_proj_issues = [], []
+    result = []
+    existing = params[:exst]
+    project = Project.find_by_name params[:project]
+    iter = params[:iter]
+    input = params[:search]
+    iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter]) if iter
+    existing ? existing.map!{|z| Issue.find_by_id z.to_i} : []
+    
+    if input && input !~ /all/i
+      id = input.match /(\d+)/
+      subject = input.scan(/[a-zA-Z]+/).join " "
+      if subject != "" # search for issue subject
+        if !iter || iter == "all"
+          result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+        elsif iter && iter != "all"
+          result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+        end
+      end
+      if id # search for issue id
+        id = project.issues.find_by_id id[0].to_i
+        result << id if id
+      end
+      result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
+      params[:type] == "project" ? proj_issues = result : non_proj_issues = result
+    elsif input && input =~ /all/i
+      if params[:type] == "project" 
+        if !iter || iter == "all"
+          proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
+        elsif iter && iter != "all"
+          proj_issues = iter.fixed_issues.select{|y| !existing.include?(y)}.sort_by(&:id)
+        end
+      else
+        non_proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
+      end  
+    end
+    [proj_issues, non_proj_issues]
+  end
 end

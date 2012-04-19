@@ -15,25 +15,21 @@
           </td>
       </tr>
       <tr>
-          <td>
+          <td colspan=2>
               <div class="align">
                   <%= label_tag :'task-id', 'Issue #' %>
                   <%= text_field_tag :id, nil, :id => 'task-id', :maxlength => Issue.last(:order => 'id').id.to_s.length %>
               </div>
           </td>
-          <td>
-          </td>
       </tr>
       <tr>
-          <td>
+          <td colspan=2>
               <div class="search align">
                 <%= label_tag 'Search For' %>
                 <%= text_field_tag :id, nil, :id=>'search-id'%>
                 <input type="button" id="add-task-proj-search" value="Search"/>
                 <input type="button" id="clear-proj" value="Clear"/>
               </div>
-          </td>
-          <td>
           </td>
       </tr>
   </table>
