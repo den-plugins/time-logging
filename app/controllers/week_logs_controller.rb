@@ -53,7 +53,7 @@ class WeekLogsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
-        error_messages, proj_cache, non_proj_cache = SaveWeekLogs.add_task(proj_cache, non_proj_cache, issues, params)
+        error_messages, proj_cache, non_proj_cache = WeekLogsHelper.add_task(proj_cache, non_proj_cache, issues, params)
         write_to_cache(proj_cache, non_proj_cache)
         if !error_messages.empty?
           render :text => "#{JSON error_messages.uniq}", :status => 400
