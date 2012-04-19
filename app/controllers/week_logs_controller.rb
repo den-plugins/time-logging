@@ -6,8 +6,8 @@ class WeekLogsController < ApplicationController
 
   def index
     proj_cache, non_proj_cache = read_cache
-    @issues = { :project_related => proj_cache ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
-                :non_project_related => non_proj_cache ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
+    @issues = { :project_related => !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
+                :non_project_related => !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     write_to_cache(@issues[:project_related].map(&:id).uniq,@issues[:non_project_related].map(&:id).uniq) 
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
@@ -18,7 +18,7 @@ class WeekLogsController < ApplicationController
     @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
-    @project_names = @issues[:project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
+    @project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name !~ /admin/i && z.project_type.to_s !~ /admin/i}.map(&:name).sort_by{|i| i.downcase}
     if !@project_names.empty?
       @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
     else
@@ -26,7 +26,7 @@ class WeekLogsController < ApplicationController
     end
     @iter_proj.size == 1 ? @proj_issues = [] : @proj_issues = Project.find_by_name(@project_names.first).issues.sort_by(&:id)
     
-    @non_project_names = @issues[:non_project_related].map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
+    @non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name.downcase['admin'] && z.project_type.to_s.downcase['admin']}.map(&:name).sort_by{|i| i.downcase}
     @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.sort_by(&:id)
     
     respond_to do |format|
@@ -215,10 +215,10 @@ class WeekLogsController < ApplicationController
     end
 
     def read_cache
-      proj_cache = Rails.cache.read(:project_issue_ids)
-      proj_cache ? proj_cache = proj_cache.dup : []
+      proj_cache = Rails.cache.read :project_issue_ids
+      proj_cache ? proj_cache = proj_cache.dup : proj_cache = []
       non_proj_cache = Rails.cache.read :non_project_issue_ids
-      non_proj_cache ? non_proj_cache = non_proj_cache.dup : [] 
+      non_proj_cache ? non_proj_cache = non_proj_cache.dup : non_proj_cache = [] 
       [proj_cache, non_proj_cache]
     end
 

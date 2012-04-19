@@ -9,7 +9,7 @@ h4.filter {margin-top:0px;}
 .apply_button {cursor:pointer; background-repeat:no-repeat; background-image:url('/images/true.png'); padding-left:16px;}
 h2 {display:inline;}
 
-#add-task-proj-issue-board, #add-task-non-proj-issue-board {border:2px solid #606060}
+#add-task-proj-issue-board, #add-task-non-proj-issue-board {border:2px solid #606060; height:300px; overflow:scroll;}
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
 .hide-button, .head-button {vertical-align: top}
