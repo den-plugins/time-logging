@@ -4,7 +4,7 @@
       <tr>
           <td>
               <%= label_tag 'Project' %>
-              <%= select_tag :add_task_non_project, options_for_select(@non_project_names+["All Projects"]), :class=>'add-task-non-proj' %>
+              <%= select_tag :add_task_non_project, options_for_select(["All Projects"]+@non_project_names), :class=>'add-task-non-proj' %>
           </td>
       </tr>
       <tr>

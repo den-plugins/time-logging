@@ -91,7 +91,7 @@ module WeekLogsHelper
     project = Project.find_by_name params[:project]
     iter = params[:iter]
     type = params[:type]
-    iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter]) if iter
+    iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(iter)
     input = params[:search]
     id = input.gsub(/\D+/, "")
     subject = input.scan(/[a-zA-Z]+/).join " "
@@ -99,7 +99,7 @@ module WeekLogsHelper
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
     
     if input =~ /all/i #default; for displaying all issues
-      result += project.issues
+      project ? result += project.issues : result = [] 
     elsif params[:project].downcase['all projects'] #searches in all projects
       project_names.each do |name|
         project = Project.find_by_name name 
@@ -107,7 +107,6 @@ module WeekLogsHelper
           result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
         if id!="" 
-          puts project
           num = project.issues.find_by_id id
           result << num if num
         end

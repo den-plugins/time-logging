@@ -24,10 +24,10 @@ class WeekLogsController < ApplicationController
     else
       @iter_proj = ["All Issues"]
     end
-    @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
+    @proj_issues = [] 
     
     @non_project_names = get_non_project_names() 
-    @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select{|z| !@issues[:non_project_related].include?(z)}.sort_by(&:id)
+    @non_proj_issues = []
     
     respond_to do |format|
       format.html
