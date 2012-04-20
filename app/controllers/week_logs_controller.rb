@@ -87,8 +87,9 @@ class WeekLogsController < ApplicationController
       project_names = get_project_names()
       @proj_issues = WeekLogsHelper.task_search(params, project_names)
     else
-      non_project_names = get_non_project_names() 
+      non_project_names = get_non_project_names()
       @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names)
+    end
 
     respond_to do |format|
       format.js { render :layout => false}
