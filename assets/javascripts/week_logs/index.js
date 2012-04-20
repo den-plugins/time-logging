@@ -221,15 +221,18 @@ function initializers() {
   });
   
   Week.resetDialog = function(dialog, type) {
+    dialog.find("#search-id").val("");
+    dialog.find("#task-id").val("");
     if(type=="project") {
       $('.add-task-proj>option:eq(0)').attr('selected', true);
       $('.project_iter>option:eq(0)').attr('selected', true);
-    } 
-    else 
+      $('.search-task-proj>option:eq(0)').attr('selected', true);
+      dialog.find("#clear-proj").click();
+    } else { 
       $('.add-task-non-proj>option:eq(0)').attr('selected', true);
-    dialog.find("#search-id").val("");
-    dialog.find("#task-id").val("");
-    dialog.find("#clear-proj").click();
+      $('.search-task-non-proj>option:eq(0)').attr('selected', true);
+      dialog.find("#clear-non-proj").click();
+    }
   };
 
   Week.refreshTableDates = function() {
@@ -574,7 +577,7 @@ function initializers() {
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
-    var type, project, iter, parent, error, search, existing = [] ;
+    var type, project, iter, parent, error, search, existing = [], custom;
 
     if($(this).attr('id') == "add-task-proj-search") {
       parent = $("#dialog-add-proj-task"); 
@@ -584,6 +587,7 @@ function initializers() {
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
       search = parent.find("#search-id");
+      custom = parent.find(".search-task-proj").val();
       $("#proj_table .issue").each(function(){
         existing.push($(this).attr("id").replace(/issue\-/, ""))
       });
@@ -595,6 +599,7 @@ function initializers() {
       project = $(".add-task-non-proj").val();
       iter = "";
       search = parent.find("#search-id");
+      custom = parent.find(".search-task-non-proj").val();
       $("#non_proj_table .issue").each(function(){
         existing.push($(this).attr("id").replace(/issue\-/, ""))
       });
@@ -608,7 +613,8 @@ function initializers() {
              project: project,
              iter: iter,
              search: search.val(),
-             exst: existing
+             exst: existing,
+             custom: custom
            }) 
     .complete(function() { $('#ajax-indicator').hide();}) 
     } else {

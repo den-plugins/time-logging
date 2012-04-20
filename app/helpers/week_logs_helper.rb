@@ -20,6 +20,7 @@ module WeekLogsHelper
 
   def self.add_task(proj_cache, non_proj_cache, issues, params)
     error_messages = []
+    custom = params[:custom]
     user = User.current
     issue_type = params[:type].to_s
     date = Date.parse(params[:week_start])
@@ -31,7 +32,7 @@ module WeekLogsHelper
       if issue_type == 'admin'
         if issue = Issue.find(issue_id)
           project = issue.project
-          issue = nil if !(issue_type == 'admin' && project.name.downcase['admin'] && project.project_type.downcase['admin'])
+          issue = nil if !(issue_type == 'admin' && project.project_type.downcase['admin'])
         end
       end
       if issue
@@ -85,43 +86,58 @@ module WeekLogsHelper
     [error_messages, proj_cache, non_proj_cache]
   end
 
-  def self.task_search(params)
-    proj_issues, non_proj_issues = [], []
+  def self.task_search(params, project_names)
     result = []
-    existing = params[:exst]
+    custom = params[:custom]
     project = Project.find_by_name params[:project]
     iter = params[:iter]
-    input = params[:search]
+    type = params[:type]
     iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter]) if iter
-    existing ? existing.map!{|z| Issue.find_by_id z.to_i} : []
+    input = params[:search]
+    id = input.match /(\d+)/
+    subject = input.scan(/[a-zA-Z]+/).join " "
+    existing = params[:exst]
+    existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
     
-    if input && input !~ /all/i
-      id = input.match /(\d+)/
-      subject = input.scan(/[a-zA-Z]+/).join " "
-      if subject != "" # search for issue subject
-        if !iter || iter == "all"
+    if input =~ /all/i #default; for displaying all issues
+      result += project.issues
+    elsif custom.downcase['all projects'] #searches in all projects
+      project_names.each do |name|
+        project = Project.find_by_name name 
+        if subject != "" 
           result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
-        elsif iter && iter != "all"
+        end
+        if id 
+          id = project.issues.find_by_id id[0].to_i
+          result << id if id
+        end
+      end
+    elsif custom.downcase['current iteration'] #searches in selected iteration
+      if subject != ""
+        if iter == "all"
+          result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+        elsif iter != "all"
           result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
       end
-      if id # search for issue id
+      if id 
+        if iter == "all"
+          id = project.issues.find_by_id id[0].to_i
+        elsif iter != "all"
+          id = iter.fixed_issues.find_by_id id[0].to_i
+        end
+        result << id if id
+      end
+    else #searches in the selected project name
+      project = Project.find_by_name custom
+      if subject != "" 
+        result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+      end
+      if id 
         id = project.issues.find_by_id id[0].to_i
         result << id if id
       end
-      result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
-      params[:type] == "project" ? proj_issues = result : non_proj_issues = result
-    elsif input && input =~ /all/i
-      if params[:type] == "project" 
-        if !iter || iter == "all"
-          proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
-        elsif iter && iter != "all"
-          proj_issues = iter.fixed_issues.select{|y| !existing.include?(y)}.sort_by(&:id)
-        end
-      else
-        non_proj_issues = project.issues.select{|y| !existing.include?(y)}.sort_by(&:id)
-      end  
     end
-    [proj_issues, non_proj_issues]
+    result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
   end
 end

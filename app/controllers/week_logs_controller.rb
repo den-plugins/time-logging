@@ -18,7 +18,8 @@ class WeekLogsController < ApplicationController
     @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
-    @project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| !z.name.downcase['admin'] && !z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+    @project_names, @non_project_names = get_project_names()
+    
     if !@project_names.empty?
       @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
     else
@@ -26,7 +27,6 @@ class WeekLogsController < ApplicationController
     end
     @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
     
-    @non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.name.downcase['admin'] && z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
     @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select{|z| !@issues[:non_project_related].include?(z)}.sort_by(&:id)
     
     respond_to do |format|
@@ -81,7 +81,17 @@ class WeekLogsController < ApplicationController
   end
   
   def task_search
-    @proj_issues, @non_proj_issues = WeekLogsHelper.task_search(params)
+    if params[:custom].downcase["all projects"] 
+      project_names, non_project_names = get_project_names() 
+    else
+      project_names, non_project_names = [], []
+    end
+
+    if params[:type] ==  "project"
+      @proj_issues = WeekLogsHelper.task_search(params, project_names)
+    else
+      @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names)
+    end
     respond_to do |format|
       format.js { render :layout => false}
     end
@@ -179,5 +189,11 @@ class WeekLogsController < ApplicationController
         array.reject! {|i| i.project.name.downcase != proj_name.downcase}
       end
       direction == 'desc' ? array.reverse : array
+    end
+
+    def get_project_names
+      project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| !z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+      non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+      [project_names, non_project_names]
     end
 end

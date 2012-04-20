@@ -18,6 +18,7 @@
               <div class = "search">
                 <%= label_tag 'Search For' %>
                 <%= text_field_tag :id, nil, :id=>'search-id' %>
+                <%= select_tag :search_task_non_proj, options_for_select(["All Projects"]+@non_project_names), :class=>'search-task-non-proj' %>
                 <input type="button" id="add-task-non-proj-search" value="Search"/>
                 <input type="button" id="clear-non-proj" value="Clear"/>
               </div>

@@ -1,6 +1,9 @@
-<table id="issue-board">
-  <% issues.each do |i| %>
-    <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
-  <% end %>
-</table>
-
+<% if !issues.empty? %>
+  <table id="issue-board">
+    <% issues.each do |i| %>
+      <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
+    <% end %>
+  </table>
+<% else %>
+  <div class="result-error">No issues found.</div>
+<% end %>
