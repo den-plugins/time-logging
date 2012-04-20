@@ -93,6 +93,7 @@ function initializers() {
                   if (on_submission_errors == false) {
                     $('#ajax-indicator').hide();
                     $('#success_message').text('Successful update.').removeClass('hidden');
+                    $(window).scrollTop(0,0);
                   }
                   button.attr('disabled', false);
           })
