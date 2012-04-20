@@ -5,7 +5,7 @@ class WeekLogsController < ApplicationController
   require 'json'
 
   def index
-    proj_cache, non_proj_cache = read_cache
+    proj_cache, non_proj_cache = read_cache()
     @issues = { :project_related => !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
                 :non_project_related => !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     write_to_cache(@issues[:project_related].map(&:id).uniq,@issues[:non_project_related].map(&:id).uniq) 
@@ -18,8 +18,7 @@ class WeekLogsController < ApplicationController
     @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
     @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
     
-    @project_names, @non_project_names = get_project_names()
-    
+    @project_names = get_project_names()
     if !@project_names.empty?
       @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
     else
@@ -27,6 +26,7 @@ class WeekLogsController < ApplicationController
     end
     @proj_issues = Project.find_by_name(@project_names.first).issues.select{|z| !@issues[:project_related].include?(z)}.sort_by(&:id)
     
+    @non_project_names = get_non_project_names() 
     @non_project_names.empty? ? @non_proj_issues = [] : @non_proj_issues = Project.find_by_name(@non_project_names.first).issues.open.visible.select{|z| !@issues[:non_project_related].include?(z)}.sort_by(&:id)
     
     respond_to do |format|
@@ -46,7 +46,7 @@ class WeekLogsController < ApplicationController
   end
 
   def add_task
-    proj_cache, non_proj_cache = read_cache
+    proj_cache, non_proj_cache = read_cache()
     issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
     issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
@@ -65,7 +65,7 @@ class WeekLogsController < ApplicationController
   end
 
   def remove_task
-    proj_cache, non_proj_cache = read_cache
+    proj_cache, non_proj_cache = read_cache()
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
@@ -81,15 +81,13 @@ class WeekLogsController < ApplicationController
   end
   
   def task_search
-    if params[:project].downcase["all projects"] 
-      project_names, non_project_names = get_project_names() 
-    else
-      project_names, non_project_names = [], []
-    end
+    project_names, non_project_names = [], []
 
     if params[:type] ==  "project"
+      project_names = get_project_names()
       @proj_issues = WeekLogsHelper.task_search(params, project_names)
     else
+      non_project_names = get_non_project_names() 
       @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names)
     end
     respond_to do |format|
@@ -113,6 +111,13 @@ class WeekLogsController < ApplicationController
   def iter_refresh
     project = Project.find_by_name params[:project]
     @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    @proj_issues = project.issues.sort_by(&:id)
+    existing = params[:exst]
+    if existing
+      existing.map!{|z| Issue.find_by_id z.to_i}
+      @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
+    end
+=begin    
     if params[:iter]
       if params[:iter] =~ /All Issues/
         @proj_issues = project.issues.sort_by(&:id)
@@ -128,6 +133,7 @@ class WeekLogsController < ApplicationController
       existing.map!{|z| Issue.find_by_id z.to_i}
       @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
     end
+=end
     respond_to do |format|
       format.js { render :layout => false}
     end
@@ -193,7 +199,9 @@ class WeekLogsController < ApplicationController
 
     def get_project_names
       project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| !z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+    end
+
+    def get_non_project_names
       non_project_names = Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
-      [project_names, non_project_names]
     end
 end

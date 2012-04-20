@@ -34,6 +34,9 @@ module TimeLogging
           else
             non_proj_cach << id
           end
+        else
+          proj_cache.delete id
+          non_proj_cache.delete id
         end
         Rails.cache.write :project_issue_ids, proj_cache.uniq
         Rails.cache.write :non_project_issue_ids, non_proj_cache.uniq

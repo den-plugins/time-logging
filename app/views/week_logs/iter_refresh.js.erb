@@ -1,6 +1,2 @@
-<% if params[:iter] %>
-  $("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml', :locals => {:issues => @proj_issues})%>");
-<% else %>
-  $("#proj-iter").html("<%= escape_javascript(render :partial => '/week_logs/partials/iter_proj.rhtml')%>");
-  $("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml', :locals => {:issues => @proj_issues})%>");
-<% end %>
+$("#proj-iter").html("<%= escape_javascript(render :partial => '/week_logs/partials/iter_proj.rhtml')%>");
+$("#add-task-proj-issue-board").html("<%= escape_javascript(render :partial => '/week_logs/partials/add_task_table.rhtml', :locals => {:issues => @proj_issues})%>");
