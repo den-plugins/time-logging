@@ -93,7 +93,7 @@ module WeekLogsHelper
     type = params[:type]
     iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(params[:iter]) if iter
     input = params[:search]
-    id = input.match /(\d+)/
+    id = input.gsub(/\D+/, "")
     subject = input.scan(/[a-zA-Z]+/).join " "
     existing = params[:exst]
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
@@ -106,9 +106,10 @@ module WeekLogsHelper
         if subject != "" 
           result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
-        if id 
-          id = project.issues.find_by_id id[0].to_i
-          result << id if id
+        if id!="" 
+          puts project
+          num = project.issues.find_by_id id
+          result << num if num
         end
       end
     else  #searches in selected iteration
@@ -119,13 +120,13 @@ module WeekLogsHelper
           result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
       end
-      if id 
+      if id!="" 
         if iter == "all"
-          id = project.issues.find_by_id id[0].to_i
+          num = project.issues.find_by_id id
         elsif iter != "all"
-          id = iter.fixed_issues.find_by_id id[0].to_i
+          num = iter.fixed_issues.find_by_id id
         end
-        result << id if id
+        result << num if num
       end
     end
     result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
