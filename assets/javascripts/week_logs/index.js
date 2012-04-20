@@ -478,6 +478,7 @@ function initializers() {
   $("#dialog-add-proj-task, #dialog-add-non-proj-task").dialog({
     autoOpen: false,
     width: 650,
+    zIndex: 10,
     modal: true,
     resizable: false,
     buttons: {
