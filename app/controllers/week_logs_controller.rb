@@ -81,7 +81,7 @@ class WeekLogsController < ApplicationController
   end
   
   def task_search
-    if params[:custom].downcase["all projects"] 
+    if params[:project].downcase["all projects"] 
       project_names, non_project_names = get_project_names() 
     else
       project_names, non_project_names = [], []

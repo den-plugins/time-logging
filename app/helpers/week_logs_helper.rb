@@ -88,7 +88,6 @@ module WeekLogsHelper
 
   def self.task_search(params, project_names)
     result = []
-    custom = params[:custom]
     project = Project.find_by_name params[:project]
     iter = params[:iter]
     type = params[:type]
@@ -101,7 +100,7 @@ module WeekLogsHelper
     
     if input =~ /all/i #default; for displaying all issues
       result += project.issues
-    elsif custom.downcase['all projects'] #searches in all projects
+    elsif params[:project].downcase['all projects'] #searches in all projects
       project_names.each do |name|
         project = Project.find_by_name name 
         if subject != "" 
@@ -112,7 +111,7 @@ module WeekLogsHelper
           result << id if id
         end
       end
-    elsif custom.downcase['current iteration'] #searches in selected iteration
+    else  #searches in selected iteration
       if subject != ""
         if iter == "all"
           result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
@@ -126,15 +125,6 @@ module WeekLogsHelper
         elsif iter != "all"
           id = iter.fixed_issues.find_by_id id[0].to_i
         end
-        result << id if id
-      end
-    else #searches in the selected project name
-      project = Project.find_by_name custom
-      if subject != "" 
-        result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
-      end
-      if id 
-        id = project.issues.find_by_id id[0].to_i
         result << id if id
       end
     end
