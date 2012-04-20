@@ -167,7 +167,7 @@ function initializers() {
                 $("#"+id).find('.error').removeClass('hidden');
                 var errors = JSON.parse(data.responseText);
                 $(errors).each(function(i,val){
-                    issues.splice(issues.indexOf(val.replace(/\D+/g, "")),1);
+                    issues.splice(issues.indexOf(val.replace(/\D+/gi, "")),1);
                     $("#"+id).find('.error').append(val+"<br/>");
                 });
               }
@@ -524,7 +524,7 @@ function initializers() {
         type = "project";
       else
         type = "admin";
-      Week.resetDialog($(this), type);
+      //Week.resetDialog($(this), type);
     }
   });
 
@@ -548,17 +548,17 @@ function initializers() {
   
   $(".project_iter").live("change", function(){
      var parent = $("#dialog-add-proj-task");
-     existing = [];
+     //existing = [];
      parent.find(".error").html("").addClass("hidden");
-     $("#proj_table .issue").each(function(){
-       existing.push($(this).attr("id").replace(/issue\-/, ""))
-     });
-     $.post("/week_logs/iter_refresh",
-          {
-            project: parent.find(".add-task-proj").val(),
-            iter: $(".project_iter option:selected").text(),
-            exst: existing
-          });
+     //$("#proj_table .issue").each(function(){
+     //  existing.push($(this).attr("id").replace(/issue\-/, ""))
+     //});
+     //$.post("/week_logs/iter_refresh",
+     //     {
+     //       project: parent.find(".add-task-proj").val(),
+     //       iter: $(".project_iter option:selected").text(),
+     //       exst: existing
+     //     });
   });
 
 
