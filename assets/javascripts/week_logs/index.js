@@ -40,7 +40,6 @@ function initializers() {
       buttonImage: "",
       firstDay: 7,
       onSelect: function(selectDate) {
-        console.log(new Date(selectDate));
         var sd = new Date(selectDate);
         if(sd.getDay()==0) sd = new Date(sd-7);
         if(sd < Week.start || sd > Week.end) {
@@ -157,7 +156,6 @@ function initializers() {
 
     submit: function(issues, existing, type, id) {
         if(issues.length>0) {
-          console.log(JSON.stringify(issues));
           $.ajax({
               type: 'post',
               url: '/week_logs/add_task.js',
@@ -459,8 +457,6 @@ function initializers() {
         $.post('/week_logs/remove_task.js', {id: arrDel});
       }
       if(row.length > 0 && arrDel.length < row.length) {
-        console.log(row.length);
-        console.log(arrDel.length);
         dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
         dialogWin.dialog('open');
         formatErrorDialog(dialogWin);
