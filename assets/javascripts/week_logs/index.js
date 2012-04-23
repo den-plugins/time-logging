@@ -581,41 +581,40 @@ function initializers() {
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
-    var type, project, iter, parent, error, search, existing = [];
+    var type, project, iter, parent, error, search, task, existing = [];
 
     if($(this).attr('id') == "add-task-proj-search") {
       parent = $("#dialog-add-proj-task"); 
-      error = parent.find(".error");
-      error.html("").addClass("hidden");
       type = "project";
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
-      search = parent.find("#search-id");
       $("#proj_table .issue").each(function(){
         existing.push($(this).attr("id").replace(/issue\-/, ""))
       });
     } else {
       parent = $("#dialog-add-non-proj-task"); 
-      error = parent.find(".error");
-      error.html("").addClass("hidden");
       type = "admin";
       project = $(".add-task-non-proj").val();
       iter = "";
-      search = parent.find("#search-id");
       $("#non_proj_table .issue").each(function(){
         existing.push($(this).attr("id").replace(/issue\-/, ""))
       });
     }
-
-    if(/(\w+|\d+)/.exec(search.val()) != null) {
+    error = parent.find(".error");
+    error.html("").addClass("hidden");
+    search = parent.find("#search-id").val();
+    task = parent.find("#task-id").val();
+    
+    if(/(\w+|\d+)/.exec(search) != null || /(\w+|\d+)/.exec(task) != null) {
      $('#ajax-indicator').show();
      $.post("/week_logs/task_search",
            {
              type: type,
              project: project,
              iter: iter,
-             search: search.val(),
-             exst: existing
+             search: search,
+             exst: existing,
+             task: task
            }) 
     .complete(function() { $('#ajax-indicator').hide();}) 
     } else {

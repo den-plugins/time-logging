@@ -24,10 +24,10 @@ class WeekLogsController < ApplicationController
     else
       @iter_proj = ["All Issues"]
     end
-    @proj_issues = [] 
+    @proj_issues = nil 
     
     @non_project_names = get_non_project_names() 
-    @non_proj_issues = []
+    @non_proj_issues = nil
     
     respond_to do |format|
       format.html
