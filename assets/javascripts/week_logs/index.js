@@ -521,12 +521,18 @@ function initializers() {
       }
     },
     close: function(ev, ui) {
-      var type;
-      if($(this).attr("id") == "dialog-add-proj-task")
-        type = "project";
-      else
-        type = "admin";
-      //Week.resetDialog($(this), type);
+      var parent = $(this);
+      if(parent.attr("id") == "dialog-add-proj-task") {
+        parent.find("#add-task-proj-issue-board").html("");
+        parent.find(".add-task-proj>option:eq(0)").attr('selected', true);
+        parent.find(".project_iter>option:eq(0)").attr('selected', true);
+      } else {
+        parent.find("#add-task-non-proj-issue-board").html("");
+        parent.find(".add-task-non-proj>option:eq(0)").attr('selected', true);
+      }
+      parent.find("#task-id").val("");
+      parent.find("#search-id").val("");
+      parent.find(".error").html("").addClass('hidden');
     }
   });
 
