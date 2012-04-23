@@ -94,7 +94,7 @@ module WeekLogsHelper
     issue_id = params[:task]
     iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(iter)
     input = params[:search]
-    id_arr = [input.gsub(/\D+/, ""), params[:task]]
+    id_arr = [input.gsub(/\D/, ""), params[:task]]
     subject = input.scan(/[a-zA-Z]+/).join " "
     existing = params[:exst]
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []

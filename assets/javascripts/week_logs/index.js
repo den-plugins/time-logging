@@ -539,8 +539,10 @@ function initializers() {
   $(".add-task-proj").live("change", function(){
     if($(this).val()!="All Projects") {
         var parent = $("#dialog-add-proj-task");
-        var existing = [];
+        var existing = [], task, search;
         parent.find(".error").html("").addClass("hidden");
+        task = parent.find("#task-id").val();
+        search = parent.find("#search-id").val();
         $("#proj_table .issue").each(function(){
           existing.push($(this).attr("id").replace(/issue\-/, ""))
         });
@@ -548,7 +550,10 @@ function initializers() {
         $.post("/week_logs/iter_refresh",
               {
                 project: $(this).val(),
-                exst: existing
+                exst: existing,
+                task: task,
+                search: search,
+                iter: "All Issues"
               })
         .complete(function() { $('#ajax-indicator').hide();}) 
     }
@@ -571,19 +576,26 @@ function initializers() {
 
 
   $(".add-task-non-proj").live("change", function(){
-    var parent = $("#dialog-add-non-proj-task");
-    var existing = [];
-    parent.find(".error").html("").addClass("hidden");
-    $("#non_proj_table .issue").each(function(){
-      existing.push($(this).attr("id").replace(/issue\-/, ""))
-    });
-    $('#ajax-indicator').show();
-    $.post("/week_logs/gen_refresh",
-          {
-            project: $(this).val(),
-            exst: existing
-          })
-    .complete(function() { $('#ajax-indicator').hide();}) 
+    if($(this).val()!="All Projects") {
+        var parent = $("#dialog-add-non-proj-task");
+        var existing = [], task, search;
+        parent.find(".error").html("").addClass("hidden");
+        task = parent.find("#task-id").val();
+        search = parent.find("#search-id").val();
+        $("#non_proj_table .issue").each(function(){
+          existing.push($(this).attr("id").replace(/issue\-/, ""))
+        });
+        $('#ajax-indicator').show();
+        $.post("/week_logs/gen_refresh",
+              {
+                project: $(this).val(),
+                exst: existing,
+                task: task,
+                search: search,
+                iter: "All Issues"
+              })
+        .complete(function() { $('#ajax-indicator').hide();}) 
+    }
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
@@ -601,7 +613,7 @@ function initializers() {
       parent = $("#dialog-add-non-proj-task"); 
       type = "admin";
       project = $(".add-task-non-proj").val();
-      iter = "";
+      iter = "All Issues";
       $("#non_proj_table .issue").each(function(){
         existing.push($(this).attr("id").replace(/issue\-/, ""))
       });

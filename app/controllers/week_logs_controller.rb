@@ -97,12 +97,17 @@ class WeekLogsController < ApplicationController
   end
   
   def gen_refresh
-    project = Project.find_by_name params[:project]
-    @non_proj_issues = project.issues.sort_by(&:id)
-    existing = params[:exst]
-    if existing
-      existing.map!{|z| Issue.find_by_id z.to_i}
-      @non_proj_issues = @non_proj_issues.select{|y| !existing.include?(y)}
+    if params[:search].gsub(/\s/,"") != "" || params[:task].gsub(/\D/, "") != ""
+      project_names = get_non_project_names()
+      @non_proj_issues = WeekLogsHelper.task_search(params, project_names)
+    else
+      project = Project.find_by_name params[:project]
+      @non_proj_issues = project.issues.sort_by(&:id)
+      existing = params[:exst]
+      if existing
+        existing.map!{|z| Issue.find_by_id z.to_i}
+        @non_proj_issues = @non_proj_issues.select{|y| !existing.include?(y)}
+      end
     end
     respond_to do |format|
       format.js { render :layout => false}
@@ -112,11 +117,16 @@ class WeekLogsController < ApplicationController
   def iter_refresh
     project = Project.find_by_name params[:project]
     @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
-    @proj_issues = project.issues.sort_by(&:id)
-    existing = params[:exst]
-    if existing
-      existing.map!{|z| Issue.find_by_id z.to_i}
-      @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
+    if params[:search].gsub(/\s/,"") != "" || params[:task].gsub(/\D/, "") != ""
+      project_names = get_project_names()
+      @proj_issues = WeekLogsHelper.task_search(params, project_names)
+    else
+      @proj_issues = project.issues.sort_by(&:id)
+      existing = params[:exst]
+      if existing
+        existing.map!{|z| Issue.find_by_id z.to_i}
+        @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
+      end
     end
 =begin    
     if params[:iter]
