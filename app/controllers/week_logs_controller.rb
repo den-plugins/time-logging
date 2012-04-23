@@ -51,7 +51,6 @@ class WeekLogsController < ApplicationController
     issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
     respond_to do |format|
-      format.html { redirect_to '/week_logs' }
       format.js do
         error_messages, proj_cache, non_proj_cache = WeekLogsHelper.add_task(proj_cache, non_proj_cache, issues, params)
         write_to_cache(proj_cache, non_proj_cache)
