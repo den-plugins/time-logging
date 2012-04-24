@@ -125,10 +125,10 @@ class WeekLogsController < ApplicationController
 
     def find_user_projects
       @user = User.current
-      project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name !~ /admin/i && project.project_type.to_s !~ /admin/i }
-      non_project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name.downcase['admin'] && project.project_type.to_s.downcase['admin'] }
+      project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && !project.project_type.to_s.downcase['admin'] }
+      non_project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.project_type.to_s.downcase['admin'] }
       if non_project_related.empty?
-        non_project_related << Project.find_by_name('Exist Engineering Admin')
+        non_project_related = [Project.find_by_name('Exist Engineering Admin')]
       else
         non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       end
