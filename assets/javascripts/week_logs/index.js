@@ -167,7 +167,6 @@ function initializers() {
               error: function(data) {
                 $("#"+id).find('.error').removeClass('hidden');
                 var errors = JSON.parse(data.responseText);
-                alert(JSON.stringify(issues));
                 $(errors).each(function(i,val){
                     i = 0;
                     while(i>=0) {
@@ -176,7 +175,6 @@ function initializers() {
                     }
                     $("#"+id).find('.error').append(val+"<br/>");
                 });
-                alert(JSON.stringify(issues));
               }
             });
             if(issues.length>0) {
