@@ -163,6 +163,8 @@ function initializers() {
               data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
               success: function() {
                 $("#"+id).dialog('close');
+                Week.repopulateTable(issues);
+                Week.refreshTableDates();
               },
               error: function(data) {
                 $("#"+id).find('.error').removeClass('hidden');
@@ -175,12 +177,12 @@ function initializers() {
                     }
                     $("#"+id).find('.error').append(val+"<br/>");
                 });
+                if(issues.length>0) {
+                  Week.repopulateTable(issues);
+                  Week.refreshTableDates();
+                }
               }
             });
-            if(issues.length>0) {
-              Week.repopulateTable(issues);
-              Week.refreshTableDates();
-            }
         }
         else if(existing.length>0)
           $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
