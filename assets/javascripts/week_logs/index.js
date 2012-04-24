@@ -170,10 +170,11 @@ function initializers() {
                 $("#"+id).find('.error').removeClass('hidden');
                 var errors = JSON.parse(data.responseText);
                 $(errors).each(function(i,val){
-                    i = 0;
+                    console.log(JSON.stringify(issues));
+                    i = issues.indexOf(val.replace(/\D+/gi,""));
                     while(i>=0) {
+                      issues.splice(i, 1);
                       i = issues.indexOf(val.replace(/\D+/gi,""));
-                      issues.splice(i,1);
                     }
                     $("#"+id).find('.error').append(val+"<br/>");
                 });

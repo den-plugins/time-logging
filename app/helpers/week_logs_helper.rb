@@ -37,9 +37,9 @@ module WeekLogsHelper
       end
       if issue
         project = issue.project
-        admin_flag = project.project_type.scan(/^(Admin)/).flatten.present?
-        if project.accounting
-          project.accounting.name=="Billable" ? issue_is_billable = true : issue_is_billable = false
+        admin_flag = project.project_type.to_s.downcase['admin']
+        if issue.acctg_type
+          issue_is_billable = (issue.acctg_type == Enumeration.find_by_name('Billable').id) ? true : false
         else
           issue_is_billable = false
         end
@@ -51,7 +51,9 @@ module WeekLogsHelper
             b_alloc_flag=true if member.b_alloc? d
           end
         end
-        
+        puts issue_is_billable
+        puts alloc_flag
+        puts admin_flag
         if !issue_is_billable && member && !alloc_flag && !admin_flag 
           error_messages << "You are not allocated in issue ##{issue.id} for this week."
         elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
