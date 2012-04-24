@@ -267,7 +267,7 @@ function initializers() {
   };
 
   Week.repopulateTable = function(taskId) {
-    var href = "/week_logs?", taskRow;
+    var href = "/week_logs?", taskRow, arr=[];
     href+="&week_start="+$("#week_start").val();
     $('#ajax-indicator').show();
     $.getScript(href, function() {
@@ -276,7 +276,11 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
-        $('#success_message').text('Successfully added #' + taskId + '.').removeClass('hidden');
+        $(taskId).each(function(i,val){
+          if(arr.indexOf(val)==-1)
+            arr.push(val);
+        });
+        $('#success_message').text('Successfully added #' + arr + '.').removeClass('hidden');
         taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
           $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {

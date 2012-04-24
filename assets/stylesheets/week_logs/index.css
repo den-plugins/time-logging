@@ -13,7 +13,6 @@ h2 {display:inline;}
 .result-error {background: url('/images/false.png') 8px 5px no-repeat; background-color: #ffe3e3; border-color: #dd0000; 
                color: #550000; margin-top: 8px; padding: 4px 4px 4px 30px; margin-bottom: 12px; font-size: 1.1em; 
                border: 2px solid;}
-
 #add-task-proj-issue-board, #add-task-non-proj-issue-board {border:2px solid #606060; height:300px; overflow:scroll;}
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
