@@ -95,55 +95,9 @@ class WeekLogsController < ApplicationController
     end
   end
   
-  def gen_refresh
-    if params[:search].gsub(/\s/,"") != "" || params[:task].gsub(/\D/, "") != ""
-      project_names = get_non_project_names()
-      @non_proj_issues = WeekLogsHelper.task_search(params, project_names)
-    else
-      project = Project.find_by_name params[:project]
-      @non_proj_issues = project.issues.sort_by(&:id)
-      existing = params[:exst]
-      if existing
-        existing.map!{|z| Issue.find_by_id z.to_i}
-        @non_proj_issues = @non_proj_issues.select{|y| !existing.include?(y)}
-      end
-    end
-    respond_to do |format|
-      format.js { render :layout => false}
-    end
-  end
-
   def iter_refresh
     project = Project.find_by_name params[:project]
     @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
-    if params[:search].gsub(/\s/,"") != "" || params[:task].gsub(/\D/, "") != ""
-      project_names = get_project_names()
-      @proj_issues = WeekLogsHelper.task_search(params, project_names)
-    else
-      @proj_issues = project.issues.sort_by(&:id)
-      existing = params[:exst]
-      if existing
-        existing.map!{|z| Issue.find_by_id z.to_i}
-        @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
-      end
-    end
-=begin    
-    if params[:iter]
-      if params[:iter] =~ /All Issues/
-        @proj_issues = project.issues.sort_by(&:id)
-      else
-        iter = project.versions.find(:all, :conditions => ["name = ?", params[:iter]]).first
-        @proj_issues = iter.fixed_issues.sort_by(&:id)
-      end
-    else
-      @proj_issues = project.issues.sort_by(&:id)
-    end
-    existing = params[:exst]
-    if existing
-      existing.map!{|z| Issue.find_by_id z.to_i}
-      @proj_issues = @proj_issues.select{|y| !existing.include?(y)}
-    end
-=end
     respond_to do |format|
       format.js { render :layout => false}
     end
@@ -174,9 +128,10 @@ class WeekLogsController < ApplicationController
       project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name !~ /admin/i && project.project_type.to_s !~ /admin/i }
       non_project_related = @user.projects.select{ |project| @user.role_for_project(project).allowed_to?(:log_time) && project.name.downcase['admin'] && project.project_type.to_s.downcase['admin'] }
       if non_project_related.empty?
-        non_project_related = @user.projects.select{ |p| @user.role_for_project(p).allowed_to?(:log_time) && p.project_type &&  p.project_type.to_s.downcase.include?("admin") && @user.member_of?(p)}.flatten.uniq
+        non_project_related << Project.find_by_name('Exist Engineering Admin')
+      else
+        non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       end
-      non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       @projects = { :non_admin => project_related, :admin => non_project_related }
     end
 

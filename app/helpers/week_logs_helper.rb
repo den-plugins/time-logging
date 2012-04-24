@@ -99,8 +99,8 @@ module WeekLogsHelper
     existing = params[:exst]
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
     
-    if input =~ /all/i #default; for displaying all issues
-      project ? result += project.issues : result = [] 
+    if project && issue_id == "" && input == "" #default; for displaying all issues
+      result += project.issues 
     elsif params[:project].downcase['all projects'] #searches in all projects
       project_names.each do |name|
         project = Project.find_by_name name 

@@ -3,6 +3,5 @@ map.resources :week_logs, :only => [:index, :update],
     :add_task => :post, 
     :remove_task => :post, 
     :task_search => :post,
-    :iter_refresh => :post,
-    :gen_refresh => :post
+    :iter_refresh => :post
   }
