@@ -20,7 +20,6 @@ module WeekLogsHelper
 
   def self.add_task(proj_cache, non_proj_cache, issues, params)
     error_messages = []
-    custom = params[:custom]
     user = User.current
     issue_type = params[:type].to_s
     date = Date.parse(params[:week_start])
