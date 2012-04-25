@@ -91,15 +91,19 @@ module WeekLogsHelper
     iter = params[:iter]
     type = params[:type]
     issue_id = params[:task]
-    iter =~ /All Issues/ ? iter = "all" : iter = project.versions.find_by_name(iter)
+    iter =~ /All Issues/ ? iter = "all" : iter = project ? project.versions.find_by_name(iter) : []
     input = params[:search]
-    id_arr = [input.gsub(/\D/, ""), params[:task].gsub(/\D/, "")]
+    id_arr = [input.gsub(/\D/, "")[0..5], params[:task].gsub(/\D/, "")[0..5]]
     subject = input.scan(/[a-zA-Z]+/).join " "
     existing = params[:exst]
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
     
     if project && issue_id == "" && input == "" #default; for displaying all issues
-      result += project.issues 
+      if iter == "all"
+        result += project.issues 
+      else
+        result += iter.fixed_issues
+      end
     elsif params[:project].downcase['all projects'] #searches in all projects
       project_names.each do |name|
         project = Project.find_by_name name 
