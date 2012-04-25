@@ -542,12 +542,14 @@ function initializers() {
   $(".add-task-proj").live("change", function(){
     var parent = $("#dialog-add-proj-task");
     parent.find(".error").html("").addClass("hidden");
-    $('#ajax-indicator').show();
-    $.post("/week_logs/iter_refresh",
-          {
-            project: $(this).val()
-          })
-    .complete(function() { $('#ajax-indicator').hide();}) 
+    if($(this).val()!="All Projects") { 
+      $('#ajax-indicator').show();
+      $.post("/week_logs/iter_refresh",
+            {
+              project: $(this).val()
+            })
+      .complete(function() { $('#ajax-indicator').hide();}) 
+    }
   });
   
   $(".add-task-non-proj").live("change", function(){
