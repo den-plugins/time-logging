@@ -139,6 +139,6 @@ module WeekLogsHelper
         end
       end
     end
-    result = result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
+    [result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq, result.select{|y| existing.include?(y)}.sort_by(&:id).uniq]
   end
 end

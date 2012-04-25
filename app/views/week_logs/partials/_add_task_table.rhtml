@@ -6,6 +6,8 @@
       <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
     <% end %>
   </table>
+<% elsif issues.empty? && !@present.empty? %>
+  <div class="result-error">Issue <%= @present.map{|x| "##{x.id}"}.join(",")%> already in your list.</div>
 <% else %>
   <div class="result-error">No issues to be added.</div>
 <% end %>

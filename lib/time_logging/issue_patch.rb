@@ -26,7 +26,7 @@ module TimeLogging
       def update_cache
         proj_cache = Rails.cache.read "project_issue_ids_#{User.current.id}"
         proj_cache ? proj_cache = proj_cache.dup : proj_cache = [] 
-        non_proj_cache = Rails.cache.read ":non_project_issue_ids_#{User.current.id}"
+        non_proj_cache = Rails.cache.read "non_project_issue_ids_#{User.current.id}"
         non_proj_cache ? non_proj_cache = non_proj_cache.dup : non_proj_cache = [] 
         if User.current == assigned_to
           if project.project_type.to_s !~ /admin/i && project.name !~ /admin/i
