@@ -97,7 +97,11 @@ class WeekLogsController < ApplicationController
   
   def iter_refresh
     project = Project.find_by_name params[:project]
-    @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    if params[:project].downcase['all projects']
+      @iter_proj = ["All Issues"]
+    else
+      @iter_proj = ["All Issues"] + project.versions.sort_by(&:created_on).reverse.map {|z| z.name}
+    end
     respond_to do |format|
       format.js { render :layout => false}
     end
