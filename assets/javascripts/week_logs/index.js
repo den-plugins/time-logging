@@ -690,6 +690,10 @@ function initializers() {
     .success(function() { $('#ajax-indicator').hide();}) 
   });
 
+  $("#add_task_project, #project_iter").live('change', function(){
+      $("#add-task-proj-issue-board").empty();
+  });
+
 }
 
 
