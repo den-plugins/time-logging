@@ -690,8 +690,8 @@ function initializers() {
     .success(function() { $('#ajax-indicator').hide();}) 
   });
 
-  $("#add_task_project, #project_iter").live('change', function(){
-      $("#add-task-proj-issue-board").empty();
+  $("#add_task_project, #add_task_non_project, #project_iter").live('change', function(){
+      $("#add-task-proj-issue-board, #add-task-non-proj-issue-board").empty();
   });
 
 }
