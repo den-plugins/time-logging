@@ -606,6 +606,7 @@ function initializers() {
       parent.find("#add-task-proj-issue-board").html("");
       parent.find(".add-task-proj>option:eq(0)").attr('selected', true);
       parent.find(".project_iter>option:eq(0)").attr('selected', true);
+      reset_iterations_field();
     } else {
       parent = $("#dialog-add-non-proj-task");
       parent.find("#add-task-non-proj-issue-board").html("");
@@ -692,7 +693,10 @@ function initializers() {
 
   $("#add_task_project, #add_task_non_project, #project_iter").live('change', function(){
       $("#add-task-proj-issue-board, #add-task-non-proj-issue-board").empty();
+      reset_iterations_field();
   });
+  
+  reset_iterations_field();
 
 }
 
@@ -704,4 +708,10 @@ function getUniqueValues(array) {
       newArr.push(val);
   });
   return newArr;
+}
+
+function reset_iterations_field() {
+  if ($("#add_task_project").val() == "All Projects"){
+    $("#project_iter").html("<option>All Issues</option>");
+  }
 }
