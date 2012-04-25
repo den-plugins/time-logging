@@ -93,7 +93,7 @@ module WeekLogsHelper
     issue_id = params[:task]
     iter =~ /All Issues/ ? iter = "all" : iter = project ? project.versions.find_by_name(iter) : []
     input = params[:search]
-    id_arr = [input.gsub(/\D/, "")[0..5], params[:task].gsub(/\D/, "")[0..5]]
+    id_arr = [input.scan(/\d+/).map{|z| z[0..9].to_i}, params[:task].scan(/\d+/).map{|z| z[0..9].to_i}]
     subject = input.scan(/[a-zA-Z]+/).join " "
     existing = params[:exst]
     existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
@@ -110,10 +110,12 @@ module WeekLogsHelper
         if subject != "" 
           result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
-        id_arr.each do |id|
-          if id!="" 
-            num = project.issues.find_by_id id
-            result << num if num
+        id_arr.each do |arr|
+          if !arr.empty? 
+            arr.each do |id|  
+              num = project.issues.find_by_id id
+              result << num if num
+            end
           end
         end
       end
@@ -125,14 +127,16 @@ module WeekLogsHelper
           result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
         end
       end
-      id_arr.each do |id|
-        if id!="" 
-          if iter == "all"
-            num = project.issues.find_by_id id
-          elsif iter != "all"
-            num = iter.fixed_issues.find_by_id id
+      id_arr.each do |arr|
+        if !arr.empty? 
+          arr.each do |id|
+            if iter == "all"
+              num = project.issues.find_by_id id
+            elsif iter != "all"
+              num = iter.fixed_issues.find_by_id id
+            end
+            result << num if num
           end
-          result << num if num
         end
       end
     end
