@@ -3,17 +3,17 @@
 #control_panel .right {float: right}
 #filter_panel {border-bottom:1px dotted silver; padding:5px 10px;}
 h4.filter {margin-top:0px;}
-.tooltip{position:absolute; background-repeat:repeat-x; 
+.tooltip{position:absolute; background-repeat:repeat-x;
          background-image:url('/plugin_assets/time_logging/stylesheets/images/ui-bg_diagonals-thick_15_444444_40x40.png');
          -moz-border-radius: 10px; border-radius: 10px; font-size:14px; color:white; padding-left:10px; padding-right:10px;}
 .apply_button, .proj_apply_button, .non_proj_apply_button {cursor:pointer; background-repeat:no-repeat; 
-                                                           background-image:url('/images/true.png'); 
+                                                           background-image:url('/images/true.png');
                                                            padding-left:16px;}
 h2 {display:inline;}
-.result-error {background: url('/images/false.png') 8px 5px no-repeat; background-color: #ffe3e3; border-color: #dd0000; 
-               color: #550000; margin-top: 8px; padding: 4px 4px 4px 30px; margin-bottom: 12px; font-size: 1.1em; 
+.result-error {background: url('/images/false.png') 8px 5px no-repeat; background-color: #ffe3e3; border-color: #dd0000;
+               color: #550000; margin-top: 8px; padding: 4px 4px 4px 30px; margin-bottom: 12px; font-size: 1.1em;
                border: 2px solid;}
-#add-task-proj-issue-board, #add-task-non-proj-issue-board {border:2px solid #606060; height:300px; overflow:scroll;}
+#add-task-proj-issue-board-div, #add-task-non-proj-issue-board-div {border:2px solid #606060; height: 300px; overflow: auto; margin-top: 10px;}
 div.header { margin-bottom: 1em }
 table.list td {padding: 2px 1px; vertical-align: middle; text-align: center}
 .hide-button, .head-button {vertical-align: top}

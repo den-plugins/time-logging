@@ -1,11 +1,13 @@
 <% if !issues %>
   <div></div>
 <% elsif !issues.empty? %>
-  <table id="issue-board">
-    <% issues.each do |i| %>
-      <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
-    <% end %>
-  </table>
+  <div id="add-task-proj-issue-board-div">
+    <table id="issue-board">
+      <% issues.each do |i| %>
+        <tr class = "<%=i.id%>"><td><input type="checkbox" class="add-issue"/></td><td><%=i.id%> - <%= i.subject%></td></tr>
+      <% end %>
+    </table>
+  </div>
 <% elsif issues.empty? && !@present.empty? %>
   <div class="result-error">Issue <%= @present.map{|x| "##{x.id}"}.join(",")%> already in your list.</div>
 <% else %>

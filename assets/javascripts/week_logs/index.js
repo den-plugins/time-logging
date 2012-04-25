@@ -186,11 +186,13 @@ function initializers() {
                 }
               }
             });
+        }else {
+          $(".issue-table .result-error").addClass("hidden");
+          if(existing.length>0)
+            $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
+          if(issues.length == 0 && existing.length==0)
+            $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
         }
-        if(existing.length>0)
-          $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
-        if(issues.length == 0 && existing.length==0)
-          $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
     }
   };
 
@@ -560,6 +562,15 @@ function initializers() {
   $(".project_iter").live("change", function(){
      var parent = $("#dialog-add-proj-task");
      parent.find(".error").html("").addClass("hidden");
+  });
+  
+  $("#task-id").live("keypress", function(e){
+    var a = [];
+    var k = e.which;
+    for (i = 48; i < 58; i++)
+      a.push(i);
+    if (!($.inArray(k,a)>=0))
+      e.preventDefault();
   });
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
