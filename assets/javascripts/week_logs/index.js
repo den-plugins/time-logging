@@ -187,9 +187,9 @@ function initializers() {
               }
             });
         }
-        else if(existing.length>0)
+        if(existing.length>0)
           $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
-        else
+        if(issues.length == 0 && existing.length==0)
           $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
     }
   };
@@ -276,10 +276,7 @@ function initializers() {
       Week.refreshTabIndices();
       $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
-        $(taskId).each(function(i,val){
-          if(arr.indexOf(val)==-1)
-            arr.push(val);
-        });
+        arr = getUniqueValues(taskId);
         $('#success_message').text('Successfully added #' + arr + '.').removeClass('hidden');
         taskRow = $('#issue-' + taskId);
         if(taskRow.length > 0) {
@@ -527,6 +524,7 @@ function initializers() {
         }
         else if(validOrError == "Issue ID should be a number.")
           $(this).find('.error').removeClass('hidden').append("Issue ID should be a number.<br/>");
+        existing = getUniqueValues(existing);
         Week.addTask.submit(issues, existing, type, id);
       },
       "Cancel": function() {
@@ -691,4 +689,15 @@ function initializers() {
     $.getScript(href)
     .success(function() { $('#ajax-indicator').hide();}) 
   });
+
+}
+
+
+function getUniqueValues(array) {
+  var newArr = [];
+  $(array).each(function(index,val){
+    if(newArr.indexOf(val)==-1)
+      newArr.push(val);
+  });
+  return newArr;
 }

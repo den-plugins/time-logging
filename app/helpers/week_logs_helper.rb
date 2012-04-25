@@ -51,9 +51,6 @@ module WeekLogsHelper
             b_alloc_flag=true if member.b_alloc? d
           end
         end
-        puts issue_is_billable
-        puts alloc_flag
-        puts admin_flag
         if !issue_is_billable && member && !alloc_flag && !admin_flag 
           error_messages << "You are not allocated in issue ##{issue.id} for this week."
         elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
