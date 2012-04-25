@@ -106,14 +106,14 @@ class WeekLogsController < ApplicationController
   private
 
     def write_to_cache(proj_cache, non_proj_cache)
-      Rails.cache.write :"project_issue_ids_#{User.current.login}", proj_cache
-      Rails.cache.write :"non_project_issue_ids_#{User.current.login}", non_proj_cache
+      Rails.cache.write "project_issue_ids_#{User.current.id}", proj_cache
+      Rails.cache.write "non_project_issue_ids_#{User.current.id}", non_proj_cache
     end
 
     def read_cache
-      proj_cache = Rails.cache.read :"project_issue_ids_#{User.current.login}"
+      proj_cache = Rails.cache.read "project_issue_ids_#{User.current.id}"
       proj_cache ? proj_cache = proj_cache.dup : proj_cache = []
-      non_proj_cache = Rails.cache.read :"non_project_issue_ids_#{User.current.login}"
+      non_proj_cache = Rails.cache.read "non_project_issue_ids_#{User.current.id}"
       non_proj_cache ? non_proj_cache = non_proj_cache.dup : non_proj_cache = [] 
       [proj_cache, non_proj_cache]
     end
