@@ -44,3 +44,9 @@
       </tr>
     </tfoot>
   </table>
+
+  <div>
+    User: <%= User.current.id %><br/>
+    Project Issues: <%= Rails.cache.read("project_issue_ids_#{User.current.id}").inspect %><br/>
+    Non-Project : <%= Rails.cache.read("non_project_issue_ids_#{User.current.id}").inspect %><br/>
+  </div>
