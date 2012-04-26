@@ -3,7 +3,7 @@ class WeekLogsController < ApplicationController
   before_filter :find_user_projects, :only => [:index, :add_task]
   before_filter :find_time_entries, :only => [:index, :add_task]
   require 'json'
-
+  
   def index
     proj_cache, non_proj_cache = read_cache()
     @issues = { :project_related => !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
@@ -106,15 +106,19 @@ class WeekLogsController < ApplicationController
   private
 
     def write_to_cache(proj_cache, non_proj_cache)
-      Rails.cache.write "project_issue_ids_#{User.current.id}", proj_cache
-      Rails.cache.write "non_project_issue_ids_#{User.current.id}", non_proj_cache
+      red = Redis.new
+      puts proj_cache.inspect
+      red.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
+      red.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
     end
 
     def read_cache
-      proj_cache = Rails.cache.read "project_issue_ids_#{User.current.id}"
-      proj_cache ? proj_cache = proj_cache.dup : proj_cache = []
-      non_proj_cache = Rails.cache.read "non_project_issue_ids_#{User.current.id}"
-      non_proj_cache ? non_proj_cache = non_proj_cache.dup : non_proj_cache = [] 
+      red = Redis.new
+      proj_cache = red.get "project_issue_ids_#{User.current.id}"
+      puts proj_cache.inspect
+      proj_cache ? proj_cache = JSON(proj_cache) : proj_cache = []
+      non_proj_cache = red.get "non_project_issue_ids_#{User.current.id}"
+      non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = [] 
       [proj_cache, non_proj_cache]
     end
 
