@@ -564,14 +564,7 @@ function initializers() {
      parent.find(".error").html("").addClass("hidden");
   });
   
-  $("#task-id").live("keypress", function(e){
-    var a = [];
-    var k = e.which;
-    for (i = 48; i < 58; i++)
-      a.push(i);
-    if (!($.inArray(k,a)>=0))
-      e.preventDefault();
-  });
+  $("#task-id").filter_input({regex:'[0-9]', live:true});
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
     var type, project, iter, parent, error, search, task, existing = [];
