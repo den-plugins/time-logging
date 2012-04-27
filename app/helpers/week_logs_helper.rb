@@ -107,7 +107,9 @@ module WeekLogsHelper
       project_names.each do |name|
         project = Project.find_by_name name 
         if subject != "" 
-          result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+          result += project.issues.find :all, :conditions => ["subject ILIKE ?", "%#{subject}%"]
+        else
+          result += project.issues
         end
         id_arr.each do |arr|
           if !arr.empty? 
@@ -121,9 +123,9 @@ module WeekLogsHelper
     else  #searches in selected iteration
       if subject != ""
         if iter == "all"
-          result += project.issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+          result += project.issues.find :all, :conditions => ["subject ILIKE ?", "%#{subject}%"]
         elsif iter != "all"
-          result += iter.fixed_issues.find :all, :conditions => ["subject LIKE ?", "%#{subject}%"]
+          result += iter.fixed_issues.find :all, :conditions => ["subject ILIKE ?", "%#{subject}%"]
         end
       end
       id_arr.each do |arr|

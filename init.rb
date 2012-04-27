@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/app/helpers/save_week_logs'
 require File.dirname(__FILE__) + '/app/models/time_entry_extn'
 require File.dirname(__FILE__) + '/app/helpers/extend_account_controller'
 config.cache_store = :memory_store
+$redis = Redis.new
 
 Dispatcher.to_prepare do
   Issue.send(:include, TimeLogging::IssuePatch)

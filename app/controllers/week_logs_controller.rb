@@ -106,18 +106,14 @@ class WeekLogsController < ApplicationController
   private
 
     def write_to_cache(proj_cache, non_proj_cache)
-      red = Redis.new
-      puts proj_cache.inspect
-      red.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
-      red.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
+      $redis.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
+      $redis.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
     end
 
     def read_cache
-      red = Redis.new
-      proj_cache = red.get "project_issue_ids_#{User.current.id}"
-      puts proj_cache.inspect
+      proj_cache = $redis.get "project_issue_ids_#{User.current.id}"
       proj_cache ? proj_cache = JSON(proj_cache) : proj_cache = []
-      non_proj_cache = red.get "non_project_issue_ids_#{User.current.id}"
+      non_proj_cache = $redis.get "non_project_issue_ids_#{User.current.id}"
       non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = [] 
       [proj_cache, non_proj_cache]
     end
