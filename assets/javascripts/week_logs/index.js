@@ -567,24 +567,18 @@ function initializers() {
   $("#task-id").filter_input({regex:'[0-9]', live:true});
   
   $("#add-task-proj-search, #add-task-non-proj-search").live("click", function(){
-    var type, project, iter, parent, error, search, task, existing = [];
+    var type, project, iter, parent, error, search, task;
 
     if($(this).attr('id') == "add-task-proj-search") {
       parent = $("#dialog-add-proj-task"); 
       type = "project";
       project = $(".add-task-proj").val();
       iter = $(".project_iter option:selected").text();
-      $("#proj_table .issue").each(function(){
-        existing.push($(this).attr("id").replace(/issue\-/, ""))
-      });
     } else {
       parent = $("#dialog-add-non-proj-task"); 
       type = "admin";
       project = $(".add-task-non-proj").val();
       iter = "All Issues";
-      $("#non_proj_table .issue").each(function(){
-        existing.push($(this).attr("id").replace(/issue\-/, ""))
-      });
     }
     error = parent.find(".error");
     error.html("").addClass("hidden");
@@ -597,7 +591,6 @@ function initializers() {
             project: project,
             iter: iter,
             search: search,
-            exst: existing,
             task: task
           }) 
     .complete(function() { $('#ajax-indicator').hide();}) 

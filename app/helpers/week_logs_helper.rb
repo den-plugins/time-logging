@@ -84,7 +84,7 @@ module WeekLogsHelper
     [error_messages, proj_cache, non_proj_cache]
   end
 
-  def self.task_search(params, project_names)
+  def self.task_search(params, project_names, cache)
     result = []
     project = Project.find_by_name params[:project]
     iter = params[:iter]
@@ -94,8 +94,7 @@ module WeekLogsHelper
     input = params[:search]
     id_arr = [input.scan(/\d+/).map{|z| z[0..9].to_i}, params[:task].scan(/\d+/).map{|z| z[0..9].to_i}]
     subject = input.scan(/[a-zA-Z]+/).join " "
-    existing = params[:exst]
-    existing ? existing.map!{|z| Issue.find_by_id z.to_i} : existing = []
+    existing = cache.map!{|z| Issue.find_by_id z.to_i}
     
     if project && issue_id == "" && input == "" #default; for displaying all issues
       if iter == "all"

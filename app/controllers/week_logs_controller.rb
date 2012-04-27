@@ -81,13 +81,14 @@ class WeekLogsController < ApplicationController
   
   def task_search
     project_names, non_project_names = [], []
+    proj_cache, non_proj_cache = read_cache()
 
     if params[:type] ==  "project"
       project_names = get_project_names()
-      @proj_issues, @present = WeekLogsHelper.task_search(params, project_names)
+      @proj_issues, @present = WeekLogsHelper.task_search(params, project_names, proj_cache)
     else
       non_project_names = get_non_project_names()
-      @non_proj_issues, @present = WeekLogsHelper.task_search(params, non_project_names)
+      @non_proj_issues, @present = WeekLogsHelper.task_search(params, non_project_names, non_proj_cache)
     end
 
     respond_to do |format|
