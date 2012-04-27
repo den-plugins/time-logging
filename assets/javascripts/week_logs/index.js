@@ -189,7 +189,7 @@ function initializers() {
         }else {
           $(".issue-table .result-error").addClass("hidden");
           if(existing.length>0)
-            $("#"+id).find('.error').append("You have already added these issues: "+existing.join(',')+"<br/>").removeClass('hidden');
+            $("#"+id).find('.error').append("You have already added this/these issue/s: "+existing.join(',')+"<br/>").removeClass('hidden');
           if(issues.length == 0 && existing.length==0)
             $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
         }

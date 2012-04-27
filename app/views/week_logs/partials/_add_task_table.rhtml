@@ -9,7 +9,7 @@
     </table>
   </div>
 <% elsif issues.empty? && !@present.empty? %>
-  <div class="result-error">Issue <%= @present.map{|x| "##{x.id}"}.join(",")%> already in your list.</div>
+  <div class="result-error">Issue <%= @present.map{|x| "##{x.id}"}.join(",")%> is already in your list.</div>
 <% else %>
   <div class="result-error">No issues to be added.</div>
 <% end %>
