@@ -44,11 +44,7 @@ describe WeekLogsController do
     before do
       @project = @user.projects.select{|x| !x.project_type.to_s.downcase['admin']}
       @non_project = @user.projects.select{|x| !@project.include?(x)}
-      @fc_proj = Project.new({"tracker_ids"=>["1", "2", "3", "4", "5", ""], "issue_custom_field_ids"=>[""], 
-                              "inherit"=>"0", "name"=>"Hello Tester", "show_update_option"=>"0", "acctg_type"=>"10", 
-                              "custom_field_values"=>{"18"=>"Fixed Cost", "15"=>"Development", "20"=>"0", 
-                                                      "24"=>"Enterprise Project"}, "is_public"=>"1", "identifier"=>"hello123", 
-                                                      "description"=>"Hello", "homepage"=>"", "parent_id"=>""})
+      @fc = Factory(:fixed_cost)
       #set_allocated_days
       #set_non_billable_days
       #set_billable_days_here
