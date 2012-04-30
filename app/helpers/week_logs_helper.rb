@@ -92,23 +92,28 @@ module WeekLogsHelper
     issue_id = params[:task]
     iter =~ /All Issues/ ? iter = "all" : iter = project ? project.versions.find_by_name(iter) : []
     input = params[:search]
-    id_arr = [input.scan(/\d+/).map{|z| z[0..9].to_i}, params[:task].scan(/\d+/).map{|z| z[0..9].to_i}]
+    id_arr = [input.scan(/\d+/).map{|z| z[0..9].to_i}, issue_id.scan(/\d+/).map{|z| z[0..9].to_i}]
     subject = input.scan(/[a-zA-Z]+/).join " "
     existing = cache.map!{|z| Issue.find_by_id z.to_i}
     
-    if project && issue_id == "" && input == "" #default; for displaying all issues
-      if iter == "all"
-        result += project.issues 
-      else
-        result += iter.fixed_issues
+    if issue_id == "" && input == "" #searches for all issues
+      if project #specific proj
+        if iter == "all"
+          result += project.issues 
+        else
+          result += iter.fixed_issues
+        end
+      else #all projs
+        project_names.each do |name|
+          project = Project.find_by_name name
+          result += project.issues
+        end  
       end
     elsif params[:project].downcase['all projects'] #searches in all projects
       project_names.each do |name|
         project = Project.find_by_name name 
         if subject != "" 
           result += project.issues.find :all, :conditions => ["subject ILIKE ?", "%#{subject}%"]
-        else
-          result += project.issues
         end
         id_arr.each do |arr|
           if !arr.empty? 
@@ -140,6 +145,6 @@ module WeekLogsHelper
         end
       end
     end
-    [result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq, result.select{|y| existing.include?(y)}.sort_by(&:id).uniq]
+    result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
   end
 end

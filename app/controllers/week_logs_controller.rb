@@ -7,7 +7,7 @@ class WeekLogsController < ApplicationController
   def index
     proj_cache, non_proj_cache = read_cache()
     @issues = { :project_related => !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
-                :non_project_related => !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.open.visible.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
+                :non_project_related => !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
     write_to_cache(@issues[:project_related].map(&:id).uniq,@issues[:non_project_related].map(&:id).uniq) 
     @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
     @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
@@ -85,10 +85,10 @@ class WeekLogsController < ApplicationController
 
     if params[:type] ==  "project"
       project_names = get_project_names()
-      @proj_issues, @present = WeekLogsHelper.task_search(params, project_names, proj_cache)
+      @proj_issues = WeekLogsHelper.task_search(params, project_names, proj_cache)
     else
       non_project_names = get_non_project_names()
-      @non_proj_issues, @present = WeekLogsHelper.task_search(params, non_project_names, non_proj_cache)
+      @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names, non_proj_cache)
     end
 
     respond_to do |format|

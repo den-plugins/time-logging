@@ -164,7 +164,6 @@ function initializers() {
               data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
               success: function() {
                 $("#"+id).dialog('close');
-                $('#ajax-indicator').hide();
                 Week.repopulateTable(issues);
                 Week.refreshTableDates();
               },
@@ -276,7 +275,6 @@ function initializers() {
       Week.refreshTotalHours();
       Week.refreshTableDates();
       Week.refreshTabIndices();
-      $('#ajax-indicator').hide();
       if(taskId && taskId.length > 0) {
         arr = getUniqueValues(taskId);
         $('#success_message').text('Successfully added #' + arr + '.').removeClass('hidden');
@@ -289,7 +287,8 @@ function initializers() {
           });
         }
       }
-    });
+    })
+    .complete(function() { $('#ajax-indicator').hide();}) 
   };
 
   Week.refreshTableRowColors = function(table) {
@@ -637,7 +636,9 @@ function initializers() {
     href+= addtl_params;
     addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
     event.preventDefault();
-    $.getScript(href);
+    $('#ajax-indicator').show();
+    $.getScript(href)
+    .complete(function() { $('#ajax-indicator').hide();}) 
   });
   
   $("a.non_proj").live("click", function(){
@@ -650,7 +651,9 @@ function initializers() {
     addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
     href+= addtl_params;
     event.preventDefault();
-    $.getScript(href);
+    $('#ajax-indicator').show();
+    $.getScript(href)
+    .complete(function() { $('#ajax-indicator').hide();}) 
   });
   
   $("a.project, a.task_activity").live({
