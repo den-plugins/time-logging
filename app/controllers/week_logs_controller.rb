@@ -48,7 +48,7 @@ class WeekLogsController < ApplicationController
   def add_task
     proj_cache, non_proj_cache = read_cache()
     issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
-    issues = { 'project' => Issue.open.visible.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
+    issues = { 'project' => Issue.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
     respond_to do |format|
       format.js do
