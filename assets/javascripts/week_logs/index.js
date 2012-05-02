@@ -16,14 +16,14 @@ function loadAllTables(href, taskId) {
   $.ajax({
       type: 'post',
       url: '/week_logs/load_tables?'+href,
-      data: {'load_type': "project" },
+      data: {'load_type': "project", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
       success: function() {
       }
   }).complete(function() {
       $.ajax({
           type: 'post',
           url: '/week_logs/load_tables?'+href,
-          data: {'load_type': "admin" },
+          data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
           success: function() {
           }
       }).complete(function() {
@@ -727,16 +727,7 @@ function initializers() {
 
   $("a.apply_button").live("click", function(){
     $('#success_message').text('').addClass('hidden');
-    $('#ajax-indicator').show();
-    var href = "/week_logs/?";
-    href+="proj="+$("#proj").val();
-    href+="&proj_dir="+$("#proj_dir").val();
-    href+="&non_proj="+$("#non_proj").val();
-    href+="&non_proj_dir="+$("#non_proj_dir").val();
-    href+="&f_proj_name="+$("select.project").val();
-    href+="&f_tracker="+$("select.tracker").val();
-    $.getScript(href)
-    .success(function() { $('#ajax-indicator').hide();}) 
+    loadAllTables();
   });
 
   $("#add_task_project, #add_task_non_project, #project_iter").live('change', function(){
