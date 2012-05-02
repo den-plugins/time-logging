@@ -2,6 +2,7 @@ class WeekLogsController < ApplicationController
   before_filter :get_week_start, :only => [:add_task, :load_tables]
   before_filter :find_user_projects, :only => [:add_task, :load_tables]
   before_filter :find_time_entries, :only => [:add_task, :load_tables]
+  before_filter :get_projnames_and_iterations, :only => [:index, :load_tables]
   require 'json'
   
   def index
@@ -20,17 +21,10 @@ class WeekLogsController < ApplicationController
           when "desc" then params[:proj_dir] = "asc"
         end
       end
-      @issues[:project_related] = !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
+      @issues[:project_related] = !proj_cache.empty? ? Issue.find(proj_cache) : Issue.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
       write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
-      @project_names = get_project_names()
-      if !@project_names.empty?
-        @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
-      else
-        @iter_proj = ["All Issues"]
-      end
-      @project_names = ["All Projects"] + @project_names 
       @proj_issues = nil 
     elsif params[:load_type] == "admin"
       if params[:non_proj_dir]
@@ -44,7 +38,6 @@ class WeekLogsController < ApplicationController
       write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
       @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
       @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
-      @non_project_names = ["All Projects"] + get_non_project_names() 
       @non_proj_issues = nil
     end
 
@@ -193,5 +186,16 @@ class WeekLogsController < ApplicationController
 
     def get_non_project_names
       Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+    end
+
+    def get_projnames_and_iterations
+      @project_names = get_project_names()
+      if !@project_names.empty?
+        @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
+      else
+        @iter_proj = ["All Issues"]
+      end
+      @project_names = ["All Projects"] + @project_names
+      @non_project_names = ["All Projects"] + get_non_project_names() 
     end
 end

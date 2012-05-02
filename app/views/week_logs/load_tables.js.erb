@@ -1,10 +1,8 @@
 <% if params[:load_type] == "project" %>
   $("#proj_related").html("<%= escape_javascript(render :partial => '/week_logs/partials/proj_related.rhtml', :locals=>{:issues => @issues[:project_related], :state=>"proj"})%>").css({background:"", height:"auto", border:""});
-  $("#dialog-add-proj-task").html("<%= escape_javascript(render :partial => "/week_logs/partials/add_task_proj.rhtml")%>")
   $("#hidden-attrs").html("<%= escape_javascript(render :partial => "week_logs/partials/hidden.rhtml")%>");
 <% elsif params[:load_type] == "admin" %>
   $("#non_proj_related").html("<%= escape_javascript(render :partial => '/week_logs/partials/non_proj.rhtml', :locals=>{:issues => @issues[:non_project_related], :state=>"non_proj"})%>").css({background:"", height:"auto", border:""});
-  $("#dialog-add-non-proj-task").html("<%= escape_javascript(render :partial => "/week_logs/partials/add_task_non_proj.rhtml")%>")
   $("#hidden-attrs").html("<%= escape_javascript(render :partial => "week_logs/partials/hidden.rhtml")%>");
 <% end %>
 
