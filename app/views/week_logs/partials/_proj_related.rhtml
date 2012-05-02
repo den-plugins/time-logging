@@ -1,10 +1,3 @@
-<div class = "hidden">
-  <%= text_field_tag 'proj', params[:proj] %>
-  <%= text_field_tag 'proj_dir', params[:proj_dir] %>
-  <%= text_field_tag 'non_proj', params[:non_proj] %>
-  <%= text_field_tag 'non_proj_dir', params[:non_proj_dir] %>
-</div>
-
   <div class="header">
     <h2>Project Related Tasks</h2>
     <input type="button" class="head-button" value="+" rel="project" />
@@ -14,8 +7,8 @@
     <thead>
       <tr>
         <th class="remove"></th>
-        <th class="subject project"><%= sortable("name", "proj", "Project") %></th>
-        <th class="subject"><%= sortable("subject", "proj", "Task/Activity") %></th>
+        <th class="subject project"><%= sortable("project", "proj", "Project") %></th>
+        <th class="subject"><%= sortable("task_activity", "proj", "Task/Activity") %></th>
         <% week_dates.each do |date| -%>
           <% content_tag :th, :class => date.strftime('%a').downcase do -%>
             <%= date.strftime('%a') %><br/>

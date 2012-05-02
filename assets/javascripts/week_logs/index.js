@@ -1,7 +1,97 @@
 $(document).ready(function(){
   initializers();
   Week.init();
+  loadAllTables();
 });
+
+function loadAllTables(href, taskId) {
+  $("#submit_button").attr("disabled", true);
+  $(".tooltip").hide();
+  $(".apply_button").hide();
+  $("#proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
+  $("#non_proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
+  
+  if(href)
+    href = "";
+  $.ajax({
+      type: 'post',
+      url: '/week_logs/load_tables?'+href,
+      data: {'load_type': "project" },
+      success: function() {
+      }
+  }).complete(function() {
+      $.ajax({
+          type: 'post',
+          url: '/week_logs/load_tables?'+href,
+          data: {'load_type': "admin" },
+          success: function() {
+          }
+      }).complete(function() {
+          loadAllTablesPostProcess(taskId);
+          $("#submit_button").attr("disabled", false);
+          $(".apply_button").show();
+      });
+  });
+}
+
+function loadSpecificTable(taskId, type, dir_name) {
+    var proj, dir, proj_val, dir_value, datum = {};
+    $("#submit_button").attr("disabled", true);
+    $(".tooltip").hide();
+    $(".apply_button").hide();
+    if(type == "project") {
+      proj = "proj";
+      dir = "proj_dir";
+      if(dir_name)
+        proj_value = dir_name;
+      else
+        proj_value = $("#proj").val();
+      dir_value = $("#proj_dir").val();
+      $("#proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
+    }
+    else if(type == "admin") {
+      $("#non_proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
+      proj = "non_proj";
+      dir = "non_proj_dir";
+      if(dir_name)
+        proj_value = dir_name;
+      else
+        proj_value = $("#non_proj").val();
+      dir_value = $("#non_proj_dir").val();
+    }
+    datum = {'load_type':type, "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val() };
+    datum[proj] = proj_value;
+    datum[dir] = dir_value;
+    $.ajax({
+        type: 'post',
+        url: '/week_logs/load_tables?',
+        data: datum,
+        success: function() {
+        }
+    }).complete(function() {
+        loadAllTablesPostProcess(taskId);
+        $("#submit_button").attr("disabled", false);
+        $(".apply_button").show();
+    });
+}
+
+function loadAllTablesPostProcess(taskId) {
+  Week.refreshTableDates();
+  Week.refreshTotalHours();
+  Week.refreshTabIndices();
+  if(taskId && taskId.length > 0) {
+    arr = getUniqueValues(taskId);
+    $('#success_message').text('Successfully added #' + arr + '.').removeClass('hidden');
+    taskRow = $('#issue-' + taskId);
+    if(taskRow.length > 0) {
+      $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
+        if(taskRow.effect) {
+          taskRow.effect('highlight');
+        }
+      });
+    }
+  }
+}
 
 function initializers() {
   if (typeof Week === 'undefined') {
@@ -29,10 +119,6 @@ function initializers() {
     Week.start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
     Week.end = new Date();
     Week.updateDateFields();
-    Week.refreshTableDates();
-    Week.refreshTotalHours();
-    Week.refreshTabIndices();
-
     $('#week_selector').datepicker({
       maxDate: today,
       gotoCurrent: true,
@@ -164,8 +250,8 @@ function initializers() {
               data: { 'id': issues, 'type': type, 'week_start': $('#week_start').val() },
               success: function() {
                 $("#"+id).dialog('close');
-                Week.repopulateTable(issues);
-                Week.refreshTableDates();
+                Week.repopulateTable(issues, type);
+                $('#ajax-indicator').hide();
               },
               error: function(data) {
                 $('#ajax-indicator').hide();
@@ -180,8 +266,7 @@ function initializers() {
                     $("#"+id).find('.error').append(val+"<br/>");
                 });
                 if(issues.length>0) {
-                  Week.repopulateTable(issues);
-                  Week.refreshTableDates();
+                  Week.repopulateTable(issues, type);
                 }
               }
             });
@@ -267,28 +352,11 @@ function initializers() {
     }
   };
 
-  Week.repopulateTable = function(taskId) {
-    var href = "/week_logs?", taskRow, arr=[];
-    href+="&week_start="+$("#week_start").val();
-    $('#ajax-indicator').show();
-    $.getScript(href, function() {
-      Week.refreshTotalHours();
-      Week.refreshTableDates();
-      Week.refreshTabIndices();
-      if(taskId && taskId.length > 0) {
-        arr = getUniqueValues(taskId);
-        $('#success_message').text('Successfully added #' + arr + '.').removeClass('hidden');
-        taskRow = $('#issue-' + taskId);
-        if(taskRow.length > 0) {
-          $('html, body').animate({scrollTop: taskRow.offset().top}, 1000, function() {
-            if(taskRow.effect) {
-              taskRow.effect('highlight');
-            }
-          });
-        }
-      }
-    })
-    .complete(function() { $('#ajax-indicator').hide();}) 
+  Week.repopulateTable = function(taskId, type) {
+    if(type)
+      loadSpecificTable(taskId, type);
+    else
+      loadAllTables(taskId);
   };
 
   Week.refreshTableRowColors = function(table) {
@@ -627,33 +695,13 @@ function initializers() {
   });
 
   $("a.proj").live("click", function(){
-    var addtl_params="";
-    var href = this.href;
-    if($("#non_proj").val()!="")
-      addtl_params += "&non_proj="+$("#non_proj").val()+""; 
-    if($("#non_proj_dir").val()!="")
-      addtl_params += "&non_proj_dir="+$("#non_proj_dir").val()+"";
-    href+= addtl_params;
-    addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
     event.preventDefault();
-    $('#ajax-indicator').show();
-    $.getScript(href)
-    .complete(function() { $('#ajax-indicator').hide();}) 
+    loadSpecificTable(null, "project", $(this).removeClass("proj").removeClass("asc").removeClass("desc").attr("class"));
   });
   
   $("a.non_proj").live("click", function(){
-    var addtl_params="";
-    var href = this.href;
-    if($("#proj").val()!="")
-      addtl_params += "&proj="+$("#proj").val()+""; 
-    if($("#proj_dir").val()!="")
-      addtl_params += "&proj_dir="+$("#proj_dir").val()+"";
-    addtl_params += "&f_proj_name="+$("select.project").val()+"&f_tracker="+$("select.tracker").val()+"";
-    href+= addtl_params;
     event.preventDefault();
-    $('#ajax-indicator').show();
-    $.getScript(href)
-    .complete(function() { $('#ajax-indicator').hide();}) 
+    loadSpecificTable(null, "admin", $(this).removeClass("non_proj").removeClass("asc").removeClass("desc").attr("class"));
   });
   
   $("a.project, a.task_activity").live({

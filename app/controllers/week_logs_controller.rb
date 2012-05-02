@@ -1,40 +1,55 @@
 class WeekLogsController < ApplicationController
-  before_filter :get_week_start, :only => [:index, :add_task]
-  before_filter :find_user_projects, :only => [:index, :add_task]
-  before_filter :find_time_entries, :only => [:index, :add_task]
+  before_filter :get_week_start, :only => [:add_task, :load_tables]
+  before_filter :find_user_projects, :only => [:add_task, :load_tables]
+  before_filter :find_time_entries, :only => [:add_task, :load_tables]
   require 'json'
   
   def index
+    @all_project_names = ["All"] + (get_project_names()+get_non_project_names()).uniq.sort_by {|i| i.downcase if i}
+    @tracker_names = ["All", "Bug", "Feature", "Support", "Task"]
+  end
+  
+  def load_tables
     proj_cache, non_proj_cache = read_cache()
-    @issues = { :project_related => !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"),
-                :non_project_related => !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") }
-    write_to_cache(@issues[:project_related].map(&:id).uniq,@issues[:non_project_related].map(&:id).uniq) 
-    @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
-    @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
-
-    @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
-    @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
-    
-    @all_project_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.project.name}.uniq.sort_by {|i| i.downcase}
-    @tracker_names = (@issues[:project_related] + @issues[:non_project_related]).map {|i| i.tracker.name}.uniq.sort_by {|i| i.downcase}
-    
-    @project_names = get_project_names()
-    if !@project_names.empty?
-      @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
-    else
-      @iter_proj = ["All Issues"]
-    end
-    @proj_issues = nil 
-    
-    @non_project_names = get_non_project_names() 
-    @non_proj_issues = nil
-    
-    respond_to do |format|
-      format.html
-      format.json do
-        render :json => @issues.to_json
+    @issues = {}
+    if params[:load_type] == "project"
+      if params[:proj_dir]
+        case params[:proj_dir]
+          when "" then params[:proj_dir] = "asc"
+          when "asc" then params[:proj_dir] = "desc"
+          when "desc" then params[:proj_dir] = "asc"
+        end
       end
-      format.js { render :layout => false}
+      @issues[:project_related] = !proj_cache.empty? ? Issue.find(proj_cache) : Issue.open.visible.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
+      write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
+      @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
+      @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
+      @project_names = get_project_names()
+      if !@project_names.empty?
+        @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
+      else
+        @iter_proj = ["All Issues"]
+      end
+      @project_names = ["All Projects"] + @project_names 
+      @proj_issues = nil 
+    elsif params[:load_type] == "admin"
+      if params[:non_proj_dir]
+        case params[:non_proj_dir]
+          when "" then params[:non_proj_dir] = "asc"
+          when "asc" then params[:non_proj_dir] = "desc"
+          when "desc" then params[:non_proj_dir] = "asc"
+        end
+      end
+      @issues[:non_project_related] = !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
+      write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
+      @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
+      @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
+      @non_project_names = ["All Projects"] + get_non_project_names() 
+      @non_proj_issues = nil
+    end
+
+    respond_to do |format|
+      format.js {render :layout => false}
     end
   end
 
@@ -105,6 +120,14 @@ class WeekLogsController < ApplicationController
   end
 
   private
+    
+    def write_to_proj_cache(proj_cache)
+      $redis.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
+    end
+
+    def write_to_non_proj_cache(non_proj_cache)
+      $redis.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
+    end
 
     def write_to_cache(proj_cache, non_proj_cache)
       $redis.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
@@ -149,9 +172,10 @@ class WeekLogsController < ApplicationController
 
     def sort(array, column, direction, tracker, proj_name)
       array = array.sort_by {|i| i.project.name.downcase}
+      puts column
       if column
         case column
-          when 'subject' then array = array.sort_by {|i| i.id}
+          when 'task_activity' then array = array.sort_by {|i| i.id}
         end
       end
       if tracker && tracker.downcase != 'all'
