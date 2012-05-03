@@ -6,7 +6,7 @@ class WeekLogsController < ApplicationController
   require 'json'
   
   def index
-    @all_project_names = ["All"] + (get_project_names()+get_non_project_names()).uniq.sort_by {|i| i.downcase if i}
+    @all_project_names = ["All"] + (get_all_project_names()).uniq
     @tracker_names = ["All", "Bug", "Feature", "Support", "Task"]
   end
   
@@ -178,13 +178,17 @@ class WeekLogsController < ApplicationController
       end
       direction == 'desc' ? array.reverse : array
     end
+    
+    def get_all_project_names
+      User.current.projects.select{|z| !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+    end
 
     def get_project_names
-      Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| !z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+      User.current.projects.select{|z| !z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
     end
 
     def get_non_project_names
-      Member.find(:all, :conditions=>["user_id=?", User.current.id]).map{|z| z.project}.uniq.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
+      User.current.projects.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
     end
 
     def get_projnames_and_iterations

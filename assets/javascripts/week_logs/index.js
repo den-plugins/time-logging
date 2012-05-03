@@ -15,6 +15,9 @@ function loadAllTables(taskId) {
       type: 'post',
       url: '/week_logs/load_tables',
       data: {'load_type': "project", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
+      error: function(data) {
+        console.log(data);
+      },
       success: function() {
       }
   }).complete(function() {
@@ -22,6 +25,9 @@ function loadAllTables(taskId) {
           type: 'post',
           url: '/week_logs/load_tables',
           data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
+          error: function(data) {
+            console.log(data);
+          },
           success: function() {
           }
       }).complete(function() {
