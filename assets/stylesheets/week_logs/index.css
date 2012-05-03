@@ -6,6 +6,9 @@ h4.filter {margin-top:0px;}
 .tooltip{position:absolute; background-repeat:repeat-x;
          background-image:url('/plugin_assets/time_logging/stylesheets/images/ui-bg_diagonals-thick_15_444444_40x40.png');
          -moz-border-radius: 10px; border-radius: 10px; font-size:14px; color:white; padding-left:10px; padding-right:10px;}
+.sel-all, .des-all {cursor:pointer; padding-left:15px}
+.sel-all {background: url('/images/true.png') no-repeat;}
+.des-all {background: url('/images/false.png') no-repeat;}
 .apply_button, .proj_apply_button, .non_proj_apply_button {cursor:pointer; background-repeat:no-repeat; 
                                                            background-image:url('/images/true.png');
                                                            padding-left:16px;}

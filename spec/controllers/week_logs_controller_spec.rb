@@ -1,10 +1,26 @@
 require 'spec_helper'
 
 describe WeekLogsController do
+  before(:all) do
+    @user = Factory(:test_user)
+    @project = @user.projects.select{|x| !x.project_type.to_s.downcase['admin']}
+    @non_project = @user.projects.select{|x| !@project.include?(x)}
+    @fc = Factory(:fixed_cost)
+    #set_allocated_days
+    #set_non_billable_days
+    #set_billable_days_here
+    #@billable_issue
+    #@nbillable_issue
+  end
+  
   before(:each) do
     controller.stub!(:check_if_login_required).and_return(true)
-    controller.logged_user = User.find_by_login("jcapule")
-    @user = User.current
+    controller.logged_user = @user
+  end
+  
+  after(:all) do
+    @user.destroy
+    @fc.destroy
   end
 
   context "On initial page load" do
@@ -14,12 +30,12 @@ describe WeekLogsController do
     end
 
     it "should have project issues" do
-      get 'index'
+      post 'load_tables', :load_type=>'project'
       assigns(:issues)[:project_related].should_not be_nil 
     end
 
     it "should have non project issues" do
-      get 'index'
+      post 'load_tables', :load_type=>'admin'
       assigns(:issues)[:non_project_related].should_not be_nil
     end
 
@@ -41,17 +57,6 @@ describe WeekLogsController do
   end
 
   describe "Function Add Task" do
-    before do
-      @project = @user.projects.select{|x| !x.project_type.to_s.downcase['admin']}
-      @non_project = @user.projects.select{|x| !@project.include?(x)}
-      @fc = Factory(:fixed_cost)
-      #set_allocated_days
-      #set_non_billable_days
-      #set_billable_days_here
-      #@billable_issue
-      #@nbillable_issue
-    end
-
     context "Add Project Issue as Billable Resource" do
       it "should add a billable issue on billable days"
       it "should not add a billable issue on non-billable days"
@@ -102,4 +107,5 @@ describe WeekLogsController do
 
   describe "Save Logs" do
   end
+  
 end

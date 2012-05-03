@@ -4,25 +4,23 @@ $(document).ready(function(){
   loadAllTables();
 });
 
-function loadAllTables(href, taskId) {
+function loadAllTables(taskId) {
   $("#submit_button").attr("disabled", true);
   $(".tooltip").hide();
   $(".apply_button").hide();
   $("#proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
   $("#non_proj_related").html("").css({background:"url(images/loading.gif) no-repeat center", height:"100px", border:"1px solid #E4E4E4"});
   
-  if(href)
-    href = "";
   $.ajax({
       type: 'post',
-      url: '/week_logs/load_tables?'+href,
+      url: '/week_logs/load_tables',
       data: {'load_type': "project", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
       success: function() {
       }
   }).complete(function() {
       $.ajax({
           type: 'post',
-          url: '/week_logs/load_tables?'+href,
+          url: '/week_logs/load_tables',
           data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
           success: function() {
           }
@@ -736,7 +734,26 @@ function initializers() {
   });
   
   reset_iterations_field();
-
+  
+  $(".sel-all").live("click", function(){
+    $(this).removeClass("sel-all").addClass("des-all");
+    $(this).text("Deselect All");
+    if($(this).hasClass("sd-proj")) {
+      $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", true)})  
+    } else {
+      $("tr.admin").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", true)})  
+    }
+  });
+  
+  $(".des-all").live("click", function(){
+    $(this).removeClass("des-all").addClass("sel-all");
+    $(this).text("Select All");
+    if($(this).hasClass("sd-proj")) {
+      $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", false)})  
+    } else {
+      $("tr.admin").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", false)})  
+    }
+  });
 }
 
 

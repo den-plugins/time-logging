@@ -1,4 +1,4 @@
-<tr id="issue-<%= issue.id %>" class="issue hascontextmenu <%= cycle('odd', 'even') %> <%= "status-#{issue.status.position} priority-#{issue.priority.position}" %>">
+<tr id="issue-<%= issue.id %>" class="issue hascontextmenu <%= cycle('odd', 'even') %> <%= "status-#{issue.status.position} priority-#{issue.priority.position}" %> <%=type%>">
   <td class="remove"><input type="checkbox" class="hide-box"/></td>
   <td class="subject project"><%= link_to "#{issue.project.name}", :controller => :projects, :action => :show, :id => issue.project %></td>
   <td class="subject">

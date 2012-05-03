@@ -165,7 +165,6 @@ class WeekLogsController < ApplicationController
 
     def sort(array, column, direction, tracker, proj_name)
       array = array.sort_by {|i| i.project.name.downcase}
-      puts column
       if column
         case column
           when 'task_activity' then array = array.sort_by {|i| i.id}

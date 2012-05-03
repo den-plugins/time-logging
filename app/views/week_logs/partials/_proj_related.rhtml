@@ -6,7 +6,7 @@
   <table id="proj_table" class="list">
     <thead>
       <tr>
-        <th class="remove"></th>
+        <th><a class="sd-proj sel-all">Select All</a></th>
         <th class="subject project"><%= sortable("project", "proj", "Project") %></th>
         <th class="subject"><%= sortable("task_activity", "proj", "Task/Activity") %></th>
         <% week_dates.each do |date| -%>
@@ -20,7 +20,7 @@
     </thead>
     <tbody>
       <% @total = 0.0 %>
-      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue, :locals=>{:state=>state} %>
+      <%= render :partial => '/week_logs/partials/week', :collection => issues, :as => :issue, :locals=>{:state=>state, :type=>"project"} %>
     </tbody>
     <tfoot>
       <tr class = "total">
