@@ -11,9 +11,9 @@ class WeekLogsController < ApplicationController
   end
   
   def load_tables
-    proj_cache, non_proj_cache = read_cache()
     @issues = {}
     if params[:load_type] == "project"
+      proj_cache = read_proj_cache()
       if params[:proj_dir]
         case params[:proj_dir]
           when "" then params[:proj_dir] = "asc"
@@ -27,6 +27,7 @@ class WeekLogsController < ApplicationController
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
       @proj_issues = nil 
     elsif params[:load_type] == "admin"
+      non_proj_cache = read_non_proj_cache()
       if params[:non_proj_dir]
         case params[:non_proj_dir]
           when "" then params[:non_proj_dir] = "asc"
@@ -89,12 +90,12 @@ class WeekLogsController < ApplicationController
   
   def task_search
     project_names, non_project_names = [], []
-    proj_cache, non_proj_cache = read_cache()
-
     if params[:type] ==  "project"
+      proj_cache = read_proj_cache()
       project_names = get_project_names()
       @proj_issues = WeekLogsHelper.task_search(params, project_names, proj_cache)
     else
+      non_proj_cache = read_non_proj_cache()
       non_project_names = get_non_project_names()
       @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names, non_proj_cache)
     end
@@ -125,6 +126,16 @@ class WeekLogsController < ApplicationController
     def write_to_cache(proj_cache, non_proj_cache)
       $redis.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
       $redis.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
+    end
+    
+    def read_proj_cache
+      proj_cache = $redis.get "project_issue_ids_#{User.current.id}"
+      proj_cache ? proj_cache = JSON(proj_cache) : proj_cache = []
+    end
+
+    def read_non_proj_cache
+      non_proj_cache = $redis.get "non_project_issue_ids_#{User.current.id}"
+      non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = [] 
     end
 
     def read_cache

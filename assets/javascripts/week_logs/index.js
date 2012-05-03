@@ -19,22 +19,20 @@ function loadAllTables(taskId) {
         console.log(data);
       },
       success: function() {
+        $.ajax({
+            type: 'post',
+            url: '/week_logs/load_tables',
+            data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
+            error: function(data) {
+              console.log(data);
+            },
+            success: function() {
+              loadAllTablesPostProcess(taskId);
+              $("#submit_button").attr("disabled", false);
+              $(".apply_button").show();
+            }
+        });
       }
-  }).complete(function() {
-      $.ajax({
-          type: 'post',
-          url: '/week_logs/load_tables',
-          data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
-          error: function(data) {
-            console.log(data);
-          },
-          success: function() {
-          }
-      }).complete(function() {
-          loadAllTablesPostProcess(taskId);
-          $("#submit_button").attr("disabled", false);
-          $(".apply_button").show();
-      });
   });
 }
 
@@ -70,12 +68,14 @@ function loadSpecificTable(taskId, type, dir_name) {
         type: 'post',
         url: '/week_logs/load_tables?',
         data: datum,
+        error: function(data) {
+          console.log(data);
+        },
         success: function() {
+          loadAllTablesPostProcess(taskId);
+          $("#submit_button").attr("disabled", false);
+          $(".apply_button").show();
         }
-    }).complete(function() {
-        loadAllTablesPostProcess(taskId);
-        $("#submit_button").attr("disabled", false);
-        $(".apply_button").show();
     });
 }
 
