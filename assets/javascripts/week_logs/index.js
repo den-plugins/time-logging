@@ -14,7 +14,7 @@ function loadAllTables(taskId) {
   $.ajax({
       type: 'post',
       url: '/week_logs/load_tables',
-      data: {'load_type': "project", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
+      data: {'load_type': "project", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val(), "week_start":$("#week_start").val()},
       error: function(data) {
         console.log(data);
       },
@@ -22,7 +22,7 @@ function loadAllTables(taskId) {
         $.ajax({
             type: 'post',
             url: '/week_logs/load_tables',
-            data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()},
+            data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()}, "week_start":$("#week_start").val(),
             error: function(data) {
               console.log(data);
             },
@@ -61,12 +61,12 @@ function loadSpecificTable(taskId, type, dir_name) {
         proj_value = $("#non_proj").val();
       dir_value = $("#non_proj_dir").val();
     }
-    datum = {'load_type':type, "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val() };
+    datum = {'load_type':type, "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val(), "week_start":$("#week_start").val()};
     datum[proj] = proj_value;
     datum[dir] = dir_value;
     $.ajax({
         type: 'post',
-        url: '/week_logs/load_tables?',
+        url: '/week_logs/load_tables',
         data: datum,
         error: function(data) {
           console.log(data);
@@ -179,8 +179,8 @@ function initializers() {
                   Week.repopulateTable();
                   on_submission_errors = Week.createErrorDialog(data);
           }).complete(function(data) {
+                  $('#ajax-indicator').hide();
                   if (on_submission_errors == false) {
-                    $('#ajax-indicator').hide();
                     $('#success_message').text('Successful update.').removeClass('hidden');
                     $(window).scrollTop(0,0);
                   }
