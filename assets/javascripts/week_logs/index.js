@@ -22,7 +22,7 @@ function loadAllTables(taskId) {
         $.ajax({
             type: 'post',
             url: '/week_logs/load_tables',
-            data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val()}, "week_start":$("#week_start").val(),
+            data: {'load_type': "admin", "f_proj_name":$("select.project").val(), "f_tracker":$("select.tracker").val(), "week_start":$("#week_start").val()},
             error: function(data) {
               console.log(data);
             },
@@ -169,6 +169,7 @@ function initializers() {
       if($(".day_error").length==0) {
           var button = $(this);
           var on_submission_errors = false;
+          $(".apply_button").hide();
           $('#ajax-indicator').show();
           button.attr('disabled', true);
           $.post("/week_logs/update", {
@@ -176,15 +177,14 @@ function initializers() {
                   project: createJsonObject("#proj_table"),
                   non_project: createJsonObject("#non_proj_table")
           }, function(data) {
+                  $('#ajax-indicator').hide();
                   Week.repopulateTable();
                   on_submission_errors = Week.createErrorDialog(data);
           }).complete(function(data) {
-                  $('#ajax-indicator').hide();
                   if (on_submission_errors == false) {
                     $('#success_message').text('Successful update.').removeClass('hidden');
                     $(window).scrollTop(0,0);
                   }
-                  button.attr('disabled', false);
           })
       }
       else {
