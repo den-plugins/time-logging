@@ -21,7 +21,7 @@ class WeekLogsController < ApplicationController
           when "desc" then params[:proj_dir] = "asc"
         end
       end
-      @issues[:project_related] = !proj_cache.empty? ? Issue.find(proj_cache) : Issue.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
+      @issues[:project_related] = proj_cache ? Issue.find(proj_cache) : Issue.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
       write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
@@ -35,7 +35,7 @@ class WeekLogsController < ApplicationController
           when "desc" then params[:non_proj_dir] = "asc"
         end
       end
-      @issues[:non_project_related] = !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
+      @issues[:non_project_related] = non_proj_cache ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
       write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
       @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
       @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
@@ -130,12 +130,12 @@ class WeekLogsController < ApplicationController
     
     def read_proj_cache
       proj_cache = $redis.get "project_issue_ids_#{User.current.id}"
-      proj_cache ? proj_cache = JSON(proj_cache) : proj_cache = []
+      proj_cache ? proj_cache = JSON(proj_cache) : proj_cache = nil
     end
 
     def read_non_proj_cache
       non_proj_cache = $redis.get "non_project_issue_ids_#{User.current.id}"
-      non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = [] 
+      non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = nil
     end
 
     def read_cache

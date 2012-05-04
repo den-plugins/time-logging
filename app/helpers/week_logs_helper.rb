@@ -20,12 +20,14 @@ module WeekLogsHelper
 
   def self.add_task(proj_cache, non_proj_cache, issues, params)
     error_messages = []
+    proj_consumed = {}
     user = User.current
     issue_type = params[:type].to_s
     date = Date.parse(params[:week_start])
     params[:id].each do |id|
       alloc_flag = false
       b_alloc_flag = false
+      add_flag = true
       issue_id = id.to_i
       issue = issues[issue_type].find {|param| param.id == issue_id}
       if issue_type == 'admin'
@@ -52,11 +54,27 @@ module WeekLogsHelper
         end
         if !issue_is_billable && member && !alloc_flag && !admin_flag 
           error_messages << "You are not allocated in issue ##{issue.id} for this week."
+          add_flag = false
         elsif issue_is_billable && member && !b_alloc_flag && !admin_flag
           error_messages << "You are not billable in issue ##{issue.id} for this week."
+          add_flag = false
         elsif !member
-          error_messages << "You are not a member of #{issue.project.name}." 
-        else
+          error_messages << "##{issue.id}: You are not a member of #{issue.project.name}." 
+          add_flag = false
+        end
+        
+        if add_flag && issue_is_billable && project.billing_model && project.billing_model.scan(/^(Fixed)/).flatten.present? 
+          if proj_consumed[project.id].nil?
+            proj_consumed[project.id] = budget_consumed?(project.id)
+          end
+
+          if proj_consumed[project.id]
+            add_flag = false
+            error_messages << "##{issue.id}: #{project.name}'s budget has already been consumed."
+          end
+        end
+
+        if add_flag
           case issue_type
             when 'project'
               proj_cache << issue_id
@@ -146,5 +164,34 @@ module WeekLogsHelper
       end
     end
     result.select{|y| !existing.include?(y)}.sort_by(&:id).uniq
+  end
+
+  def self.budget_consumed?(project_id)
+    project = Project.find(project_id)
+    bac_amount = project.project_contracts.all.sum(&:amount)
+    contingency_amount = 0
+    actuals_to_date = 0
+    project_budget = 0
+    flag = false
+
+    pfrom, afrom, pto, ato = project.planned_start_date, project.actual_start_date, project.planned_end_date, project.actual_end_date
+    to = (ato || pto)
+
+    if pfrom && to
+      team = project.members.project_team.all
+      reporting_period = (Date.today)
+      forecast_range = get_weeks_range(pfrom, to)
+      actual_range = get_weeks_range((afrom || pfrom), reporting_period)
+      cost = project.monitored_cost(forecast_range, actual_range, team)
+      actual_list = actual_range.collect {|r| r.first }
+      cost.each do |k, v|
+        actuals_to_date += v[:actual_cost] if actual_list.include?(k.to_date)
+      end
+      project_budget = bac_amount + contingency_amount
+    end
+    if (project_budget - actuals_to_date) < 0
+      flag = true
+    end
+    flag
   end
 end

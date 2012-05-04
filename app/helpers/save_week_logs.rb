@@ -126,5 +126,4 @@ module SaveWeekLogs
     end
     [hash, error_messages]
   end
-
 end
