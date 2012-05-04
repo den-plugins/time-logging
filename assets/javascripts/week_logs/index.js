@@ -728,6 +728,42 @@ function initializers() {
         $(".tooltip").hide();
       }
   });
+  
+  $(".sel-all").live({
+    mouseenter:
+      function(e) {
+        var tooltip = $(".tooltip");
+        tooltip.html("");
+        tooltip.append("<p>Select All</p>");
+        tooltip.css({
+          left:e.pageX,
+          top:e.pageY
+        });
+        tooltip.show();
+      },
+    mouseleave:
+      function() {
+        $(".tooltip").hide();
+      }
+  });
+  
+  $(".des-all").live({
+    mouseenter:
+      function(e) {
+        var tooltip = $(".tooltip");
+        tooltip.html("");
+        tooltip.append("<p>Deselect All</p>");
+        tooltip.css({
+          left:e.pageX,
+          top:e.pageY
+        });
+        tooltip.show();
+      },
+    mouseleave:
+      function() {
+        $(".tooltip").hide();
+      }
+  });
 
   $("a.apply_button").live("click", function(){
     $('#success_message').text('').addClass('hidden');
@@ -743,6 +779,7 @@ function initializers() {
   
   $(".sel-all").live("click", function(){
     $(this).removeClass("sel-all").addClass("des-all");
+    $(".tooltip").hide();
     if($(this).hasClass("sd-proj")) {
       $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", true)})  
     } else {
@@ -752,6 +789,7 @@ function initializers() {
   
   $(".des-all").live("click", function(){
     $(this).removeClass("des-all").addClass("sel-all");
+    $(".tooltip").hide();
     if($(this).hasClass("sd-proj")) {
       $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", false)})  
     } else {
