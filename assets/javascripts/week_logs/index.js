@@ -743,7 +743,6 @@ function initializers() {
   
   $(".sel-all").live("click", function(){
     $(this).removeClass("sel-all").addClass("des-all");
-    $(this).text("Deselect All");
     if($(this).hasClass("sd-proj")) {
       $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", true)})  
     } else {
@@ -753,7 +752,6 @@ function initializers() {
   
   $(".des-all").live("click", function(){
     $(this).removeClass("des-all").addClass("sel-all");
-    $(this).text("Select All");
     if($(this).hasClass("sd-proj")) {
       $("tr.project").each(function(id, val){$("#"+val.id).find(".hide-box").attr("checked", false)})  
     } else {
