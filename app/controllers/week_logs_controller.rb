@@ -22,8 +22,8 @@ class WeekLogsController < ApplicationController
         end
       end
       @issues[:project_related] = proj_cache ? Issue.find(proj_cache) : Issue.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
-      write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
+      write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
       @proj_issues = nil 
     elsif params[:load_type] == "admin"
@@ -36,8 +36,8 @@ class WeekLogsController < ApplicationController
         end
       end
       @issues[:non_project_related] = non_proj_cache ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
-      write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
       @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
+      write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
       @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
       @non_proj_issues = nil
     end
