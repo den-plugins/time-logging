@@ -153,46 +153,41 @@ function initializers() {
     function createJsonObject(id) {
       var row = {};
       $(id).find('td.date.changed').find('input').each(function(i, el) {
-        el = $(el);
-        var issue = el.data('issue'),
-          date = el.data('date');
-        if(!row.hasOwnProperty(issue)) {
-          row[issue] = {};
+        if(!$(this).parent().hasClass("day_error"))
+        {
+          el = $(el);
+          var issue = el.data('issue'),
+            date = el.data('date');
+          if(!row.hasOwnProperty(issue)) {
+            row[issue] = {};
+          }
+          row[issue][date] = el.attr('data-rvalue');
         }
-        row[issue][date] = el.attr('data-rvalue');
       });
       return row;
     };
 
     $("#submit_button").live("click", function(){
       $('#success_message').text('').addClass('hidden');
-      if($(".day_error").length==0) {
-          var button = $(this);
-          var on_submission_errors = false;
-          $(".apply_button").hide();
-          $('#ajax-indicator').show();
-          button.attr('disabled', true);
-          $.post("/week_logs/update", {
-                  startdate: $("#week_start").val(),
-                  project: createJsonObject("#proj_table"),
-                  non_project: createJsonObject("#non_proj_table")
-          }, function(data) {
-                  $('#ajax-indicator').hide();
-                  Week.repopulateTable();
-                  on_submission_errors = Week.createErrorDialog(data);
-          }).complete(function(data) {
-                  if (on_submission_errors == false) {
-                    $('#success_message').text('Successful update.').removeClass('hidden');
-                    $(window).scrollTop(0,0);
-                  }
-          })
-      }
-      else {
-          dialogWin = $('#dialog-error-messages');
-          dialogWin.html($('<p />').html('Please check your timesheet'));
-          dialogWin.dialog('open');
-          formatErrorDialog(dialogWin);
-      }
+      var button = $(this);
+      var on_submission_errors = false;
+      $(".apply_button").hide();
+      $('#ajax-indicator').show();
+      button.attr('disabled', true);
+      $.post("/week_logs/update", {
+              startdate: $("#week_start").val(),
+              project: createJsonObject("#proj_table"),
+              non_project: createJsonObject("#non_proj_table")
+      }, function(data) {
+              $('#ajax-indicator').hide();
+              Week.repopulateTable();
+              on_submission_errors = Week.createErrorDialog(data);
+      }).complete(function(data) {
+              if (on_submission_errors == false) {
+                $('#success_message').text('Successful update.').removeClass('hidden');
+                $(window).scrollTop(0,0);
+              }
+      });
     });
   };
 
@@ -436,8 +431,7 @@ function initializers() {
         $("."+day).removeClass("day_error");
       }
     }
-
-    if(flag) {
+    if($(field).hasClass("day_error")) {
       dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
       dialogWin.dialog('open');
       formatErrorDialog(dialogWin);
