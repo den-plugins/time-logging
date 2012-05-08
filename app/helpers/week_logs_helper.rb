@@ -36,7 +36,10 @@ module WeekLogsHelper
           issue = nil if !(issue_type == 'admin' && project.project_type.downcase['admin'])
         end
       end
-      if issue
+      
+      if proj_cache.include?(issue_id) || non_proj_cache.include?(issue_id)
+        error_messages << "##{issue_id} is already in your list." 
+      elsif issue
         project = issue.project
         admin_flag = project.project_type.to_s.downcase['admin']
         if issue.acctg_type
