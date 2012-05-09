@@ -2,6 +2,7 @@ $(document).ready(function(){
   initializers();
   Week.init();
   loadAllTables();
+  reset_iterations_field();
 });
 
 function loadAllTables(taskId) {
@@ -769,8 +770,6 @@ function initializers() {
       $("#add-task-proj-issue-board, #add-task-non-proj-issue-board").empty();
       reset_iterations_field();
   });
-  
-  reset_iterations_field();
   
   $(".sel-all").live("click", function(){
     $(this).removeClass("sel-all").addClass("des-all");

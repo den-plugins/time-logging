@@ -21,7 +21,7 @@ class WeekLogsController < ApplicationController
           when "desc" then params[:proj_dir] = "asc"
         end
       end
-      @issues[:project_related] = proj_cache ? Issue.find(proj_cache) : Issue.assigned_to(@user).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
+      @issues[:project_related] = proj_cache ? Issue.find(proj_cache) : Issue.assigned_to(User.current).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
       write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
@@ -152,8 +152,7 @@ class WeekLogsController < ApplicationController
     end
 
     def find_user_projects
-      @user ||= User.current
-      projects = @user.projects
+      projects = User.current.projects
       project_related = projects.select{ |project| !project.project_type.to_s.downcase['admin'] }
       non_project_related = projects.select{ |project| project.project_type.to_s.downcase['admin'] }
       if non_project_related.length > 1
@@ -163,9 +162,8 @@ class WeekLogsController < ApplicationController
     end
 
     def find_time_entries
-      @user ||= User.current
       non_proj_default = Project.find_by_name('Exist Engineering Admin')
-      time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, @user.id])
+      time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, User.current.id])
       issues = time_entry.map(&:issue)
       proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
       non_proj = issues.select { |i| i.project.project_type && i.project.project_type["Admin"]}
