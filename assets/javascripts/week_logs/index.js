@@ -19,6 +19,7 @@ function loadAllTables(taskId) {
         console.log(data);
       },
       success: function() {
+        loadAllTablesPostProcess(taskId);
         $.ajax({
             type: 'post',
             url: '/week_logs/load_tables',

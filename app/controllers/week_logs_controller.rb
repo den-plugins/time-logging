@@ -2,18 +2,18 @@ class WeekLogsController < ApplicationController
   before_filter :get_week_start, :only => [:add_task, :load_tables]
   before_filter :find_user_projects, :only => [:add_task, :load_tables]
   before_filter :find_time_entries, :only => [:add_task, :load_tables]
-  before_filter :get_projnames_and_iterations, :only => [:index, :load_tables]
+  before_filter :get_project_names_and_iterations, :only => [:index, :load_tables]
   require 'json'
   
   def index
-    @all_project_names = ["All"] + (get_all_project_names()).uniq
+    @all_project_names = ["All"] + (get_all_project_names).uniq
     @tracker_names = ["All", "Bug", "Feature", "Support", "Task"]
   end
   
   def load_tables
     @issues = {}
     if params[:load_type] == "project"
-      proj_cache = read_proj_cache()
+      proj_cache = read_proj_cache
       if params[:proj_dir]
         case params[:proj_dir]
           when "" then params[:proj_dir] = "asc"
@@ -27,7 +27,7 @@ class WeekLogsController < ApplicationController
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
       @proj_issues = nil 
     elsif params[:load_type] == "admin"
-      non_proj_cache = read_non_proj_cache()
+      non_proj_cache = read_non_proj_cache
       if params[:non_proj_dir]
         case params[:non_proj_dir]
           when "" then params[:non_proj_dir] = "asc"
@@ -55,7 +55,7 @@ class WeekLogsController < ApplicationController
   end
 
   def add_task
-    proj_cache, non_proj_cache = read_cache()
+    proj_cache, non_proj_cache = read_cache
     issues_order = "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC"
     issues = { 'project' => Issue.in_projects(@projects[:non_admin]).all(:order => issues_order).concat(@time_issues[:non_admin]).uniq,
                'admin' => Issue.in_projects(@projects[:admin]).all(:order => issues_order).concat(@time_issues[:admin]) }
@@ -73,7 +73,7 @@ class WeekLogsController < ApplicationController
   end
 
   def remove_task
-    proj_cache, non_proj_cache = read_cache()
+    proj_cache, non_proj_cache = read_cache
     respond_to do |format|
       format.html { redirect_to '/week_logs' }
       format.js do
@@ -91,12 +91,12 @@ class WeekLogsController < ApplicationController
   def task_search
     project_names, non_project_names = [], []
     if params[:type] ==  "project"
-      proj_cache = read_proj_cache()
-      project_names = get_project_names()
+      proj_cache = read_proj_cache
+      project_names = get_project_names
       @proj_issues = WeekLogsHelper.task_search(params, project_names, proj_cache)
     else
-      non_proj_cache = read_non_proj_cache()
-      non_project_names = get_non_project_names()
+      non_proj_cache = read_non_proj_cache
+      non_project_names = get_non_project_names
       @non_proj_issues = WeekLogsHelper.task_search(params, non_project_names, non_proj_cache)
     end
 
@@ -152,9 +152,10 @@ class WeekLogsController < ApplicationController
     end
 
     def find_user_projects
-      @user = User.current
-      project_related = @user.projects.select{ |project| !project.project_type.to_s.downcase['admin'] }
-      non_project_related = @user.projects.select{ |project| project.project_type.to_s.downcase['admin'] }
+      @user ||= User.current
+      projects = @user.projects
+      project_related = projects.select{ |project| !project.project_type.to_s.downcase['admin'] }
+      non_project_related = projects.select{ |project| project.project_type.to_s.downcase['admin'] }
       if non_project_related.length > 1
         non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       end
@@ -200,14 +201,14 @@ class WeekLogsController < ApplicationController
       User.current.projects.select{|z| z.project_type.to_s.downcase['admin'] && !z.issues.empty? && z.status == Project::STATUS_ACTIVE}.map(&:name).sort_by{|i| i.downcase}
     end
 
-    def get_projnames_and_iterations
-      @project_names = get_project_names()
+    def get_project_names_and_iterations
+      @project_names = get_project_names
       if !@project_names.empty?
         @iter_proj = ["All Issues"] + Project.find_by_name(@project_names.first).versions.sort_by(&:created_on).reverse.map {|z| z.name}
       else
         @iter_proj = ["All Issues"]
       end
       @project_names = ["All Projects"] + @project_names
-      @non_project_names = ["All Projects"] + get_non_project_names() 
+      @non_project_names = ["All Projects"] + get_non_project_names 
     end
 end
