@@ -541,6 +541,11 @@ function initializers() {
       }
       if (bValid) {
         //If valid execute script and close the dialog.
+        if($(this).dialog('option', 'title') == "Remove Project Related Tasks") {
+         $("a.sd-proj").removeClass("des-all").addClass("sel-all");
+        } else {
+         $("a.sd-non-proj").removeClass("des-all").addClass("sel-all");
+        }
         $(this).dialog("close");
       }
     },
