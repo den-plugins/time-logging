@@ -2,7 +2,7 @@ module ExtendAccountController
 
   def self.included(base)
     base.class_eval do
-      before_filter :clear_cache_issues, :only => [:logout]
+      before_filter :clear_cache_issues, :only => [:logout, :login]
 
       def clear_cache_issues
         $redis.del "project_issue_ids_#{User.current.id}"
