@@ -7,14 +7,16 @@
   <% hours = TimeEntry.get_hours_by_date(@week_start, issue) %>
   <% week_dates(@week_start).each_with_index do |date, offset| -%>
     <% day = date.strftime('%a').downcase %>
+    <% number = number_with_precision(hours[offset], :precision => 2) %>
     <% content_tag :td, :class => "#{day} border-cell date" do %>
-      <%= text_field_tag day, number_with_precision(hours[offset], :precision => 2), :class => day, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
+      <%= text_field_tag day, number.eql?("0.00") ? "" : number, :class => day, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
             :title => hours[offset], :'data-rvalue' => hours[offset], :'data-issue' => issue.id, :'data-date' => "#{date.month}/#{date.day}/#{date.year}" %>
     <% end -%>
   <% end -%>
   <td class = "total_column">
     <% subtotal = TimeEntry.get_total(@week_start, issue) %>
     <% @total += subtotal %>
-    <%= text_field_tag 'total', number_with_precision(subtotal, :precision => 2), :size=>2, :maxlength=>1, :readonly=>"readonly", :id=>"#{issue.id}-total", :class=>"total", :title => subtotal %>
+    <% sub_total = number_with_precision(subtotal, :precision => 2) %>
+    <%= text_field_tag 'total', sub_total.eql?("0.00") ? "" : sub_total , :size=>2, :maxlength=>1, :readonly=>"readonly", :id=>"#{issue.id}-total", :class=>"total", :title => subtotal %>
   </td>
 </tr>

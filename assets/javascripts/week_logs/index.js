@@ -471,7 +471,11 @@ function initializers() {
   };
 
   Week.formatHours = function(hours) {
-    return parseFloat(parseFloat(hours).toPrecision(12)).toFixed(2);
+    var value = parseFloat(parseFloat(hours).toPrecision(12)).toFixed(2);
+    if(value == "0.00")
+      {return " ";}
+    else
+      {return value;}
   };
 
   Week.parseHours = function(hours) {
