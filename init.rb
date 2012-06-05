@@ -7,7 +7,6 @@ $redis = Redis.new
 Dispatcher.to_prepare do
   Issue.send(:include, TimeLogging::IssuePatch)
   TimeEntry.send(:include,TimeEntryExtn)
-  AccountController.send(:include,ExtendAccountController)
 end
 
 Redmine::Plugin.register :time_logging do
