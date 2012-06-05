@@ -606,8 +606,6 @@ function initializers() {
         });
         
         validOrError = Week.addTask.validate(manual_issue);
-        console.log(manual_issue);
-        console.log($.inArray(manual_issue, issues));
         if(validOrError == true && $.inArray(manual_issue, issues)==-1)
           issues.push(manual_issue);
         else if(validOrError == "You have already added this issue.") 
