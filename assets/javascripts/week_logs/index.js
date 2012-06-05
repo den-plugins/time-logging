@@ -274,7 +274,12 @@ function initializers() {
         }else {
           $(".issue-table .result-error").addClass("hidden");
           if(existing.length>0)
-            $("#"+id).find('.error').append("You have already added this/these issue/s: "+existing.join(',')+"<br/>").removeClass('hidden');
+            var text = "";
+            if(existing.length==1)
+              text = "You have already added this issue:"
+            else
+              text = "You have already added these issues:"
+            $("#"+id).find('.error').append(text+" "+existing.join(',')+"<br/>").removeClass('hidden');
           if(issues.length == 0 && existing.length==0)
             $("#"+id).find('.error').append("Please select an issue<br/>").removeClass('hidden');
         }
@@ -536,7 +541,13 @@ function initializers() {
         Week.refreshTableRowColors(table);
         Week.refreshTotalHours();
         Week.refreshTabIndices();
-        $.post('/week_logs/remove_task.js', {id: arrDel});
+        $('#ajax-indicator').show();
+        $.post('/week_logs/remove_task.js', {id: arrDel})
+        .success(function(){
+            $('#ajax-indicator').hide();
+            $('#success_message').text('Successfully deleted issues.').removeClass('hidden');
+            $(window).scrollTop(0,0);
+        });
       }
       if(row.length > 0 && arrDel.length < row.length) {
         dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
@@ -595,11 +606,12 @@ function initializers() {
         });
         
         validOrError = Week.addTask.validate(manual_issue);
-        if(validOrError === true)
-          issues.push(manual_issue)
-        else if(validOrError == "You have already added this issue.") {
+        console.log(manual_issue);
+        console.log($.inArray(manual_issue, issues));
+        if(validOrError == true && $.inArray(manual_issue, issues)==-1)
+          issues.push(manual_issue);
+        else if(validOrError == "You have already added this issue.") 
           existing.push(manual_issue);
-        }
         else if(validOrError == "Issue ID should be a number.")
           $(this).find('.error').removeClass('hidden').append("Issue ID should be a number.<br/>");
         existing = getUniqueValues(existing);
