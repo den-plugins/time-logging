@@ -703,6 +703,7 @@ function initializers() {
   $("#dialog-error-messages").dialog({
     autoOpen: false,
     width: 'auto',
+    height: 300,
     modal: true,
     resizable: false,
     title: 'Error Message',
