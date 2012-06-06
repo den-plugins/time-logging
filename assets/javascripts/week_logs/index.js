@@ -440,6 +440,7 @@ function initializers() {
     }
     if($(field).hasClass("day_error")) {
       dialogWin.html($('<p />').html('Cannot log more than 24 hours per day'));
+      dialogWin.dialog("option", "height", "auto");
       dialogWin.dialog('open');
       formatErrorDialog(dialogWin);
     }
@@ -710,6 +711,7 @@ function initializers() {
     buttons: {
       "Ok": function() {
         $(this).dialog("close");
+        $(this).dialog("option", "height", 300);
       }
     },
   });
