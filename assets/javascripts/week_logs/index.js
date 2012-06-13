@@ -552,6 +552,7 @@ function initializers() {
       }
       if(row.length > 0 && arrDel.length < row.length) {
         dialogWin.html($('<p />').html('Cannot remove a task with existing logs'));
+        dialogWin.dialog('option', 'height', 'auto')
         dialogWin.dialog('open');
         formatErrorDialog(dialogWin);
       }
