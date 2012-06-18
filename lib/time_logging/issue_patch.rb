@@ -23,6 +23,25 @@ module TimeLogging
       def admin?
         project.project_type.to_s.downcase['admin']
       end
+      
+      def assigned_to_all?
+        tracker = self.tracker.name.downcase
+        if tracker['task'] || tracker['support']
+          assign = self.custom_values.detect {|x| x.customized_type=="Issue" and x.custom_field.name.downcase["assign"]} 
+          if assign
+            assign.value.to_i == 1 ? true : false
+          else
+            false
+          end
+        else
+          false
+        end
+      end
+      
+      def support_task?
+        tracker = self.tracker.name.downcase
+        (tracker['task'] || tracker['support']) ? true : false
+      end
 
       def update_cache
         proj_cache = $redis.get "project_issue_ids_#{User.current.id}"
@@ -31,7 +50,7 @@ module TimeLogging
         non_proj_cache ? non_proj_cache = JSON(non_proj_cache) : non_proj_cache = [] 
         del_flag = false
         if project.members.find_by_user_id User.current.id
-          if User.current == assigned_to && !admin? 
+          if (User.current == assigned_to or (support_task? and assigned_to_all?)) and !admin? 
             proj_cache << id
           elsif admin?
             non_proj_cache << id

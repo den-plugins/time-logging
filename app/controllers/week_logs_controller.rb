@@ -21,7 +21,13 @@ class WeekLogsController < ApplicationController
           when "desc" then params[:proj_dir] = "asc"
         end
       end
-      @issues[:project_related] = proj_cache ? Issue.find(proj_cache) : Issue.assigned_to(User.current).in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC") 
+      if proj_cache
+        @issues[:project_related] = Issue.find(proj_cache)
+      else
+        @issues[:project_related] = Issue.in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
+        @issues[:project_related].reject! {|x| (x.assigned_to != User.current and !x.support_task?) or 
+                                               (x.support_task? and !x.assigned_to_all?)}
+      end
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
       write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = sort(@issues[:project_related], params[:proj], params[:proj_dir], params[:f_tracker], params[:f_proj_name])
