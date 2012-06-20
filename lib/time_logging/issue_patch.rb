@@ -21,7 +21,7 @@ module TimeLogging
     module InstanceMethods
       require 'json'
       def admin?
-        project.project_type.to_s.downcase['admin']
+        project.project_type.to_s.downcase[/admin|na/]
       end
       
       def assigned_to_all?

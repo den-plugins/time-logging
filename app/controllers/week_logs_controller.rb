@@ -25,8 +25,7 @@ class WeekLogsController < ApplicationController
         @issues[:project_related] = Issue.find(proj_cache)
       else
         @issues[:project_related] = Issue.in_projects(@projects[:non_admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
-        @issues[:project_related].reject! {|x| (x.assigned_to != User.current and !x.support_task?) or 
-                                               (x.assigned_to != User.current and x.support_task? and !x.assigned_to_all?)}
+        @issues[:project_related].reject! {|x| x.assigned_to != User.current and ((!x.support_task?) or (x.support_task? and !x.assigned_to_all?))}
       end
       write_to_proj_cache(@issues[:project_related].map(&:id).uniq)
       @issues[:project_related] = (@issues[:project_related] + @time_issues[:non_admin]).uniq
@@ -159,8 +158,8 @@ class WeekLogsController < ApplicationController
 
     def find_user_projects
       projects = User.current.projects
-      project_related = projects.select{ |project| !project.project_type.to_s.downcase['admin'] }
-      non_project_related = projects.select{ |project| project.project_type.to_s.downcase['admin'] }
+      project_related = projects.select{ |project| !project.project_type.to_s.downcase[/admin|na/] }
+      non_project_related = projects.select{ |project| project.project_type.to_s.downcase[/admin|na/] }
       if non_project_related.length > 1
         non_project_related.delete(Project.find_by_name('Exist Engineering Admin'))
       end
