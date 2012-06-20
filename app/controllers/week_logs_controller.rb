@@ -170,8 +170,8 @@ class WeekLogsController < ApplicationController
       non_proj_default = Project.find_by_name('Exist Engineering Admin')
       time_entry = TimeEntry.all(:conditions => ["spent_on BETWEEN ? AND ? AND user_id=?", @week_start, @week_start.end_of_week, User.current.id])
       issues = time_entry.map(&:issue)
-      proj = issues.select { |i| i.project.name !~ /admin/i && i.project.project_type.to_s !~ /admin/i }
-      non_proj = issues.select { |i| i.project.project_type && i.project.project_type["Admin"]}
+      proj = issues.select { |i| !i.project.project_type.to_s.downcase[/admin|na/] }
+      non_proj = issues.select { |i| i.project.project_type.to_s.downcase[/admin|na/]}
       non_proj += Issue.in_projects(non_proj_default) if @projects[:admin].empty?
       @time_issues = {:non_admin => proj, :admin => non_proj }
     end
