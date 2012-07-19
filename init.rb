@@ -1,7 +1,7 @@
 require 'redmine'
+require 'dispatcher'
 require File.dirname(__FILE__) + '/app/helpers/save_week_logs'
 require File.dirname(__FILE__) + '/app/models/time_entry_extn'
-config.cache_store = :memory_store
 $redis = Redis.new
 
 Dispatcher.to_prepare do
