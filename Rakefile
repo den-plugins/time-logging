@@ -15,11 +15,11 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "time-logging"
-  gem.homepage = "http://github.com/normancapule/time-logging"
+  gem.homepage = "http://github.com/den-plugins/time-logging"
   gem.license = "MIT"
   gem.summary = %Q{ Creates a weekly logging feature for the DEN project}
-  gem.email = "johnnormancapule@gmail.com"
-  gem.authors = ["Normz"]
+  gem.email = "may_pit2001@yahoo.com"
+  gem.authors = ["DEN"]
   gem.files.include 'init.rb', 'routes.rb', '{app}/**/*', '{assets}/**/*', '{config}/**/*', '{spec}/**/*', '{lib}/**/*'
   # dependencies defined in Gemfile
 end
