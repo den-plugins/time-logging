@@ -14,12 +14,10 @@ class WeekLogsController < ApplicationController
     @issues = {}
     if params[:load_type] == "project"
       proj_cache = read_proj_cache
-      if params[:proj_dir]
-        case params[:proj_dir]
-          when "" then params[:proj_dir] = "asc"
-          when "asc" then params[:proj_dir] = "desc"
-          when "desc" then params[:proj_dir] = "asc"
-        end
+      case params[:proj_dir]
+        when "" then params[:proj_dir] = "asc"
+        when "asc" then params[:proj_dir] = "desc"
+        when "desc" then params[:proj_dir] = "asc"
       end
       if proj_cache
         @issues[:project_related] = Issue.find(proj_cache)
@@ -33,12 +31,10 @@ class WeekLogsController < ApplicationController
       @proj_issues = nil 
     elsif params[:load_type] == "admin"
       non_proj_cache = read_non_proj_cache
-      if params[:non_proj_dir]
-        case params[:non_proj_dir]
-          when "" then params[:non_proj_dir] = "asc"
-          when "asc" then params[:non_proj_dir] = "desc"
-          when "desc" then params[:non_proj_dir] = "asc"
-        end
+      case params[:non_proj_dir]
+        when "" then params[:non_proj_dir] = "asc"
+        when "asc" then params[:non_proj_dir] = "desc"
+        when "desc" then params[:non_proj_dir] = "asc"
       end
       @issues[:non_project_related] = non_proj_cache ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
       write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
