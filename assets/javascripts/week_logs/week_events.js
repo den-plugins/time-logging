@@ -34,7 +34,7 @@ $('#week_selector').datepicker({
     if(sd < Week._start || sd > Week._end) {
       Week._start = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay());
       Week._end = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate() - sd.getDay() + 6);
-      if(me._end > Week._today) Week._end = Week._today;
+      if(Week._end > Week._today) Week._end = Week._today;
       Week.updateDateFields();
       Week.repopulateTable();
     } else {
