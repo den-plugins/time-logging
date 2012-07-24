@@ -1,7 +1,11 @@
 require 'redmine'
 require 'dispatcher'
-require File.dirname(__FILE__) + '/app/helpers/save_week_logs'
-require File.dirname(__FILE__) + '/app/models/time_entry_extn'
+
+Dir[File.dirname(__FILE__) + '/../app/controllers/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + '/../app/helpers/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + '/../app/models/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + '/../lib/time_logging/*.rb'].each {|file| require file }
+
 $redis = Redis.new
 
 Dispatcher.to_prepare do

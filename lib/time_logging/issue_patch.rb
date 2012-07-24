@@ -1,5 +1,3 @@
-require_dependency 'issue'
-
 module TimeLogging
   module IssuePatch
     def self.included(base) # :nodoc:
