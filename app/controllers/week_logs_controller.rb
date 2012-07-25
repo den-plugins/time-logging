@@ -4,7 +4,7 @@ class WeekLogsController < ApplicationController
   before_filter :find_time_entries, :only => [:add_task, :load_tables]
   before_filter :get_project_names_and_iterations, :only => [:index, :load_tables]
   require 'json'
-  
+
   def index
     @all_project_names = ["All"] + (get_all_project_names).uniq
     @tracker_names = ["All", "Bug", "Feature", "Support", "Task"]

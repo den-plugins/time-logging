@@ -1,17 +1,22 @@
 require 'redmine'
 require 'dispatcher'
 
-Dir[File.dirname(__FILE__) + '/../app/controllers/*.rb'].each {|file| require file }
+require File.dirname(__FILE__) + '/install_assets'
 Dir[File.dirname(__FILE__) + '/../app/helpers/*.rb'].each {|file| require file }
 Dir[File.dirname(__FILE__) + '/../app/models/*.rb'].each {|file| require file }
 Dir[File.dirname(__FILE__) + '/../lib/time_logging/*.rb'].each {|file| require file }
+Dir[File.dirname(__FILE__) + '/../app/controllers/*.rb'].each {|file| require file }
+ActionController::Base.prepend_view_path File.dirname(__FILE__) + "/../app/views"
 
 $redis = Redis.new
 
 Dispatcher.to_prepare do
-  Issue.send(:include, TimeLogging::IssuePatch)
-  TimeEntry.send(:include,TimeEntryExtn)
+  puts "MAMA MIA"
 end
+
+ActionView::Base.send(:include, WeekLogsHelper)
+Issue.send(:include, TimeLogging::IssuePatch)
+TimeEntry.send(:include,TimeEntryExtn)
 
 Redmine::Plugin.register :time_logging do
   name 'Weekly time logging plugin'

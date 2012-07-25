@@ -17,7 +17,7 @@ module WeekLogsHelper
       link_to title, {:"#{type}"=> column, :"#{type}_dir" => direction}, {:class=>"#{type} #{title.downcase.gsub('/', '_')}"}
     end
   end
-
+  
   def self.add_task(proj_cache, non_proj_cache, issues, params)
     error_messages = []
     proj_consumed = {}

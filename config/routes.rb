@@ -1,6 +1,5 @@
 class << ActionController::Routing::Routes
   def load_time_logging_routes
-    original_routes = routes.dup
     draw do |map|
       map.resources :week_logs, :only => [:index, :update],
         :collection => {
@@ -11,6 +10,9 @@ class << ActionController::Routing::Routes
           :load_tables => :post
         }
     end
-    @routes += original_routes
+    additional_routes = @routes.dup
+    reload!
+    @routes += additional_routes
   end
+  ActionController::Routing::Routes.load_time_logging_routes
 end
