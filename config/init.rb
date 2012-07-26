@@ -10,10 +10,6 @@ ActionController::Base.prepend_view_path File.dirname(__FILE__) + "/../app/views
 
 $redis = Redis.new
 
-Dispatcher.to_prepare do
-  puts "MAMA MIA"
-end
-
 ActionView::Base.send(:include, WeekLogsHelper)
 Issue.send(:include, TimeLogging::IssuePatch)
 TimeEntry.send(:include,TimeEntryExtn)
@@ -22,7 +18,7 @@ Redmine::Plugin.register :time_logging do
   name 'Weekly time logging plugin'
   author 'Exist DEN Team'
   description 'Patch for new weekly time logging features'
-  version '0.0.1'
+  version '1.0.0'
 
   menu :top_menu,
        :my_time_logs,
