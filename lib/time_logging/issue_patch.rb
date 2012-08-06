@@ -1,3 +1,5 @@
+require 'json'
+
 module TimeLogging
   module IssuePatch
     def self.included(base) # :nodoc:
@@ -5,6 +7,7 @@ module TimeLogging
 
       base.class_eval do
         after_save :update_cache
+        before_destroy :destroy_cache_instance
         named_scope :assigned_to, lambda { |user|
             user ||= User.current
             { :conditions => { :assigned_to_id => user.id } }
@@ -19,7 +22,8 @@ module TimeLogging
     module InstanceMethods
       require 'json'
       def admin?
-        project.project_type.to_s.downcase[/admin|na/]
+        x = project.project_type.to_s.downcase[/admin|na/]
+        x ? x : false
       end
       
       def assigned_to_all?
@@ -65,6 +69,25 @@ module TimeLogging
         $redis.set "project_issue_ids_#{User.current.id}", JSON(proj_cache)
         $redis.set "non_project_issue_ids_#{User.current.id}", JSON(non_proj_cache)
       end
+
+      def destroy_cache_instance
+        $redis.keys.each do |key|
+          array = JSON($redis.get(key))
+          duplicate = array.dup
+          array.each do |arr_key|
+            begin
+              Issue.find(arr_key)
+              duplicate.delete(arr_key) if arr_key == self.id
+            rescue ActiveRecord::RecordNotFound
+              puts duplicate.inspect
+              duplicate.delete arr_key
+              puts duplicate.inspect
+            end
+          end
+          $redis.set key, JSON(duplicate)
+        end
+      end
+
     end
   end
 end
