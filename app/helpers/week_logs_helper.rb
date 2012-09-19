@@ -1,11 +1,19 @@
 module WeekLogsHelper
   def week_dates(date=Date.today)
     date = @week_start || date
-    date.beginning_of_week..date.end_of_week
+    end_date = date.end_of_week > Date.current ? Date.current : date.end_of_week
+    date.beginning_of_week..end_date
   end
 
-  def week_days
-    %w[mon tue wed thu fri sat sun]
+  def week_days(date=Date.today)
+    date = @week_start || date
+    end_date = date.end_of_week > Date.current ? Date.current : date.end_of_week
+    days = %w[mon tue wed thu fri sat sun]
+    ret = []
+    (date.beginning_of_week..end_date).each_with_index do |date, i|
+      ret[i] = days[i]
+    end
+    ret
   end
 
   def sortable(column, type, title=nil)

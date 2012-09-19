@@ -92,7 +92,6 @@ function createJsonObject(id) {
 };
 
 function loadAllTablesPostProcess(taskId) {
-  Week.refreshTableDates();
   Week.refreshTotalHours();
   Week.refreshTabIndices();
   if(taskId && taskId.length > 0) {

@@ -1,58 +1,52 @@
 module SaveWeekLogs
-
   def self.save(hash, user, startdate)
     start_d = startdate.beginning_of_week
-    startdate.end_of_week > Date.current ? end_d = Date.current : end_d = startdate.end_of_week
+    end_d = startdate.end_of_week > Date.current ? Date.current : startdate.end_of_week
     hash, msg = budget_computation(hash)
     error_messages =  msg
     hash.each_key do |issue|
       error_messages[issue] = []
       proj_issue = Issue.find(issue)
       project = proj_issue.project
-      member = project.members.select {|member| member.user_id == user.id} 
+      member = project.members.select {|m| m.user_id == user.id}.first
       flag = false
       if proj_issue.acctg_type
-        issue_is_billable = (proj_issue.acctg_type == Enumeration.find_by_name('Billable').id) ? true : false
+        issue_is_billable = proj_issue.acctg_type == Enumeration.find_by_name('Billable').id ? true : false
       else
         issue_is_billable = false
       end
-      if(!member.first)
-          error_messages[issue] << "User is not a member of #{project.name}."
-      end
+      
+      error_messages[issue] << "User is not a member of #{project.name}." if member.nil?
 
       hash[issue].each_key do |date|
         time_entry = TimeEntry.find(:all, :conditions => ["user_id=? AND issue_id=? AND spent_on=?", user.id, issue, Date.parse(date)])
         hours = hash[issue][date].to_hours
-        total_time_entry = TimeEntry.sum(:hours, :conditions => ["user_id=? AND spent_on=?", user.id, Date.parse(date)])
-        total_time_entry += hours
-        if(hours == 0)
-          flag = true
+        if hours == 0
+          time_entry.each {|te| te.destroy}
         else
           if project.project_type and project.project_type.scan(/^(Admin)/).flatten.present?
             flag = true
           else
-            if !issue_is_billable and member.first && member.first.allocated?(Date.parse(date))
+            if !issue_is_billable and member && member.allocated?(Date.parse(date))
               flag = true
-            elsif issue_is_billable and member.first && member.first.b_alloc?(Date.parse(date))
+            elsif issue_is_billable and member && member.b_alloc?(Date.parse(date))
               flag = true
             else
               error_messages[issue] << "User is not allocated/billable in #{project.name} on #{Date.parse(date).strftime("%m/%d/%Y")}."
               flag = false
             end
           end
-        end
-        if(hours > 0 && flag)
-          time_entry.each {|te| te.destroy} if !time_entry.empty?
-          new_time = TimeEntry.new(:project => proj_issue.project, :issue => proj_issue, :user => User.current)
-          new_time.hours = hours
-          new_time.spent_on = Date.parse(date)
-          new_time.activity_id = 9
-          new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}" 
-          unless new_time.save
-            error_messages[issue] << new_time.errors.full_messages
+          if flag
+            time_entry.each {|te| te.destroy} if !time_entry.empty?
+            new_time = TimeEntry.new(:project => proj_issue.project, :issue => proj_issue, :user => User.current)
+            new_time.hours = hours
+            new_time.spent_on = Date.parse(date)
+            new_time.activity_id = 9
+            new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}" 
+            unless new_time.save
+              error_messages[issue] << new_time.errors.full_messages
+            end
           end
-        elsif(hours == 0 && flag)
-          time_entry.each {|te| te.destroy}
         end
       end
       if error_messages[issue].empty?
@@ -62,14 +56,6 @@ module SaveWeekLogs
       end
     end
     error_messages
-  end
-  
-  def self.cleaner(hash, project_id)
-    hash.each do |id|
-      issue = Issue.find id
-      hash.delete(id) if issue.project.id == project_id
-    end
-    hash
   end
   
   def self.future_dates(hash, project, issue)

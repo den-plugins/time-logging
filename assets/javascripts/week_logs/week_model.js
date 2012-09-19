@@ -104,25 +104,6 @@ var Week = {
     }
   },
 
-  refreshTableDates: function() {
-    var start = new Date($("#js_week_start").val());
-    var end = new Date();
-    var inspect = new Date(start);
-    var i = 0;
-    var flag = false;
-    var maxDate = new Date(inspect);
-    var days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-    maxDate.setDate(maxDate.getDate()+7);
-    while(i<7) {
-      $('th.' + days[i]).html(days[i].capitalize() + '<br />' + inspect.getDate());
-      flag == true ? $('.' + days[i]).hide() : $('.' + days[i]).show();
-      if(inspect.toDateString() == end.toDateString() && flag == false)
-        flag = true;
-      i++;
-      inspect.setDate(inspect.getDate()+1);
-    }
-  },
-
   repopulateTable: function(taskId, type) {
     if(type)
       loadSpecificTable(taskId, type);
@@ -194,13 +175,16 @@ var Week = {
     $('#total_hours').attr({ 'data-rvalue': (projTotal + nonProjTotal), title: (projTotal + nonProjTotal), value: Week.formatHours(projTotal + nonProjTotal) });
 
     for(var d = 0; d < dailyTotals.length; d++) {
-      var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class").split(' ')[0];
-      if(dailyTotals[d] > 24) {
-        $("."+day).addClass("day_error");
-        flag = true;
-      }
-      else {
-        $("."+day).removeClass("day_error");
+      var day = $("#proj_table thead tr").children(':eq('+(d+3)+')').attr("class")
+      if(typeof(day) != "undefined") {
+        day = day.split(' ')[0];
+        if(dailyTotals[d] > 24) {
+          $("."+day).addClass("day_error");
+          flag = true;
+        }
+        else {
+          $("."+day).removeClass("day_error");
+        }
       }
     }
     if($(field).hasClass("day_error")) {

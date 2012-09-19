@@ -7,7 +7,8 @@ module TimeLogging
       base.send :include, InstanceMethods
 
       base.class_eval do
-        after_save :update_cache
+        after_update :update_cache
+        after_create :update_cache
         before_destroy :destroy_cache_instance
         named_scope :assigned_to, lambda { |user|
             user ||= User.current
