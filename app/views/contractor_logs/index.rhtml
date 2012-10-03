@@ -1,0 +1,22 @@
+<h2>Contractor Logs</h2>
+
+<fieldset>
+
+<div>
+  <% form_tag({}, :id => 'contractor_log_select') do %>
+    <%= label_tag "login", "Username" %>
+    <%= select "login", :login, @users %><br />
+    <%= label_tag "project", "Project Identifier" %>
+    <%= select "project", :identifier, @projects %><br />
+    <%= label_tag "hours" %>
+    <%= text_field "hours", :time_entry, :size => 1 %><br />
+    <%= label_tag "month" %>
+    <%= select "month", :month, @months %><br />
+    <%= label_tag "start_date" %>
+    <%= text_field_tag 'start_date', "", :size => 10 %> <%= calendar_for('start_date') %><br />
+
+    <%= submit_tag l(:button_apply), :id => 'submit_contractor_logs', :name => nil %>
+  <% end %>
+</div>
+
+  </fieldset>

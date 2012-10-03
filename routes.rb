@@ -6,3 +6,5 @@ map.resources :week_logs, :only => [:index, :update],
     :iter_refresh => :post,
     :load_tables => :post
   }
+
+map.resources :contractor_logs
