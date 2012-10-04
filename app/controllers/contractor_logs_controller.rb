@@ -58,7 +58,7 @@ class ContractorLogsController < ApplicationController
   private
   def require_contractor_log
     return unless require_login
-    unless User.current.login == "gcordero" || "adevera" || "gancheta" || "gmilan"
+    unless User.current.login == "gcordero" || "adevera" || "gancheta" || "gmilan" || "ggapol" || "jarriesgado"
       render_403
       return false
     end
