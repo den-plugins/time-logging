@@ -58,7 +58,14 @@ class ContractorLogsController < ApplicationController
   private
   def require_contractor_log
     return unless require_login
-    unless User.current.login == "gcordero" || "adevera" || "gancheta" || "gmilan" || "ggapol" || "jarriesgado"
+
+    den_project = Project.find_by_name("New DEN Development").members(&:user_id)
+    valid_usernames = ["gcordero"]
+    den_project.each do |v|
+      valid_usernames << User.find(v.user_id).login
+    end
+
+    unless valid_usernames.include? User.current.login
       render_403
       return false
     end
