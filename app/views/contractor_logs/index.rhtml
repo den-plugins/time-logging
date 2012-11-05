@@ -10,8 +10,9 @@
     <%= select "project", :identifier, @projects %><br />
     <%= label_tag "hours" %>
     <%= text_field "hours", :time_entry, :size => 1 %><br />
-    <%= label_tag "month" %>
-    <%= select "month", :month, @months %><br />
+    <%= label_tag "month/year" %>
+    <%= select "month", :month, @months %>
+    <%= select_year Date.today, :start_year => Date.today.year, :end_year => (Date.today - 1.year).year%><br />
     <%= label_tag "start_date" %>
     <%= text_field_tag 'start_date', "", :size => 10 %> <%= calendar_for('start_date') %><br />
 

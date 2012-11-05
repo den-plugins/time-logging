@@ -17,6 +17,7 @@ class ContractorLogsController < ApplicationController
         start_date = params_date ? params_date : Date.new
         loc = Holiday::LOCATIONS.select{|p,x| x == "#{user.location}"}.flatten[0]
         month = params[:month][:month].to_s
+        year = params[:date][:year].to_i
         member = project.members.find_by_user_id user.id
         max = params[:hours][:time_entry].to_f
         issue = project.issues.select{|i| i.subject.downcase["generic tasks"]}.first
@@ -32,7 +33,24 @@ class ContractorLogsController < ApplicationController
         end
 
           if curr_month = months.index(month.strip)
-            date = Date.new(Date.current.year, curr_month,1)
+            date = Date.new(year ? year : Date.current.year, curr_month,1)
+            (date..date.end_of_month).each do |d|
+              if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
+                current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                if current_day_hours < max
+                  h = max - current_day_hours
+                  new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
+                                           :spent_on => d, :activity_id => 9, :hours => h)
+                  new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
+                  flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                else
+                  flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                end
+              end
+            end
+          elsif start_date
+            curr_month = start_date.month
+            date = Date.new(start_date.year, curr_month,1)
             (date..date.end_of_month).each do |d|
               if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
                 current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
