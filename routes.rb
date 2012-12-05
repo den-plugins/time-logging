@@ -8,3 +8,5 @@ map.resources :week_logs, :only => [:index, :update],
   }
 
 map.resources :contractor_logs
+
+map.connect 'leaves/save_leaves', :controller => 'leave_logs', :action => 'save_leaves'
