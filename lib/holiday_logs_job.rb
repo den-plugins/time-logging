@@ -17,7 +17,7 @@ class HolidayLogsJob
 
           project_parent = member.project.parent
           project = project_parent ? project_parent.children.select { |v| v.identifier.to_s.downcase[/admin|na/] }[0] || member.project : member.project
-          issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND subject LIKE ?", support_tracker.id, "%oliday%"])
+          issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%"])
           allocations = member.resource_allocations
           holiday_location = Holiday::LOCATIONS[holiday.location]
 
@@ -31,7 +31,7 @@ class HolidayLogsJob
                 save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
               else
                 project = Project.find_by_identifier("existengradmn")
-                issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND subject LIKE ?", support_tracker.id, "%oliday%"])
+                issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%"])
                 hours_spent = 8 * alloc.resource_allocation/100
                 total_allocation =+alloc.resource_allocation
                 save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
@@ -41,7 +41,7 @@ class HolidayLogsJob
         end
         if total_allocation < 100
           project = Project.find_by_identifier("existengradmn")
-          issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND subject LIKE ?", support_tracker.id, "%oliday%"])
+          issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%"])
           diff_alloc = 100 - total_allocation
           hours_spent = 8 * diff_alloc/100
           save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
@@ -51,6 +51,8 @@ class HolidayLogsJob
     end
   end
 
+
+  private
 
   def get_location
     @locations = {}
