@@ -6,63 +6,69 @@ class HolidayLogsJob
   def perform
     holiday_job_log ||= Logger.new("#{Rails.root}/log/holiday_job.log")
     holiday = Holiday.find(:all, :conditions => ["event_date = ?", Date.today])[0]
-    if holiday && holiday.event_date.wday != 6 && holiday.event_date.wday != 7
+    if holiday && holiday.event_date.wday != 6 && holiday.event_date.wday != 0
       users = User.active.engineers
+      maximum_hours = 8
       get_location
 
       users.each do |user|
+        current_day_hours = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, holiday.event_date]).sum(&:hours).to_f
+        if current_day_hours < maximum_hours
 
-        holiday_location = Holiday::LOCATIONS[holiday.location]
+          total_allocation = 0
+          holiday_location = Holiday::LOCATIONS[holiday.location]
 
-        members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < holiday.event_date &&
-            v.resource_allocations[0].end_date > holiday.event_date &&
-            v.resource_allocations[0].resource_allocation > 0 &&
-            holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) }
+          members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date <= holiday.event_date &&
+              v.resource_allocations[0].end_date >= holiday.event_date &&
+              v.resource_allocations[0].resource_allocation > 0 &&
+              holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) }
 
-        total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
+          total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
 
-        members.each do |member|
+          members.each do |member|
 
-          allocation = member.resource_allocations[0]
+            allocation = member.resource_allocations[0]
 
-          if member.project.accounting_type == "Billable"
+            if member.project.accounting_type == "Billable"
 
-            if total_allocation == 100
-              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                timelog(holiday, holiday_job_log, user, member, allocation, "project")
-              else
+              if total_allocation == 100
+                if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                  timelog(holiday, holiday_job_log, user, member, allocation, "project")
+                else
+                  timelog(holiday, holiday_job_log, user, member, allocation, "admin")
+                end
+
+              elsif total_allocation > 100
+                if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "project")
+                else
+                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
+                end
+              end
+            else
+              if total_allocation == 100
                 timelog(holiday, holiday_job_log, user, member, allocation, "admin")
+              elsif total_allocation > 100
+                tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < holiday.event_date &&
+                    v.resource_allocations[0].end_date > holiday.event_date &&
+                    v.resource_allocations[0].resource_allocation > 0 &&
+                    holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) &&
+                    v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
+                tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
+                if tmp_total_allocation > 100
+                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
+                end
               end
+            end
 
-            elsif total_allocation > 100
-              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "project")
-              else
-                timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
-              end
-            end
-          else
-            if total_allocation == 100
-              timelog(holiday, holiday_job_log, user, member, allocation, "admin")
-            elsif total_allocation > 100
-              tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < holiday.event_date &&
-                  v.resource_allocations[0].end_date > holiday.event_date &&
-                  v.resource_allocations[0].resource_allocation > 0 &&
-                  holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) &&
-                  v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
-              tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
-              if tmp_total_allocation > 100
-                timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
-              end
-            end
           end
 
+          if total_allocation < 100
+            engineer_admin_under_allocation(total_allocation, holiday, holiday_job_log, user)
+          end
+        else
+          holiday_job_log.info("Logs for #{holiday.event_date.to_s} is already maxed to #{maximum_hours} hours for #{user.login}.")
         end
-
-        if total_allocation < 100
-          engineer_admin_under_allocation(total_allocation, holiday, holiday_job_log, user)
-        end
-
       end
     end
   end
