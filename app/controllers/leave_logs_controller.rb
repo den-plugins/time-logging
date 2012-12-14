@@ -6,67 +6,67 @@ class LeaveLogsController < ApplicationController
 
   def save_leaves
     # params : username(string), date_from(date), date_to(date), half_day(boolean)
-    #if params[:username] && params[:date_from] && params[:date_to]
-    #  @error = []
-    #  user = User.find_by_login(params[:username])
-    #  date_from = params[:date_from].to_datetime
-    #  date_to = params[:date_to].to_datetime
-    #  leaves = (date_from..date_to)
-    #  number_of_hours = params[:half_day] == 1 ? 4 : 8
+    if params[:username] && params[:date_from] && params[:date_to]
+      @error = []
+      user = User.find_by_login(params[:username])
+      date_from = params[:date_from].to_datetime
+      date_to = params[:date_to].to_datetime
+      leaves = (date_from..date_to)
+      number_of_hours = params[:half_day] == 1 ? 4 : 8
 
-    #  members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
-    #      v.resource_allocations[0].end_date > date_from &&
-    #      v.resource_allocations[0].resource_allocation > 0 }
+      members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
+          v.resource_allocations[0].end_date > date_from &&
+          v.resource_allocations[0].resource_allocation > 0 }
 
-    #  total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
+      total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
 
-    #  members.each do |member|
+      members.each do |member|
 
-    #    allocation = member.resource_allocations[0]
+        allocation = member.resource_allocations[0]
 
-    #    leaves.each do |leave|
-    #      if member.project.accounting_type == "Billable"
+        leaves.each do |leave|
+          if member.project.accounting_type == "Billable"
 
-    #        if total_allocation == 100
-    #          if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-    #            timelog(leave, number_of_hours, user, member, allocation, "project")
-    #          else
-    #            timelog(leave, number_of_hours, user, member, allocation, "admin")
-    #          end
+            if total_allocation == 100
+              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                timelog(leave, number_of_hours, user, member, allocation, "project")
+              else
+                timelog(leave, number_of_hours, user, member, allocation, "admin")
+              end
 
-    #        elsif total_allocation > 100
-    #          if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-    #            timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
-    #          else
-    #            timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
-    #          end
-    #        end
-    #      else
-    #        if total_allocation == 100
-    #          timelog(leave, number_of_hours, user, member, allocation, "admin")
-    #        elsif total_allocation > 100
-    #          tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
-    #              v.resource_allocations[0].end_date > date_from &&
-    #              v.resource_allocations[0].resource_allocation > 0 &&
-    #              v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
-    #          tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
-    #          if tmp_total_allocation > 100
-    #            timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
-    #          end
-    #        end
-    #      end
-    #    end
-    #  end
+            elsif total_allocation > 100
+              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+              else
+                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+              end
+            end
+          else
+            if total_allocation == 100
+              timelog(leave, number_of_hours, user, member, allocation, "admin")
+            elsif total_allocation > 100
+              tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
+                  v.resource_allocations[0].end_date > date_from &&
+                  v.resource_allocations[0].resource_allocation > 0 &&
+                  v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
+              tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
+              if tmp_total_allocation > 100
+                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+              end
+            end
+          end
+        end
+      end
 
-    #  leaves.each do |leave|
-    #    if total_allocation < 100
-    #      engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
-    #    end
-    #  end
-    #  render :json => {:success => @error.empty?, :error => @error}.to_json
-    #else
+      leaves.each do |leave|
+        if total_allocation < 100
+          engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
+        end
+      end
+      render :json => {:success => @error.empty?, :error => @error}.to_json
+    else
       render :json => {:success => false}.to_json
-    #end
+    end
 
   end
 
