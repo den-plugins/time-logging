@@ -18,49 +18,46 @@ class HolidayLogsJob
           total_allocation = 0
           holiday_location = Holiday::LOCATIONS[holiday.location]
 
-          members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date <= holiday.event_date &&
-              v.resource_allocations[0].end_date >= holiday.event_date &&
-              v.resource_allocations[0].resource_allocation > 0 &&
-              holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) }
-
-          total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
+          members = user.members
 
           members.each do |member|
 
-            allocation = member.resource_allocations[0]
+            allocations = member.resource_allocations
 
-            if member.project.accounting_type == "Billable"
+            allocations.each do |allocation|
+              if allocation.start_date <= holiday.event_date && allocation.end_date >= holiday.event_date &&
+                  allocation.resource_allocation > 0 &&
+                  holiday_location.downcase.include?(@locations[allocation.location].downcase)
+                total_allocation = get_total_allocation(members, holiday.event_date)
 
-              if total_allocation == 100
-                if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                  timelog(holiday, holiday_job_log, user, member, allocation, "project")
+                if member.project.accounting_type == "Billable"
+
+                  if total_allocation == 100
+                    if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                      timelog(holiday, holiday_job_log, user, member, allocation, "project")
+                    else
+                      timelog(holiday, holiday_job_log, user, member, allocation, "admin")
+                    end
+
+                  elsif total_allocation > 100
+                    if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                      timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "project")
+                    else
+                      timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
+                    end
+                  end
                 else
-                  timelog(holiday, holiday_job_log, user, member, allocation, "admin")
-                end
-
-              elsif total_allocation > 100
-                if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "project")
-                else
-                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
-                end
-              end
-            else
-              if total_allocation == 100
-                timelog(holiday, holiday_job_log, user, member, allocation, "admin")
-              elsif total_allocation > 100
-                tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < holiday.event_date &&
-                    v.resource_allocations[0].end_date > holiday.event_date &&
-                    v.resource_allocations[0].resource_allocation > 0 &&
-                    holiday_location.downcase.include?(@locations[v.resource_allocations[0].location].downcase) &&
-                    v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
-                tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
-                if tmp_total_allocation > 100
-                  timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
+                  if total_allocation == 100
+                    timelog(holiday, holiday_job_log, user, member, allocation, "admin")
+                  elsif total_allocation > 100
+                    tmp_total_allocation = get_total_allocation(members, holiday.event_date, "Billable")
+                    unless tmp_total_allocation == 100
+                      timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
+                    end
+                  end
                 end
               end
             end
-
           end
 
           if total_allocation < 100
@@ -79,14 +76,14 @@ class HolidayLogsJob
   def timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_holiday_issue(project)
-    hours_spent = 8 * allocation.resource_allocation/total_allocation
+    hours_spent = "%.2f" % (8 * allocation.resource_allocation/total_allocation).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
   def timelog(holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_holiday_issue(project)
-    hours_spent = 8 * allocation.resource_allocation/100
+    hours_spent = "%.2f" % (8 * allocation.resource_allocation/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
@@ -94,7 +91,7 @@ class HolidayLogsJob
     project = get_project("admin")
     issue = get_holiday_issue(project)
     diff_alloc = 100 - total_allocation
-    hours_spent = 8 * diff_alloc/100
+    hours_spent = "%.2f" % (8 * diff_alloc/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
@@ -133,4 +130,37 @@ class HolidayLogsJob
       end
     end
   end
+
+  def get_total_allocation(members, holiday, acctg=nil)
+    sum = 0
+    members.each do |member|
+      sum += get_alloc(member, holiday, acctg)
+    end
+    sum
+  end
+
+  def get_alloc(member, holiday, acctg=nil)
+    allocations = member.resource_allocations
+    total_allocation = 0
+    holiday_location = Holiday::LOCATIONS[holiday.location]
+    get_location
+    unless allocations.empty?
+      allocations.each do |allocation|
+        unless acctg
+          if allocation.start_date <= holiday && allocation.end_date >= holiday &&
+              allocation.resource_allocation > 0 &&
+              holiday_location.downcase.include?(@locations[allocation.location].downcase)
+            total_allocation += allocation.resource_allocation
+          end
+        else
+          if allocation.start_date <= holiday && allocation.end_date >= holiday &&
+              allocation.resource_allocation > 0 && allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
+            total_allocation += allocation.resource_allocation
+          end
+        end
+      end
+    end
+    total_allocation
+  end
+
 end
