@@ -8,50 +8,48 @@ class LeaveLogsController < ApplicationController
     # params : username(string), date_from(date), date_to(date), half_day(boolean)
     if params[:username] && params[:date_from] && params[:date_to]
       @error = []
+      @success = []
       user = User.find_by_login(params[:username])
       date_from = params[:date_from].to_datetime
       date_to = params[:date_to].to_datetime
       leaves = (date_from..date_to)
-      number_of_hours = params[:half_day] == 1 ? 4 : 8
+      number_of_hours = params[:half_day] == 1 ? 4.00 : 8.00
 
-      members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
-          v.resource_allocations[0].end_date > date_from &&
-          v.resource_allocations[0].resource_allocation > 0 }
-
-      total_allocation = members.sum { |x| x.resource_allocations[0].resource_allocation }
+      members = user.members
 
       members.each do |member|
 
-        allocation = member.resource_allocations[0]
-
         leaves.each do |leave|
-          if member.project.accounting_type == "Billable"
+          allocations = member.resource_allocations
+          allocations.each do |allocation|
+            if allocation.start_date <= leave && allocation.end_date >= leave &&
+                allocation.resource_allocation > 0
+              total_allocation = get_total_allocation(members, leave)
+              if member.project.accounting_type == "Billable"
 
-            if total_allocation == 100
-              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                timelog(leave, number_of_hours, user, member, allocation, "project")
-              else
-                timelog(leave, number_of_hours, user, member, allocation, "admin")
-              end
+                if total_allocation == 100
+                  if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                    timelog(leave, number_of_hours, user, member, allocation, "project")
+                  else
+                    timelog(leave, number_of_hours, user, member, allocation, "admin")
+                  end
 
-            elsif total_allocation > 100
-              if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                elsif total_allocation > 100
+                  if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                  else
+                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                  end
+                end
               else
-                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
-              end
-            end
-          else
-            if total_allocation == 100
-              timelog(leave, number_of_hours, user, member, allocation, "admin")
-            elsif total_allocation > 100
-              tmp_members = user.members.select { |v| !v.resource_allocations.empty? && v.resource_allocations[0].start_date < date_to &&
-                  v.resource_allocations[0].end_date > date_from &&
-                  v.resource_allocations[0].resource_allocation > 0 &&
-                  v.resource_allocations[0].resource_type == Hash[ResourceAllocation::TYPES]["Billable"] }
-              tmp_total_allocation = tmp_members.sum { |x| x.resource_allocations[0].resource_allocation }
-              if tmp_total_allocation > 100
-                timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                if total_allocation == 100
+                  timelog(leave, number_of_hours, user, member, allocation, "admin")
+                elsif total_allocation > 100
+                  tmp_total_allocation = get_total_allocation(members, leave, "Billable")
+                  unless tmp_total_allocation == 100
+                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                  end
+                end
               end
             end
           end
@@ -59,6 +57,7 @@ class LeaveLogsController < ApplicationController
       end
 
       leaves.each do |leave|
+        total_allocation = get_total_allocation(members, leave)
         if total_allocation < 100
           engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
         end
@@ -75,14 +74,14 @@ class LeaveLogsController < ApplicationController
   def timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_leave_issue(project)
-    hours_spent = number_of_hours * allocation.resource_allocation/total_allocation
+    hours_spent = "%.2f" % (number_of_hours * allocation.resource_allocation/total_allocation)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
   def timelog(leave, number_of_hours, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_leave_issue(project)
-    hours_spent = number_of_hours * allocation.resource_allocation/100
+    hours_spent = "%.2f" % (number_of_hours * allocation.resource_allocation/100)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
@@ -90,7 +89,7 @@ class LeaveLogsController < ApplicationController
     project = get_project("admin")
     issue = get_leave_issue(project)
     diff_alloc = 100 - total_allocation
-    hours_spent = number_of_hours * diff_alloc/100
+    hours_spent = "%.2f" % (number_of_hours * diff_alloc/100)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
@@ -120,5 +119,35 @@ class LeaveLogsController < ApplicationController
   def restrict_access
     head :unauthorized unless params[:access_token].eql? AUTH_TOKEN
   end
+
+  def get_total_allocation(members, leave, acctg=nil)
+    sum = 0
+    members.each do |member|
+      sum += get_alloc(member, leave, acctg)
+    end
+    sum
+  end
+
+  def get_alloc(member, leave, acctg=nil)
+    allocations = member.resource_allocations
+    total_allocation = 0
+    unless allocations.empty?
+      allocations.each do |allocation|
+        unless acctg
+          if allocation.start_date <= leave && allocation.end_date >= leave &&
+              allocation.resource_allocation > 0
+            total_allocation += allocation.resource_allocation
+          end
+        else
+          if allocation.start_date <= leave && allocation.end_date >= leave &&
+              allocation.resource_allocation > 0 && allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
+            total_allocation += allocation.resource_allocation
+          end
+        end
+      end
+    end
+    total_allocation
+  end
+
 
 end
