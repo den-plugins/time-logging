@@ -28,7 +28,7 @@ class HolidayLogsJob
               if allocation.start_date <= holiday.event_date && allocation.end_date >= holiday.event_date &&
                   allocation.resource_allocation > 0 &&
                   holiday_location.downcase.include?(@locations[allocation.location].downcase)
-                total_allocation = get_total_allocation(members, holiday.event_date)
+                total_allocation = get_total_allocation(members, holiday)
 
                 if member.project.accounting_type == "Billable"
 
@@ -50,7 +50,7 @@ class HolidayLogsJob
                   if total_allocation == 100
                     timelog(holiday, holiday_job_log, user, member, allocation, "admin")
                   elsif total_allocation > 100
-                    tmp_total_allocation = get_total_allocation(members, holiday.event_date, "Billable")
+                    tmp_total_allocation = get_total_allocation(members, holiday, "Billable")
                     unless tmp_total_allocation == 100
                       timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, "admin")
                     end
@@ -147,13 +147,13 @@ class HolidayLogsJob
     unless allocations.empty?
       allocations.each do |allocation|
         unless acctg
-          if allocation.start_date <= holiday && allocation.end_date >= holiday &&
+          if allocation.start_date <= holiday.event_date && allocation.end_date >= holiday.event_date &&
               allocation.resource_allocation > 0 &&
               holiday_location.downcase.include?(@locations[allocation.location].downcase)
             total_allocation += allocation.resource_allocation
           end
         else
-          if allocation.start_date <= holiday && allocation.end_date >= holiday &&
+          if allocation.start_date <= holiday.event_date && allocation.end_date >= holiday.event_date &&
               allocation.resource_allocation > 0 && allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
             total_allocation += allocation.resource_allocation
           end
