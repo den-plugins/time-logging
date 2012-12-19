@@ -9,57 +9,69 @@ class LeaveLogsController < ApplicationController
     if params[:username] && params[:date_from] && params[:date_to]
       @error = []
       @success = []
+      maxed_hours = false
       user = User.find_by_login(params[:username])
       date_from = params[:date_from].to_datetime
       date_to = params[:date_to].to_datetime
       leaves = (date_from..date_to)
       number_of_hours = params[:half_day] == 1 ? 4.00 : 8.00
+      maximum_hours = 8
 
-      members = user.members
+      leaves.each do |leave|
+        current_day_hours = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, leave]).sum(&:hours).to_f
+        unless current_day_hours < maximum_hours
+          maxed_hours = true
+          @error << "Logs for #{leave.to_date} is already maxed to #{maximum_hours} hours for #{user.login}."
+        end
+      end
 
-      members.each do |member|
+      unless maxed_hours
+        members = user.members
 
-        leaves.each do |leave|
-          allocations = member.resource_allocations
-          allocations.each do |allocation|
-            if allocation.start_date <= leave && allocation.end_date >= leave &&
-                allocation.resource_allocation > 0
-              total_allocation = get_total_allocation(members, leave)
-              if member.project.accounting_type == "Billable"
+        members.each do |member|
 
-                if total_allocation == 100
-                  if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                    timelog(leave, number_of_hours, user, member, allocation, "project")
-                  else
+          leaves.each do |leave|
+            allocations = member.resource_allocations
+            allocations.each do |allocation|
+              if allocation.start_date <= leave && allocation.end_date >= leave &&
+                  allocation.resource_allocation > 0
+                total_allocation = get_total_allocation(members, leave)
+                if member.project.accounting_type == "Billable"
+
+                  if total_allocation == 100
+                    if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                      timelog(leave, number_of_hours, user, member, allocation, "project")
+                    else
+                      timelog(leave, number_of_hours, user, member, allocation, "admin")
+                    end
+
+                  elsif total_allocation > 100
+                    if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                    else
+                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                    end
+                  end
+                else
+                  if total_allocation == 100
                     timelog(leave, number_of_hours, user, member, allocation, "admin")
-                  end
-
-                elsif total_allocation > 100
-                  if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
-                  else
-                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
-                  end
-                end
-              else
-                if total_allocation == 100
-                  timelog(leave, number_of_hours, user, member, allocation, "admin")
-                elsif total_allocation > 100
-                  tmp_total_allocation = get_total_allocation(members, leave, "Billable")
-                  unless tmp_total_allocation == 100
-                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                  elsif total_allocation > 100
+                    tmp_total_allocation = get_total_allocation(members, leave, "Billable")
+                    unless tmp_total_allocation == 100
+                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                    end
                   end
                 end
               end
             end
           end
         end
-      end
 
-      leaves.each do |leave|
-        total_allocation = get_total_allocation(members, leave)
-        if total_allocation < 100
-          engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
+        leaves.each do |leave|
+          total_allocation = get_total_allocation(members, leave)
+          if total_allocation < 100
+            engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
+          end
         end
       end
       render :json => {:success => @error.empty?, :error => @error}.to_json
