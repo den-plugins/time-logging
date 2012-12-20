@@ -38,7 +38,7 @@ class LeaveLogsController < ApplicationController
                 total_allocation = get_total_allocation(members, leave)
                 if member.project.accounting_type == "Billable"
 
-                  if total_allocation == 100
+                  if total_allocation == 100 || total_allocation < 100
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
                       timelog(leave, number_of_hours, user, member, allocation, "project")
                     else
@@ -53,7 +53,7 @@ class LeaveLogsController < ApplicationController
                     end
                   end
                 else
-                  if total_allocation == 100
+                  if total_allocation == 100 || total_allocation < 100
                     timelog(leave, number_of_hours, user, member, allocation, "admin")
                   elsif total_allocation > 100
                     tmp_total_allocation = get_total_allocation(members, leave, "Billable")
