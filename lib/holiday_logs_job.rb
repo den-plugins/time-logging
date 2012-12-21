@@ -63,8 +63,6 @@ class HolidayLogsJob
           if total_allocation < 100
             engineer_admin_under_allocation(total_allocation, holiday, holiday_job_log, user)
           end
-        else
-          holiday_job_log.info("Logs for #{holiday.event_date.to_s} is already maxed to #{maximum_hours} hours for #{user.login}.")
         end
       end
     end
