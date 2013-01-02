@@ -7,7 +7,7 @@ class HolidayLogsJob
     holiday_job_log ||= Logger.new("#{Rails.root}/log/holiday_job.log")
     holiday = Holiday.find(:all, :conditions => ["event_date = ?", Date.today])[0]
     if holiday && holiday.event_date.wday != 6 && holiday.event_date.wday != 0
-      users = User.active.engineers
+      users = User.all(:conditions => "status = #{User::STATUS_ACTIVE} and is_engineering = #{true} or skill = 'Sys Ad'")
       maximum_hours = 8
       get_location
 
