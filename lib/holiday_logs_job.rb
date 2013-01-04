@@ -8,12 +8,11 @@ class HolidayLogsJob
     holiday = Holiday.find(:all, :conditions => ["event_date = ?", Date.today])[0]
     if holiday && holiday.event_date.wday != 6 && holiday.event_date.wday != 0
       users = User.all(:conditions => "status = #{User::STATUS_ACTIVE} and is_engineering = #{true} or skill = 'Sys Ad'")
-      maximum_hours = 8
       get_location
 
       users.each do |user|
         current_day_hours = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, holiday.event_date]).sum(&:hours).to_f
-        if current_day_hours < maximum_hours
+        if current_day_hours > 0
 
           total_allocation = 0
           holiday_location = Holiday::LOCATIONS[holiday.location]
