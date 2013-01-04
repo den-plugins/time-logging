@@ -12,7 +12,7 @@ class HolidayLogsJob
 
       users.each do |user|
         current_day_hours = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, holiday.event_date]).sum(&:hours).to_f
-        if current_day_hours > 0
+        if current_day_hours == 0.0
 
           total_allocation = 0
           holiday_location = Holiday::LOCATIONS[holiday.location]
