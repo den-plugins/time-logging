@@ -73,14 +73,14 @@ class HolidayLogsJob
   def timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_holiday_issue(project, user)
-    hours_spent = "%.2f" % (8 * allocation.resource_allocation/total_allocation).to_f
+    hours_spent = "%.2f" % (8.00 * allocation.resource_allocation/total_allocation).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
   def timelog(holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
     issue = get_holiday_issue(project, user)
-    hours_spent = "%.2f" % (8 * allocation.resource_allocation/100).to_f
+    hours_spent = "%.2f" % (8.00 * allocation.resource_allocation/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
@@ -88,7 +88,7 @@ class HolidayLogsJob
     project = get_project("admin")
     issue = get_holiday_issue(project, user)
     diff_alloc = 100 - total_allocation
-    hours_spent = "%.2f" % (8 * diff_alloc/100).to_f
+    hours_spent = "%.2f" % (8.00 * diff_alloc/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
