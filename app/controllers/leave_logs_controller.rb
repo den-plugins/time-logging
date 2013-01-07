@@ -46,10 +46,16 @@ class LeaveLogsController < ApplicationController
                     end
 
                   elsif total_allocation > 100
+                    total_billable_allocation = get_total_allocation(members, leave, "Both")
+                    total_shadow_allocation = get_total_allocation(members, leave, "Project Shadow")
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                      if total_billable_allocation >= 100 && total_shadow_allocation > 0
+                        timelog(leave, number_of_hours, user, member, allocation, "project")
+                      else
+                        timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                      end
                     else
-                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
+                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin") unless total_billable_allocation >= 100 && total_shadow_allocation > 0
                     end
                   end
                 else
@@ -57,9 +63,7 @@ class LeaveLogsController < ApplicationController
                     timelog(leave, number_of_hours, user, member, allocation, "admin")
                   elsif total_allocation > 100
                     tmp_total_allocation = get_total_allocation(members, leave, "Billable")
-                    unless tmp_total_allocation == 100
-                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin")
-                    end
+                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin") unless tmp_total_allocation == 100
                   end
                 end
               end
@@ -120,12 +124,12 @@ class LeaveLogsController < ApplicationController
     issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%LEAVE%", task_tracker.id, "%LEAVE%"])
     if issue.nil?
       issue = Issue.new
-      issue.attributes = {"start_date"=>"2012-01-01", "description"=>"",
-                          "estimated_hours"=>"", "subject"=>"Leaves", "priority_id"=>"4",
-                          "remaining_effort"=>"", "done_ratio"=>"0", "due_date"=>"",
-                          "acctg_type"=>"10", "fixed_version_id"=>"", "status_id"=>"2",
-                          "custom_field_values"=>{"34"=>"0"}, "assigned_to_id"=>"#{user.id}",
-                          "tracker_id"=>"3", "project_id"=>"#{project.id}", "author_id"=>"#{user.id}"}
+      issue.attributes = {"start_date" => "2012-01-01", "description" => "",
+                          "estimated_hours" => "", "subject" => "Leaves", "priority_id" => "4",
+                          "remaining_effort" => "", "done_ratio" => "0", "due_date" => "",
+                          "acctg_type" => "10", "fixed_version_id" => "", "status_id" => "2",
+                          "custom_field_values" => {"34" => "0"}, "assigned_to_id" => "#{user.id}",
+                          "tracker_id" => "3", "project_id" => "#{project.id}", "author_id" => "#{user.id}"}
     end
     issue
   end
@@ -156,15 +160,18 @@ class LeaveLogsController < ApplicationController
     total_allocation = 0
     unless allocations.empty?
       allocations.each do |allocation|
-        unless acctg
-          if allocation.start_date <= leave && allocation.end_date >= leave &&
-              allocation.resource_allocation > 0
-            total_allocation += allocation.resource_allocation
-          end
-        else
-          if allocation.start_date <= leave && allocation.end_date >= leave &&
-              allocation.resource_allocation > 0 && allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
-            total_allocation += allocation.resource_allocation
+        if  allocation.start_date <= leave && allocation.end_date >= leave &&
+            allocation.resource_allocation > 0
+          case acctg
+            when "Billable"
+              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
+            when "Both"
+              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] ||
+                  allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+            when "Project Shadow"
+              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Project Shadow"]
+            else
+              total_allocation += allocation.resource_allocation
           end
         end
       end
