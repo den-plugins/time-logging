@@ -72,21 +72,21 @@ class HolidayLogsJob
 
   def timelog_over_allocation(total_allocation, holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
-    issue = get_holiday_issue(project)
+    issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (8 * allocation.resource_allocation/total_allocation).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
   def timelog(holiday, holiday_job_log, user, member, allocation, type)
     project = get_project(type, member)
-    issue = get_holiday_issue(project)
+    issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (8 * allocation.resource_allocation/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
   end
 
   def engineer_admin_under_allocation(total_allocation, holiday, holiday_job_log, user)
     project = get_project("admin")
-    issue = get_holiday_issue(project)
+    issue = get_holiday_issue(project, user)
     diff_alloc = 100 - total_allocation
     hours_spent = "%.2f" % (8 * diff_alloc/100).to_f
     save_time_entry(holiday, issue, project, user, hours_spent, holiday_job_log)
@@ -109,10 +109,20 @@ class HolidayLogsJob
     end
   end
 
-  def get_holiday_issue(project)
+  def get_holiday_issue(project, user)
     support_tracker = Tracker.find_by_name("Support")
     task_tracker = Tracker.find_by_name("Task")
-    project.issues.find(:first, :conditions => ["tracker_id = ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, task_tracker.id, "%HOLIDAY%"])
+    issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%", task_tracker.id, "%HOLIDAY%"])
+    if issue.nil?
+      issue = Issue.new
+      issue.attributes = {"start_date"=>"2012-01-01", "description"=>"",
+                          "estimated_hours"=>"", "subject"=>"Holidays", "priority_id"=>"4",
+                          "remaining_effort"=>"", "done_ratio"=>"0", "due_date"=>"",
+                          "acctg_type"=>"10", "fixed_version_id"=>"", "status_id"=>"2",
+                          "custom_field_values"=>{"34"=>"0"}, "assigned_to_id"=>"#{user.id}",
+                          "tracker_id"=>"3", "project_id"=>"#{project.id}", "author_id"=>"#{user.id}"}
+    end
+    issue
   end
 
 
