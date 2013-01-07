@@ -111,7 +111,8 @@ class HolidayLogsJob
 
   def get_holiday_issue(project)
     support_tracker = Tracker.find_by_name("Support")
-    project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%"])
+    task_tracker = Tracker.find_by_name("Task")
+    project.issues.find(:first, :conditions => ["tracker_id = ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, task_tracker.id, "%HOLIDAY%"])
   end
 
 

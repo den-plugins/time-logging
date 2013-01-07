@@ -116,7 +116,8 @@ class LeaveLogsController < ApplicationController
 
   def get_leave_issue(project)
     support_tracker = Tracker.find_by_name("Support")
-    project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%LEAVE%"])
+    task_tracker = Tracker.find_by_name("Task")
+    project.issues.find(:first, :conditions => ["tracker_id = ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, task_tracker.id, "%LEAVE%"])
   end
 
   def save_time_entry(leave, issue, project, user, hours_spent)
