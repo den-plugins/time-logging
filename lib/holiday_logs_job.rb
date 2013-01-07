@@ -39,8 +39,8 @@ class HolidayLogsJob
                     end
 
                   elsif total_allocation > 100
-                    total_billable_allocation = get_total_allocation(members, leave, "Both")
-                    total_shadow_allocation = get_total_allocation(members, leave, "Project Shadow")
+                    total_billable_allocation = get_total_allocation(members, holiday, "Both")
+                    total_shadow_allocation = get_total_allocation(members, holiday, "Project Shadow")
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
                       if total_billable_allocation >= 100 && total_shadow_allocation > 0
                         timelog(holiday, holiday_job_log, user, member, allocation, "project")
