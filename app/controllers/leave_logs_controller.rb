@@ -14,7 +14,7 @@ class LeaveLogsController < ApplicationController
       date_from = params[:date_from].to_datetime
       date_to = params[:date_to].to_datetime
       leaves = (date_from..date_to)
-      number_of_hours = params[:half_day] == 1 ? 4.00 : 8.00
+      @number_of_hours = params[:half_day] == 1 ? 4.00 : 8.00
       maximum_hours = 8
 
       leaves.each do |leave|
@@ -26,7 +26,7 @@ class LeaveLogsController < ApplicationController
       end
 
       unless maxed_hours
-        members = user.members
+        members = user.members.reject { |v| v.project.project_type != "Development" }
 
         members.each do |member|
 
@@ -35,47 +35,33 @@ class LeaveLogsController < ApplicationController
             allocations.each do |allocation|
               if allocation.start_date <= leave && allocation.end_date >= leave &&
                   allocation.resource_allocation > 0
-                total_allocation = get_total_allocation(members, leave)
+                @total_allocation = get_total_allocation(members, leave, "Billable")
                 if member.project.accounting_type == "Billable"
 
-                  if total_allocation == 100 || total_allocation < 100
+                  if @total_allocation == 100 || @total_allocation < 100
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
-                      timelog(leave, number_of_hours, user, member, allocation, "project")
-                    else
-                      timelog(leave, number_of_hours, user, member, allocation, "admin")
+                      timelog(leave, user, member, allocation)
                     end
 
-                  elsif total_allocation > 100
+                  elsif @total_allocation > 100
                     total_billable_allocation = get_total_allocation(members, leave, "Both")
                     total_shadow_allocation = get_total_allocation(members, leave, "Project Shadow")
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
                       if total_billable_allocation >= 100 && total_shadow_allocation > 0
-                        timelog(leave, number_of_hours, user, member, allocation, "project")
+                        timelog(leave, user, member, allocation)
                       else
-                        timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "project")
+                        timelog_over_allocation(leave, user, member, allocation)
                       end
-                    else
-                      timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin") unless total_billable_allocation >= 100 && total_shadow_allocation > 0
                     end
-                  end
-                else
-                  if total_allocation == 100 || total_allocation < 100
-                    timelog(leave, number_of_hours, user, member, allocation, "admin")
-                  elsif total_allocation > 100
-                    tmp_total_allocation = get_total_allocation(members, leave, "Billable")
-                    timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, "admin") unless tmp_total_allocation == 100
                   end
                 end
               end
             end
           end
         end
-
         leaves.each do |leave|
-          total_allocation = get_total_allocation(members, leave)
-          if total_allocation < 100
-            engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
-          end
+          @total_spent_time = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, leave]).sum(&:hours).to_f
+          engineer_admin_under_allocation(leave, user) if @total_spent_time < @number_of_hours
         end
       end
       render :json => {:success => @error.empty?, :error => @error}.to_json
@@ -85,32 +71,32 @@ class LeaveLogsController < ApplicationController
 
   end
 
+
   private
 
-  def timelog_over_allocation(total_allocation, leave, number_of_hours, user, member, allocation, type)
-    project = get_project(type, member)
+  def timelog_over_allocation(leave, user, member, allocation)
+    project = get_project(member)
     issue = get_leave_issue(project, user)
-    hours_spent = "%.2f" % (number_of_hours * allocation.resource_allocation/total_allocation)
+    hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/@total_allocation)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
-  def timelog(leave, number_of_hours, user, member, allocation, type)
-    project = get_project(type, member)
+  def timelog(leave, user, member, allocation)
+    project = get_project(member)
     issue = get_leave_issue(project, user)
-    hours_spent = "%.2f" % (number_of_hours * allocation.resource_allocation/100)
+    hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/100)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
-  def engineer_admin_under_allocation(total_allocation, leave, number_of_hours, user)
-    project = get_project("admin")
+  def engineer_admin_under_allocation(leave, user)
+    project = get_project()
     issue = get_leave_issue(project, user)
-    diff_alloc = 100 - total_allocation
-    hours_spent = "%.2f" % (number_of_hours * diff_alloc/100)
+    hours_spent = "%.2f" % (@number_of_hours - @total_spent_time)
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
-  def get_project(type, member=nil)
-    unless type == "project"
+  def get_project(member=nil)
+    unless member && member.project.accounting_type == "Billable"
       Project.find_by_identifier("existengradmn")
     else
       project_parent = member.project.parent
@@ -157,27 +143,30 @@ class LeaveLogsController < ApplicationController
 
   def get_alloc(member, leave, acctg=nil)
     allocations = member.resource_allocations
-    total_allocation = 0
+    allocation_total = 0
     unless allocations.empty?
       allocations.each do |allocation|
         if  allocation.start_date <= leave && allocation.end_date >= leave &&
             allocation.resource_allocation > 0
           case acctg
             when "Billable"
-              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"]
+              allocation_total += allocation.resource_allocation if allocation.resource_type == (Hash[ResourceAllocation::TYPES]["Billable"] ||
+                  allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"] ||
+                  allocation.resource_type == Hash[ResourceAllocation::TYPES]["Project Shadow"]) &&
+                  member.project.acctg_type == Enumeration.find_by_name("Billable").id
             when "Both"
-              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] ||
-                  allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
+              allocation_total += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] ||
+                  allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"] &&
+                      member.project.acctg_type == Enumeration.find_by_name("Billable").id
             when "Project Shadow"
-              total_allocation += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Project Shadow"]
+              allocation_total += allocation.resource_allocation if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Project Shadow"]
             else
-              total_allocation += allocation.resource_allocation
+              allocation_total += allocation.resource_allocation
           end
         end
       end
     end
-    total_allocation
+    allocation_total
   end
-
 
 end
