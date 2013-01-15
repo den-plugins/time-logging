@@ -4,7 +4,7 @@ class HolidayLogsJob
   run_every(Time.parse("12am") + 1.minute)
 
   def perform
-    @holiday_job_log ||= Logger.new("#{Rails.root}/log/holiday_job.log")
+    @@holiday_job_log ||= Logger.new("#{RAILS_ROOT}/log/holiday_job.log")
     @holiday = Holiday.find(:all, :conditions => ["event_date = ?", Date.today])[0]
     if @holiday && @holiday.event_date.wday != 6 && @holiday.event_date.wday != 0
       users = User.all(:conditions => "status = #{User::STATUS_ACTIVE} and is_engineering = #{true} or skill = 'Sys Ad'")
@@ -128,9 +128,9 @@ class HolidayLogsJob
                                :spent_on => @holiday.event_date, :activity_id => 9, :hours => hours_spent)
       new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
       if new_time.save
-        @holiday_job_log.info("Added #{hours_spent} hours on #{@holiday.event_date.to_s} to #{issue.subject} of project #{project} for #{user.login}")
+        @@holiday_job_log.info("Added #{hours_spent} hours on #{@holiday.event_date.to_s} to #{issue.subject} of project #{project} for #{user.login}")
       else
-        @holiday_job_log.info("Failed to add #{hours_spent} hours on #{@holiday.event_date.to_s} to #{issue.subject} of project #{project} for #{user.login} : #{new_time.errors.full_messages}")
+        @@holiday_job_log.info("Failed to add #{hours_spent} hours on #{@holiday.event_date.to_s} to #{issue.subject} of project #{project} for #{user.login} : #{new_time.errors.full_messages}")
       end
     end
   end
