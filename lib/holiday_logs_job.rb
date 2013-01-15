@@ -55,7 +55,8 @@ class HolidayLogsJob
             end
           end
           @total_spent_time = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, @holiday.event_date]).sum(&:hours).to_f
-          if (@assigned_to_billable && @total_spent_time < @number_of_hours) || holiday_location.downcase.include?(user.location.downcase)
+          if (@assigned_to_billable && @total_spent_time < @number_of_hours) ||
+              (holiday_location.downcase.include?(user.location.downcase) && @total_spent_time < @number_of_hours)
             engineer_admin_under_allocation(user)
           end
         end
