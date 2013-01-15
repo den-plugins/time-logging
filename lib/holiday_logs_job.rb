@@ -12,6 +12,7 @@ class HolidayLogsJob
 
       users.each do |user|
         current_day_hours = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, @holiday.event_date]).sum(&:hours).to_f
+        @assigned_to_billable = false
         if current_day_hours == 0.0
           @number_of_hours = 8.0
           @total_allocation = 0.0
@@ -34,6 +35,7 @@ class HolidayLogsJob
                   if @total_allocation == 100 || @total_allocation < 100
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
                       timelog(user, member, allocation)
+                      @assigned_to_billable = true
                     end
 
                   elsif @total_allocation > 100
@@ -42,6 +44,7 @@ class HolidayLogsJob
                     if allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] || allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"]
                       if total_billable_allocation >= 100 && total_shadow_allocation > 0
                         timelog(user, member, allocation)
+                        @assigned_to_billable = true
                       else
                         timelog_over_allocation(user, member, allocation)
                       end
@@ -52,7 +55,9 @@ class HolidayLogsJob
             end
           end
           @total_spent_time = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, @holiday.event_date]).sum(&:hours).to_f
-          engineer_admin_under_allocation(user) if @total_spent_time < @number_of_hours
+          if (@assigned_to_billable && @total_spent_time < @number_of_hours) || holiday_location.downcase.include?(user.location)
+            engineer_admin_under_allocation(user)
+          end
         end
       end
     end
