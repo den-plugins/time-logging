@@ -19,6 +19,7 @@ class HolidayLogsJob
           holiday_location = Holiday::LOCATIONS[@holiday.location]
 
           members = user.members.reject { |v| v.project.project_type != "Development" }
+          members_internal = user.members.reject { |v| v.project.project_type != "Development" && v.project.category != "Internal Project"}
 
           members.each do |member|
 
@@ -55,9 +56,25 @@ class HolidayLogsJob
             end
           end
           @total_spent_time = TimeEntry.find(:all, :conditions => ["user_id=? and spent_on=?", user.id, @holiday.event_date]).sum(&:hours).to_f
-          if (@assigned_to_billable && @total_spent_time < @number_of_hours) ||
-              (holiday_location.downcase.include?(user.location.downcase) && @total_spent_time < @number_of_hours)
+          if (@assigned_to_billable && @total_spent_time < @number_of_hours)
             engineer_admin_under_allocation(user)
+          else
+            @location_internal = false
+            @allocated_internal =false
+            members_internal.each do |m|
+              allocations_internal = m.resource_allocations
+              allocations_internal.each do |a|
+                @location_internal = true if a.start_date <= @holiday.event_date && a.end_date >= @holiday.event_date &&
+                    a.resource_allocation > 0 &&
+                    holiday_location.downcase.include?(@locations[a.location].downcase)
+                @allocated_internal = true if a.start_date <= @holiday.event_date && a.end_date >= @holiday.event_date &&
+                    a.resource_allocation > 0
+              end
+            end
+            if @location_internal && @total_spent_time < @number_of_hours ||
+                (@allocated_internal == false && @assigned_to_billable == false && holiday_location.downcase.include?(user.location.downcase) && @total_spent_time < @number_of_hours)
+              engineer_admin_under_allocation(user)
+            end
           end
         end
       end
