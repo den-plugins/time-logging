@@ -42,7 +42,9 @@ class WeekLogsController < ApplicationController
         when "desc" then
           params[:non_proj_dir] = "asc"
       end
-      @issues[:non_project_related] = non_proj_cache && !non_proj_cache.empty? ? Issue.find(non_proj_cache) : Issue.in_projects(@projects[:admin]).all(:order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
+      @issues[:non_project_related] = non_proj_cache && !non_proj_cache.empty? ? Issue.find(non_proj_cache) :
+          Issue.in_projects(@projects[:admin]).all(:conditions => ["upper(subject) LIKE ? OR upper(subject) LIKE ? OR upper(subject) LIKE ?", "%LEAVE%", "%HOLIDAY%", "%MEETING%"],
+                                                   :order => "#{Issue.table_name}.project_id DESC, #{Issue.table_name}.updated_on DESC")
       write_to_non_proj_cache(@issues[:non_project_related].map(&:id).uniq)
       @issues[:non_project_related] = (@issues[:non_project_related] + @time_issues[:admin]).uniq
       @issues[:non_project_related] = sort(@issues[:non_project_related], params[:non_proj], params[:non_proj_dir], params[:f_tracker], params[:f_proj_name])
