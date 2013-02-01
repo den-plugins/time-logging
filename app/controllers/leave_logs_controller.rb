@@ -14,7 +14,7 @@ class LeaveLogsController < ApplicationController
       date_from = params[:date_from].to_datetime
       date_to = params[:date_to].to_datetime
       leaves = (date_from..date_to)
-      @number_of_hours = params[:half_day] == 1 ? 4.00 : 8.00
+      @number_of_hours = params[:half_day].to_i == 1 ? 4.00 : 8.00
       maximum_hours = 8
 
       leaves.each do |leave|
