@@ -5,10 +5,11 @@ class LeaveLogsController < ApplicationController
   before_filter :restrict_access, :only => [:save_leaves]
 
   def save_leaves
-    # params : username(string), date_from(date), date_to(date), half_day(boolean)
+    # params : username(string), date_from(date), date_to(date), half_day(boolean), leave_details(string), leave_type(string)
     if params[:username] && params[:date_from] && params[:date_to]
       @error = []
       @success = []
+      @comment = params[:leave_type] && params[:leave_details] ? "EGEMS: #{params[:leave_type]} -- #{params[:leave_details]}" : "EGEMS: No leave type and details."
       maxed_hours = false
       user = User.find_by_login(params[:username])
       date_from = params[:date_from].to_datetime
@@ -124,7 +125,7 @@ class LeaveLogsController < ApplicationController
     if issue && project && user
       new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
                                :spent_on => leave, :activity_id => 9, :hours => hours_spent)
-      new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
+      new_time.comments = @comment
       @error << "#{project}:#{new_time.errors.full_messages}" unless new_time.save
     end
   end
