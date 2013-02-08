@@ -118,7 +118,7 @@ class HolidayLogsJob
       Project.find_by_identifier("existengradmn")
     else
       project_parent = member.project.parent
-      project_parent ? project_parent.children.select { |v| v.identifier.to_s.downcase[/admin|na/] }[0] || member.project : member.project
+      project_parent ? project_parent.children.select { |v| v.project_type && v.project_type.downcase[/admin|na/] && v.status == 1 }[0] || member.project : member.project
     end
   end
 
