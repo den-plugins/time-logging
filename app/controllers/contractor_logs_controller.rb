@@ -13,8 +13,10 @@ class ContractorLogsController < ApplicationController
       user = User.find_by_login(params[:login][:login])
       project = Project.find_by_identifier params[:project][:identifier]
       if user and project
-        params_date = to_date_safe(params[:start_date])
-        start_date = params_date ? params_date : Date.new
+        params_start_date = to_date_safe(params[:start_date])
+        params_end_date = to_date_safe(params[:end_date])
+        start_date = params_start_date ? params_start_date : Date.new
+        end_date = params_end_date ? params_end_date : Date.new
         loc = Holiday::LOCATIONS.select{|p,x| x == "#{user.location}"}.flatten[0]
         month = params[:month][:month].to_s
         year = params[:date][:year].to_i
@@ -49,9 +51,11 @@ class ContractorLogsController < ApplicationController
               end
             end
           elsif start_date
-            curr_month = start_date.month
-            date = Date.new(start_date.year, curr_month,1)
-            (date..date.end_of_month).each do |d|
+            start_month = start_date.month
+            end_month = end_date.month
+            date = Date.new(start_date.year, start_month,1)
+            end_date = end_date ? Date.new(end_date.year, end_month,end_date.day) : date.end_of_month
+            (date..end_date).each do |d|
               if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
                 current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
                 if current_day_hours < max
