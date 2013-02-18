@@ -9,8 +9,9 @@
     <% day = date.strftime('%a').downcase %>
     <% number = number_with_precision(hours[offset], :precision => 2) %>
     <% content_tag :td, :class => "#{day} border-cell date" do %>
-      <%= text_field_tag day, number.eql?("0.00") ? "" : number, :class => day, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
-            :title => hours[offset], :'data-rvalue' => hours[offset], :'data-issue' => issue.id, :'data-date' => "#{date.month}/#{date.day}/#{date.year}" %>
+      <% lock_tl = week_lock_tl(issue, date) %>
+      <%= text_field_tag day, number.eql?("0.00") ? "" : number, {:style => "background-color:#{lock_tl[:bg]}", :disabled => lock_tl[:disabled]  ,:class => day, :tabindex => week_counter*7 + offset + 1 + (issue.admin? ? 1000 : 0),
+                  :title => hours[offset], :'data-rvalue' => hours[offset], :'data-issue' => issue.id, :'data-date' => "#{date.month}/#{date.day}/#{date.year}"} %>
     <% end -%>
   <% end -%>
   <td class = "total_column">

@@ -205,4 +205,11 @@ module WeekLogsHelper
     end
     flag
   end
+
+  def week_lock_tl(issue, date)
+      disabled = issue.project.lock_time_logging.strftime >= "#{date.year}-#{date.month}-#{date.day}".to_date.strftime ? true : false rescue false
+      bg = disabled ? "gray" : "none"
+
+      lock_tl = {:disabled => disabled, :bg => bg}
+  end
 end
