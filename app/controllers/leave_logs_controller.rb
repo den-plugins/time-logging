@@ -123,8 +123,9 @@ class LeaveLogsController < ApplicationController
 
   def save_time_entry(leave, issue, project, user, hours_spent)
     if issue && project && user
+      activity_id = Enumeration.find_by_name("Others").id
       new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
-                               :spent_on => leave, :activity_id => 9, :hours => hours_spent)
+                               :spent_on => leave, :activity_id => activity_id, :hours => hours_spent)
       new_time.comments = @comment
       @error << "#{project}:#{new_time.errors.full_messages}" unless new_time.save
     end

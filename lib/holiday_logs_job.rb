@@ -141,8 +141,9 @@ class HolidayLogsJob
 
   def save_time_entry(issue, project, user, hours_spent)
     if issue && project && user
+      activity_id = Enumeration.find_by_name("Others").id
       new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
-                               :spent_on => @holiday.event_date, :activity_id => 9, :hours => hours_spent)
+                               :spent_on => @holiday.event_date, :activity_id => activity_id, :hours => hours_spent)
       new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
       if new_time.save
         @@holiday_job_log.info("Added #{hours_spent} hours on #{@holiday.event_date.to_s} to #{issue.subject} of project #{project} for #{user.login}")
