@@ -172,7 +172,7 @@ class HolidayLogsJob
             allocation.resource_allocation > 0
           case acctg
             when "Billable"
-              allocation_total += allocation.resource_allocation if allocation.resource_type == (Hash[ResourceAllocation::TYPES]["Billable"] ||
+              allocation_total += allocation.resource_allocation if (allocation.resource_type == Hash[ResourceAllocation::TYPES]["Billable"] ||
                   allocation.resource_type == Hash[ResourceAllocation::TYPES]["Non-billable"] ||
                   allocation.resource_type == Hash[ResourceAllocation::TYPES]["Project Shadow"]) &&
                   member.project.acctg_type == Enumeration.find_by_name("Billable").id
