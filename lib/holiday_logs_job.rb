@@ -22,7 +22,7 @@ class HolidayLogsJob
           members_internal = user.members.reject { |v| v.project.project_type != "Development" && v.project.category != "Internal Project"}
 
           members.each do |member|
-
+            @locked_hours = 0
             allocations = member.resource_allocations
 
             allocations.each do |allocation|
@@ -88,6 +88,7 @@ class HolidayLogsJob
     project = get_project(member)
     issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/@total_allocation).to_f
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
     save_time_entry(issue, project, user, hours_spent)
   end
 
@@ -95,14 +96,15 @@ class HolidayLogsJob
     project = get_project(member)
     issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/100).to_f
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
     save_time_entry(issue, project, user, hours_spent)
   end
 
   def engineer_admin_under_allocation(user)
     project = get_project()
     issue = get_holiday_issue(project, user)
-    hours_spent = "%.2f" % (@number_of_hours - @total_spent_time).to_f
-    save_time_entry(issue, project, user, hours_spent)
+    hours_spent = "%.2f" % ((@number_of_hours - @total_spent_time) - @locked_hours).to_f
+    save_time_entry(issue, project, user, hours_spent) if hours_spent.to_f > 0
   end
 
   def get_location

@@ -32,6 +32,7 @@ class LeaveLogsController < ApplicationController
         members.each do |member|
 
           leaves.each do |leave|
+            @locked_hours = 0
             allocations = member.resource_allocations
             allocations.each do |allocation|
               if allocation.start_date <= leave && allocation.end_date >= leave &&
@@ -79,6 +80,7 @@ class LeaveLogsController < ApplicationController
     project = get_project(member)
     issue = get_leave_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/@total_allocation)
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
@@ -86,14 +88,15 @@ class LeaveLogsController < ApplicationController
     project = get_project(member)
     issue = get_leave_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/100)
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
     save_time_entry(leave, issue, project, user, hours_spent)
   end
 
   def engineer_admin_under_allocation(leave, user)
     project = get_project()
     issue = get_leave_issue(project, user)
-    hours_spent = "%.2f" % (@number_of_hours - @total_spent_time)
-    save_time_entry(leave, issue, project, user, hours_spent)
+    hours_spent = "%.2f" % ((@number_of_hours - @total_spent_time) - @locked_hours)
+    save_time_entry(leave, issue, project, user, hours_spent) if hours_spent.to_f > 0
   end
 
   def get_project(member=nil)
