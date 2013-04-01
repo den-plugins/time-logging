@@ -88,7 +88,7 @@ class HolidayLogsJob
     project = get_project(member)
     issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/@total_allocation).to_f
-    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= @holiday.event_date
     save_time_entry(issue, project, user, hours_spent)
   end
 
@@ -96,7 +96,7 @@ class HolidayLogsJob
     project = get_project(member)
     issue = get_holiday_issue(project, user)
     hours_spent = "%.2f" % (@number_of_hours * allocation.resource_allocation/100).to_f
-    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= leave
+    @locked_hours += hours_spent.to_f if member.project.lock_time_logging && member.project.lock_time_logging >= @holiday.event_date
     save_time_entry(issue, project, user, hours_spent)
   end
 
