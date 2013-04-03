@@ -74,16 +74,31 @@ class ContractorLogsController < ApplicationController
             date = Date.new(start_date.year, start_month,1)
             end_date = end_date ? Date.new(end_date.year, end_month,end_date.day) : date.end_of_month
             (date..end_date).each do |d|
-              if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
-                current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
-                if current_day_hours < max
-                  h = max - current_day_hours
-                  new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
-                                           :spent_on => d, :activity_id => activity_id, :hours => h)
-                  new_time.comments = "Logged spent time. #{new_time.issue.subject}"
-                  flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
-                else
-                  flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+              if log_type == "Holidays"
+                if d >= start_date and (1..5) === d.wday and max > 0
+                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                  if current_day_hours < max
+                    h = max - current_day_hours
+                    new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
+                                             :spent_on => d, :activity_id => activity_id, :hours => h)
+                    new_time.comments = "Logged spent time. #{new_time.issue.subject}"
+                    flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                  else
+                    flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                  end
+                end
+              else
+                if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
+                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                  if current_day_hours < max
+                    h = max - current_day_hours
+                    new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
+                                             :spent_on => d, :activity_id => activity_id, :hours => h)
+                    new_time.comments = "Logged spent time. #{new_time.issue.subject}"
+                    flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                  else
+                    flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                  end
                 end
               end
             end
