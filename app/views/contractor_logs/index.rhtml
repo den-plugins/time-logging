@@ -6,13 +6,17 @@
   <% form_tag({}, :id => 'contractor_log_select') do %>
     <%= label_tag "login", "Username" %>
     <%= select "login", :login, @users %><br />
+    <%= label_tag "log_type", "Log Type" %>
+    <%= select_tag :log_type, options_for_select([ "Regular", "Holidays", "Leaves" ], "Regular") %><br />
     <%= label_tag "project", "Project Identifier" %>
     <%= select "project", :identifier, @projects %><br />
     <%= label_tag "hours" %>
     <%= text_field "hours", :time_entry, :size => 1 %><br />
+    <%= radio_button_tag 'period_type', '1', !@free_period %>
     <%= label_tag "month/year" %>
     <%= select "month", :month, @months %>
     <%= select_year Date.today, :start_year => Date.today.year, :end_year => (Date.today - 1.year).year%><br />
+    <%= radio_button_tag 'period_type', '2', @free_period %>
     <%= label_tag "start_date" %>
     <%= text_field_tag 'start_date', "", :size => 10 %> <%= calendar_for('start_date') %>
     <%= label_tag "end_date" %>

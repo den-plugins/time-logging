@@ -9,6 +9,8 @@ class ContractorLogsController < ApplicationController
   end
 
   def create
+      period_type = params[:period_type] ? params[:period_type] : 1
+      log_type = params[:log_type] ? params[:log_type] : "Regular"
       months = Date::MONTHNAMES
       user = User.find_by_login(params[:login][:login])
       project = Project.find_by_identifier params[:project][:identifier]
@@ -22,35 +24,51 @@ class ContractorLogsController < ApplicationController
         year = params[:date][:year].to_i
         member = project.members.find_by_user_id user.id
         max = params[:hours][:time_entry].to_f
-        issue = project.issues.select{|i| i.subject.downcase["generic tasks"]}.first
+        support_tracker = Tracker.find_by_name("Support")
+        task_tracker = Tracker.find_by_name("Task")
+        case log_type
+          when "Regular"
+            issue = project.issues.select{|i| i.subject.downcase["generic tasks"]}.first
+            activity_id = Enumeration.find_by_name("Development").id
+            subject = "Generic Tasks"
+          when "Holidays"
+            issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%HOLIDAY%", task_tracker.id, "%HOLIDAY%"])
+            activity_id = Enumeration.find_by_name("Others").id
+            subject = "Holidays"
+          when "Leaves"
+            issue = project.issues.find(:first, :conditions => ["tracker_id = ? AND upper(subject) LIKE ? OR tracker_id = ? AND upper(subject) LIKE ?", support_tracker.id, "%LEAVE%", task_tracker.id, "%LEAVE%"])
+            activity_id = Enumeration.find_by_name("Others").id
+            subject = "Leaves"
+        end
+
         if issue.nil?
           issue = Issue.new
           issue.attributes = {"start_date"=>"2012-01-01", "description"=>"",
-                              "estimated_hours"=>"", "subject"=>"Generic Tasks", "priority_id"=>"4",
+                              "estimated_hours"=>"", "subject"=>subject, "priority_id"=>"4",
                               "remaining_effort"=>"", "done_ratio"=>"0", "due_date"=>"",
                               "acctg_type"=>"10", "fixed_version_id"=>"", "status_id"=>"2",
                               "custom_field_values"=>{"34"=>"0"}, "assigned_to_id"=>"#{user.id}",
                               "tracker_id"=>"3", "project_id"=>"#{project.id}", "author_id"=>"#{user.id}"}
           project.trackers << issue.tracker if !project.trackers.include? issue.tracker
         end
-
-          if curr_month = months.index(month.strip)
-            date = Date.new(year ? year : Date.current.year, curr_month,1)
+        curr_month = months.index(month.strip)
+          if curr_month && period_type == "1"
+            date = Date.new( year ? year : Date.current.year, curr_month,1)
             (date..date.end_of_month).each do |d|
               if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
                 current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
                 if current_day_hours < max
                   h = max - current_day_hours
                   new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
-                                           :spent_on => d, :activity_id => 9, :hours => h)
-                  new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
+                                           :spent_on => d, :activity_id => activity_id, :hours => h)
+                  new_time.comments = "Logged spent time. #{new_time.issue.subject}"
                   flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
                 else
                   flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
                 end
               end
             end
-          elsif start_date
+          elsif start_date && period_type == "2"
             start_month = start_date.month
             end_month = end_date.month
             date = Date.new(start_date.year, start_month,1)
@@ -61,8 +79,8 @@ class ContractorLogsController < ApplicationController
                 if current_day_hours < max
                   h = max - current_day_hours
                   new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
-                                           :spent_on => d, :activity_id => 9, :hours => h)
-                  new_time.comments = "Logged spent time. Doing #{new_time.activity.name} on #{new_time.issue.subject}"
+                                           :spent_on => d, :activity_id => activity_id, :hours => h)
+                  new_time.comments = "Logged spent time. #{new_time.issue.subject}"
                   flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
                 else
                   flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
