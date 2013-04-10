@@ -1,7 +1,4 @@
 class HolidayLogsJob
-  include Delayed::ScheduledJob
-
-  run_every(Time.parse("12am") + 1.minute)
 
   def perform
     @@holiday_job_log ||= Logger.new("#{RAILS_ROOT}/log/holiday_job.log")
