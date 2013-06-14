@@ -3,8 +3,8 @@ class ContractorLogsController < ApplicationController
   before_filter :require_contractor_log
 
   def index
-    @users = User.all.sort!{|x,y|x.login <=> y.login}.collect(&:login)
-    @projects = Project.all.sort!{|x,y|x.identifier <=> y.identifier}.collect(&:identifier)
+    @users = User.active.all.sort!{|x,y|x.login <=> y.login}.collect(&:login)
+    @projects = Project.active.all.sort!{|x,y|x.identifier <=> y.identifier}.collect(&:identifier)
     @months = Date::MONTHNAMES
   end
 
@@ -114,13 +114,7 @@ class ContractorLogsController < ApplicationController
   def require_contractor_log
     return unless require_login
 
-    den_project = Project.find_by_name("New DEN Development").members(&:user_id)
-    valid_usernames = ["gcordero"]
-    den_project.each do |v|
-      valid_usernames << User.find(v.user_id).login
-    end
-
-    unless valid_usernames.include? User.current.login
+    unless User.current.time_logs_admin?
       render_403
       return false
     end
