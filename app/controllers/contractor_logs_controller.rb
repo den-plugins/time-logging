@@ -26,6 +26,10 @@ class ContractorLogsController < ApplicationController
         max = params[:hours][:time_entry].to_f
         support_tracker = Tracker.find_by_name("Support")
         task_tracker = Tracker.find_by_name("Task")
+
+        notices = []
+        errors  = []
+
         case log_type
           when "Regular"
             issue = project.issues.select{|i| i.subject.downcase["generic tasks"]}.first
@@ -62,9 +66,9 @@ class ContractorLogsController < ApplicationController
                   new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
                                            :spent_on => d, :activity_id => activity_id, :hours => h)
                   new_time.comments = "Logged spent time. #{new_time.issue.subject}"
-                  flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                  notices << "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
                 else
-                  flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                  errors << "Logs for #{d.to_s} is already maxed to #{max} hours."
                 end
               end
             end
@@ -82,9 +86,9 @@ class ContractorLogsController < ApplicationController
                     new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
                                              :spent_on => d, :activity_id => activity_id, :hours => h)
                     new_time.comments = "Logged spent time. #{new_time.issue.subject}"
-                    flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                    notices << "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
                   else
-                    flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                    errors << "Logs for #{d.to_s} is already maxed to #{max} hours."
                   end
                 end
               else
@@ -95,15 +99,17 @@ class ContractorLogsController < ApplicationController
                     new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
                                              :spent_on => d, :activity_id => activity_id, :hours => h)
                     new_time.comments = "Logged spent time. #{new_time.issue.subject}"
-                    flash[:notice] = "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
+                    notices << "Added #{h} hours on #{d.to_s} to #{issue.subject} of project #{project}" if new_time.save(false)
                   else
-                    flash[:error] = "Logs for #{d.to_s} is already maxed to #{max} hours."
+                    errors << "Logs for #{d.to_s} is already maxed to #{max} hours."
                   end
                 end
               end
             end
           end
 
+          flash[:notice] = notices.join("<br/>") unless notices.blank?
+          flash[:error]  = errors.join("<br/>") unless errors.blank?
       end
 
       redirect_to contractor_logs_path
