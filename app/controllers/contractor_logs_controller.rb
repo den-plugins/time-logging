@@ -60,7 +60,7 @@ class ContractorLogsController < ApplicationController
             date = Date.new( year ? year : Date.current.year, curr_month,1)
             (date..date.end_of_month).each do |d|
               if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
-                current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? AND spent_on=? AND project_id=?",user.id, d, project.id]).sum(&:hours).to_f
                 if current_day_hours < max
                   h = max - current_day_hours
                   new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
@@ -80,7 +80,7 @@ class ContractorLogsController < ApplicationController
             (date..end_date).each do |d|
               if log_type == "Holidays"
                 if d >= start_date and (1..5) === d.wday and max > 0
-                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? AND spent_on=? AND project_id=?",user.id, d, project.id]).sum(&:hours).to_f
                   if current_day_hours < max
                     h = max - current_day_hours
                     new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
@@ -93,7 +93,7 @@ class ContractorLogsController < ApplicationController
                 end
               else
                 if d >= start_date and (1..5) === d.wday and detect_holidays_in_week(loc, d) == 0 and max > 0
-                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? and spent_on=?",user.id, d]).sum(&:hours).to_f
+                  current_day_hours = TimeEntry.find(:all, :conditions=>["user_id=? AND spent_on=? AND project_id=?",user.id, d, project.id]).sum(&:hours).to_f
                   if current_day_hours < max
                     h = max - current_day_hours
                     new_time = TimeEntry.new(:project => project, :issue => issue, :user => user,
